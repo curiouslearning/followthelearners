@@ -1,0 +1,65 @@
+html
+  head
+    link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css')
+  body
+    .section
+      .containers
+        .container
+          form(method='POST', action='/submit')
+
+            .field
+              label.label firstName
+              .control
+                input.input(name='user[firstName]', type='text', placeholder = 'First Name')
+
+            .field
+              label.label lastName
+              .control
+                input.input(name='user[lastName]', type='text', placeholder = 'Last Name')
+
+            .field
+              label.label email
+              .control
+                input.input(name='user[email]', type='text', placeholder = 'e-mail')
+              p.help The e-mail you wish to receive reports at!
+
+            .field
+              label.label amount
+              .control
+                input.input(name='donation[amount]', type='text', placeholder = 'Donation Amount')
+
+            .field
+              label.label regions
+              .control
+                input.input(name='donation[regions]', type='text', placeholder = 'regions')
+            .control
+              button.button.is-primary Submit
+            .div#donationResponse
+        .container
+          form(method='POST', action='/viewLearners')
+            .help View all your current learners!
+
+            .field
+              label.label email
+              .control
+                input.input(name='[email]', type='text', placeholder = 'email')
+            .control
+              button.button.is-primary View Learners
+            .div#learnerResponse
+        .container
+          form(method='POST', action='/viewRegion')
+            .help See how many people are supporting a current region
+            .field
+              label.label region
+              .control
+                input.input(name='[region]', type = 'text', placeholder = 'region')
+            .control
+              button.button.is-primary Sum Donors for Region
+            .div#regionResponse
+        .container
+          form(method='POST', action'/summary')
+            .help Go to your Donor Summary
+            .control
+              input.input(name'[email]', type='text', placeholder ='email')
+            .control
+              button.button.is-primary View Summary
