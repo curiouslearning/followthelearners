@@ -2,15 +2,17 @@ const express = require('express');
 const http = require('http');
 const {BigQuery} = require ('@google-cloud/bigquery');
 const fireStoreAdmin = require('firebase-admin');
-let serviceAccount = require('/Users/ericglickman-tondreau/bin/keys/follow-the-learners-0a457fb00862.json')
+let serviceAccount = require('./keys/firestore-key.json');
 const bodyParser = require('body-parser');
 const app = express();
+
 
 fireStoreAdmin.initializeApp({
   credential: fireStoreAdmin.credential.cert(serviceAccount)
 });
 
 let firestore = fireStoreAdmin.firestore();
+app.use('/media', express.static(__dirname + '/media'));
 app.set('view engine', 'pug');
 app.use(bodyParser.urlencoded({ extended: true}));
 app.post('/submit', function(req, res){
@@ -93,6 +95,7 @@ app.post('/summary', function (req, res) {
 });
 
 app.listen(3000);
+app.get('/summary', function(req, res){res.render('summary')});
 app.get('/', function(req, res){res.render('index');});
 app.get('*', function(req, res){res.render('404');});
 
