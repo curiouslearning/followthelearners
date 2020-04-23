@@ -15,12 +15,36 @@ let firestore = fireStoreAdmin.firestore();
 app.use('/media', express.static(__dirname + '/media'));
 app.set('view engine', 'pug');
 app.use(bodyParser.urlencoded({ extended: true}));
+
 app.post('/submit', function(req, res){
   RegisterDonation(req.body.user, req.body.donation);
   res.send("Thank you for your donation!");
 });
 
 app.post('/viewRegion', function (req, res) {
+  viewRegionSupporters(req, res);
+});
+
+app.post('/viewLearners', function (req, res){
+  viewLearnersForDonor(req, res);
+});
+
+app.post('/summary', function(req, res){
+  res.redirect('/summary?email=' + req.body.email);
+              });
+app.get('/summary*', function(req, res){
+  res.render('summary');
+});
+
+app.post("/viewData", function(req, res) {
+  viewSummaryData(req,res);
+});
+app.get('/', function(req, res){res.render('index');});
+app.get('*', function(req, res){res.render('404');});
+app.listen(3000);
+
+function viewRegionSupporters(req, res)
+{
   let donors = firestore.collection('donor_master');
   let region = req.body.region;
   let campaigns = firestore.collection('campaign_master');
@@ -54,23 +78,53 @@ app.post('/viewRegion', function (req, res) {
   }).catch(err =>{
     console.log("Encountered an error fetching the donors for region! Error: ", err);
   });
-});
+}
 
-app.post('/viewLearners', function (req, res){
+function viewSummaryData(req, res)
+{
+  let donorID = ""
+  let campaignList =[];
+  let userList = [];
+  let locations = [];
+  let donor = getDonorsForEmail(req.body.email, function(snapshot){
+    donorID = snapshot.docs[0].data().donorID;
+  }).then(snapshot=>{
+    return getCampaignsForDonor(donorID, campaignList);
+  }).then(snapshot=>{
+    let promises = [];
+    campaignList.forEach(id => {
+      promises.push(getUsersForCampaign(id, userList));
+    });
+    return Promise.all(promises).then(results =>{
+      let locationPromises = [];
+      userList.forEach(doc=>
+      {
+        console.log(doc);
+        locationPromises.push(firestore.collection('location_reference').where('country', '==', doc.region).get().then(snapshot=>{
+          if(snapshot.empty){
+            console.log('no reference found');
+            return;
+          }
+          snapshot.forEach(doc=>{locations.push(doc.data().streetViews.locations[0]);});
+        }));
+      });
+      return Promise.all(locationPromises).then(results=>{
+        console.log(locations);
+        res.json({locations: locations});});
+    });
+  }).catch(err =>{console.log(err)});
+}
+
+function viewLearnersForDonor(req, res)
+{
   let donors = firestore.collection('donor_master');
   let donorEmail = req.body.email;
   let donorID = 0;
   let campaignList = [];
   let userList = [];
   console.log("searching for donor with email ", donorEmail);
-  donors.where('email', '==', donorEmail).limit(1).get().then(snapshot => {
-    if(snapshot.empty)
-    {
-      console.log("no user with this e-mail!");
-      return;
-    }
+  getDonorsForEmail(donorEmail, function(snapshot){
     donorID = snapshot.docs[0].data().donorID;
-    console.log(donorID);
     return getCampaignsForDonor(donorID, campaignList);
   }).then(snapshot =>{
     let promises = [];
@@ -88,17 +142,7 @@ app.post('/viewLearners', function (req, res){
   }).catch(err => {
       console.log("Encountered an error!", err);
     });
-});
-
-app.post('/summary', function (req, res) {
-  //connect to maps API and render summary data on a maps visualization
-});
-
-app.listen(3000);
-app.get('/summary', function(req, res){res.render('summary')});
-app.get('/', function(req, res){res.render('index');});
-app.get('*', function(req, res){res.render('404');});
-
+}
 
 function RegisterDonation (user, donation)
 {
@@ -157,7 +201,17 @@ function RegisterDonation (user, donation)
           //write donorObject to donors.json.
           //write campaignObject to campaigns.JSON.
 }
-
+  function getDonorsForEmail(email, callback){
+    console.log("searching for email ", email);
+    let donors = firestore.collection('donor_master');
+    return donors.where('email', '==', email).get().then(snapshot=>{
+      if(snapshot.empty){
+        console.log("no data for this email");
+        return;
+      }
+      callback(snapshot);
+    }).catch(err=>{console.log(err);});
+  }
 function getCampaignSourceDonor(donorID, result)
 {
   let donors = firestore.collection('donor_master');
