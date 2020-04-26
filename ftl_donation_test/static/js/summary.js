@@ -20,10 +20,7 @@ function InitializeMaps()
     var paramValue = url.searchParams.get("email");
     $(document).ready(function () 
     {
-        $.post("/viewData", 
-        {
-            email: paramValue
-        }, function (data, status) 
+        $.post("/viewData", { email: paramValue}, function (data, status) 
         {
             DisplayClusteredData(data.locations);
         });
