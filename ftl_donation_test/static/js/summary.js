@@ -36,16 +36,22 @@ function DisplayClusteredData(locationData)
 {
     var labelNumber = 0;
 
+    var bounds = new google.maps.LatLngBounds();
+
     var markers = locationData.map(function (location, i) 
     {
         let sanitizedLocation = { lat: location._latitude, lng: location._longitude };
-        return new google.maps.Marker(
-        {
-            position: sanitizedLocation,
-        });
+        var newMarker = new google.maps.Marker({ position: sanitizedLocation });
+        bounds.extend(newMarker.position);
+
+        return newMarker;
     });
+
     var markerCluster = new MarkerClusterer(mapRef, markers, 
     {
         imagePath: '/static/imgs/'
     });
+
+    mapRef.fitBounds(bounds);
+    mapRef.setZoom(mapZoomLevel);
 }
