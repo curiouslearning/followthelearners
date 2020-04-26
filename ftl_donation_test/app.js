@@ -12,7 +12,7 @@ fireStoreAdmin.initializeApp({
 });
 
 let firestore = fireStoreAdmin.firestore();
-app.use('/media', express.static(__dirname + '/media'));
+app.use('/static', express.static(__dirname + '/static'));
 app.set('view engine', 'pug');
 app.use(bodyParser.urlencoded({ extended: true}));
 
