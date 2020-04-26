@@ -1,5 +1,6 @@
 var mapRef = null;
 const mapParentElement = document.getElementById('map-display');
+const mapZoomLevel = 6;
 
 /**
  * Callback for Google Maps deferred load that initializes the map
