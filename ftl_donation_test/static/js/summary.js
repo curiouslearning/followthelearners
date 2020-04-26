@@ -2,7 +2,7 @@ var mapRef = null;
 const mapParentElement = document.getElementById('map-display');
 
 /**
- * Callback for Google Maps deferred load that initialized the map
+ * Callback for Google Maps deferred load that initializes the map
  */
 function InitializeMaps() 
 {
