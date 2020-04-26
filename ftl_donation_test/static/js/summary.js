@@ -10,13 +10,7 @@ function InitializeMaps()
     {
         mapRef = new google.maps.Map(mapParentElement, 
         {
-            zoom: 1,
             streetViewControl: false,
-            center: 
-            {
-                lat: 0,
-                lng: 0
-            }
         });
     }
     var url_string = window.location.href;
