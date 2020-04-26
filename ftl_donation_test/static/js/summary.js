@@ -11,6 +11,8 @@ function InitializeMaps()
         mapRef = new google.maps.Map(mapParentElement, 
         {
             streetViewControl: false,
+            mapTypeControl: false,
+            fullscreenControl: false
         });
     }
     var url_string = window.location.href;
