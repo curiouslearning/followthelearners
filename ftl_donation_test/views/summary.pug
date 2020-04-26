@@ -1,66 +1,16 @@
 html
     head
-      script(
-        src="https://code.jquery.com/jquery-3.5.0.min.js"
-        integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
-        crossorigin="anonymous")
+        link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css')
+        script(
+            src="https://code.jquery.com/jquery-3.5.0.min.js"
+            integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
+            crossorigin="anonymous")
 
     body
-        .container
-            #map-display(style="width: 800px; height: 500px;")
-            email
-        script.
-            var mapRef = null;
-            const mapParentElement = document.getElementById('map-display');
+        .section
+            .container.has-text-centered
+                #map-display(style="width: 100%; height: 600px;")
 
-            /**
-            * Callback for Google Maps deferred load that initialized the map
-            */
-            function InitializeMaps()
-            {
-                if (mapParentElement)
-                {
-                    mapRef = new google.maps.Map(mapParentElement,
-                    {
-                        zoom: 1,
-                        streetViewControl: false,
-                        center: { lat: 0, lng: 0}
-                    });
-                }
-                //get request
-                var url_string = window.location.href; 
-                var url = new URL(url_string);
-                var paramValue = url.searchParams.get("email");
-                $(document).ready(function() {
-                  $.post("/viewData", {email: paramValue}, function(data, status){
-                    DisplayClusteredData(data.locations);
-                  });
-                });
-                 
-            }
-
-            /**
-            * Displays the clustered location data on maps
-            * @param {Array} locationData is an array of lat, lng objects [{lat: -31.56, lng: 147.15}]
-            */
-            function DisplayClusteredData(locationData)
-            {
-                var labelNumber = 0;
-
-                var markers = locationData.map(function(location, i)
-                {
-                  let sanitizedLocation = {lat: location._latitude, lng: location._longitude};
-                    return new google.maps.Marker(
-                    {
-                        position: sanitizedLocation,
-                        label:
-                        {
-                            text: (labelNumber++).toString(),
-                            color: 'white'
-                        }
-                    });
-                });
-                var markerCluster = new MarkerClusterer(mapRef, markers, {imagePath: '/media/imgs/'});
-            }
         script(src="https://unpkg.com/@google/markerclustererplus@4.0.1/dist/markerclustererplus.min.js")
         script(async, defer, src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDEl20cTMsc72W_TasuK5PlWYIgMrzyuAU&callback=InitializeMaps")
+        script(src="/static/js/summary.js")
