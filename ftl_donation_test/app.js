@@ -47,7 +47,7 @@ function viewRegionSupporters(req, res)
 {
   let donors = firestore.collection('donor_master');
   let region = req.body.region;
-  let campaigns = firestore.collection('campaign_master');
+  let campaigns = firestore.collectionGroup('donations');
   let donorsForRegion = [];
   campaigns.where("regions", "array-contains", region).get().then(snapshot=>{
     if(snapshot.empty){
@@ -89,28 +89,26 @@ function viewSummaryData(req, res)
   let donor = getDonorsForEmail(req.body.email, function(snapshot){
     donorID = snapshot.docs[0].data().donorID;
   }).then(snapshot=>{
-    return getCampaignsForDonor(donorID, campaignList);
+    return getUsersForDonor(donorID);
   }).then(snapshot=>{
-    let promises = [];
-    campaignList.forEach(id => {
-      promises.push(getUsersForCampaign(id, userList));
+    if(snapshot.empty){
+      alert("no users for this donor!");
+      return;
+    }
+    snapshot.forEach(doc=>
+    {
+      console.log(doc);
+      locationPromises.push(firestore.collection('location_reference').where('country', '==', doc.region).get().then(snapshot=>{
+        if(snapshot.empty){
+          console.log('no reference found');
+          return;
+        }
+        snapshot.forEach(doc=>{locations.push(doc.data().streetViews.locations[0]);});
+      }));
     });
-    return Promise.all(promises).then(results =>{
-      let locationPromises = [];
-      userList.forEach(doc=>
-      {
-        console.log(doc);
-        locationPromises.push(firestore.collection('location_reference').where('country', '==', doc.region).get().then(snapshot=>{
-          if(snapshot.empty){
-            console.log('no reference found');
-            return;
-          }
-          snapshot.forEach(doc=>{locations.push(doc.data().streetViews.locations[0]);});
-        }));
-      });
-      return Promise.all(locationPromises).then(results=>{
-        console.log(locations);
-        res.json({locations: locations});});
+    return Promise.all(locationPromises).then(results=>{
+      console.log(locations);
+      res.json({locations: locations});
     });
   }).catch(err =>{console.log(err)});
 }
@@ -125,20 +123,14 @@ function viewLearnersForDonor(req, res)
   console.log("searching for donor with email ", donorEmail);
   getDonorsForEmail(donorEmail, function(snapshot){
     donorID = snapshot.docs[0].data().donorID;
-    return getCampaignsForDonor(donorID, campaignList);
   }).then(snapshot =>{
-    let promises = [];
-    campaignList.forEach(campaignID =>
-    {
-      promises.push(getUsersForCampaign(campaignID, userList));
-    });
-    return Promise.all(promises).then(snapshot =>{
-      let userCount = 0;
-      userList.forEach(user => {userCount++;});
-      console.log("donorID ", donorID, " has ", userCount, " users associated with it");
-      let response = "donorID "+donorID+" has "+userCount+" users associated with it";
-      res.send(response);
-    });
+      return getUsersForDonor(donorID).get().then(snapshot=>{
+          let userCount = 0;
+          snapshot.forEach(user => {userCount++;});
+          console.log("donorID ", donorID, " has ", userCount, " users associated with it");
+          let response = "donorID "+donorID+" has "+userCount+" users associated with it";
+          res.send(response);
+        });
   }).catch(err => {
       console.log("Encountered an error!", err);
     });
@@ -179,7 +171,7 @@ function RegisterDonation (user, donation)
       else {
           donorObject.donorID = snapshot.docs[0].data().donorID
       }
-        return firestore.collection('campaign_master').orderBy('campaignID', 'desc').get().then(snapshot =>{
+        return dbRef.collection('donations').orderBy('campaignID', 'desc').get().then(snapshot =>{
           return snapshot.size;
         });
       }).then(campaignIDTxn => {
@@ -209,6 +201,7 @@ function RegisterDonation (user, donation)
         console.log("no data for this email");
         return;
       }
+      console.log('found donor that matches this e-mail');
       callback(snapshot);
     }).catch(err=>{console.log(err);});
   }
@@ -220,9 +213,9 @@ function getCampaignSourceDonor(donorID, result)
       });
 }
 
-function getUsersForCampaign (campaignID, userList) {
-  let users = firestore.collection('user_master');
-  return users.where('sourceCampaign', '==', campaignID).get().then(
+function getUsersForCampaign (donorID, campaignID, userList) {
+  let users = firestore.collection('donor_master').document(donorID).collection("donations").document(campaignID).collection('users');
+  return users.get().then(
   snapshot => {
     if(snapshot.empty) {
       console.log("no users for campaign: ", campaignID);
@@ -238,8 +231,8 @@ function getUsersForCampaign (campaignID, userList) {
 
 function getCampaignsForDonor(donorID, campaignList)
 {
-  let campaigns = firestore.collection('campaign_master');
-  return campaigns.where('sourceDonor', '==', donorID).get().then(snapshot =>{
+  let campaigns = firestore.collection('donor_master').document(donorID).collection('donations');
+  return campaigns.get().then(snapshot =>{
     if(snapshot.empty) {
       console.log("no campaigns available");
     }
@@ -250,9 +243,15 @@ function getCampaignsForDonor(donorID, campaignList)
   });
 }
 
+function getUsersForDonor(donorID)
+{
+  let db = firestore.collectionGroup('users');
+  return db.where('sourceDonor', '==', donorID).orderBy('sourceCampaign').orderBy('dateCreated');
+}
+
 function writeDonorToFirestore(donorObject)
 {
-    let donorRef = firestore.collection('donor_master').doc();
+    let donorRef = firestore.collection('donor_master').document(donorObject.donorID);
 
     let setWithOptions = donorRef.set({
       donorID: donorObject.donorID,
@@ -265,9 +264,9 @@ function writeDonorToFirestore(donorObject)
 
 function writeCampaignToFirestore(campaignObject)
 {
-  let campaignRef = firestore.collection('campaign_master').doc();
-
-  let setWithOptions = campaignRef.set({
+  let firestore = firestore.collection('donor_master');
+  let messageRef = firestore.document(campaignObject.sourceDonor).collection("donations").document(campaignObject.campaignID);
+  let setWithOptions = messageRef.set({
     campaignID: campaignObject.campaignID,
     sourceDonor: campaignObject.sourceDonor,
     startDate: campaignObject.startDate,
@@ -276,8 +275,8 @@ function writeCampaignToFirestore(campaignObject)
   }, {merge: true});
 }
 
-function generateGooglePlayURL (appID, source, campaignID) {
-    return "https://play.google.com/store/apps/details?id=" + appID + "&referrer=utm_source%3D" + source + "%26utm_campaign%3D"+ campaignID;
+function generateGooglePlayURL (appID, source, campaignID, donorID) {
+    return "https://play.google.com/store/apps/details?id=" + appID + "&referrer=utm_source%3D" + source + "%26utm_campaign%3D"+ campaignID+'_'+donorID;
 }
 
 function getDateTime(){
