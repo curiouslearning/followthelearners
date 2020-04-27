@@ -1,5 +1,6 @@
 var mapRef = null;
 const mapParentElement = document.getElementById('map-display');
+const mapZoomLevel = 6;
 
 /**
  * Callback for Google Maps deferred load that initializes the map
@@ -10,13 +11,9 @@ function InitializeMaps()
     {
         mapRef = new google.maps.Map(mapParentElement, 
         {
-            zoom: 1,
             streetViewControl: false,
-            center: 
-            {
-                lat: 0,
-                lng: 0
-            }
+            mapTypeControl: false,
+            fullscreenControl: false
         });
     }
     var url_string = window.location.href;
@@ -24,10 +21,7 @@ function InitializeMaps()
     var paramValue = url.searchParams.get("email");
     $(document).ready(function () 
     {
-        $.post("/viewData", 
-        {
-            email: paramValue
-        }, function (data, status) 
+        $.post("/viewData", { email: paramValue}, function (data, status) 
         {
             DisplayClusteredData(data.locations);
         });
@@ -42,16 +36,22 @@ function DisplayClusteredData(locationData)
 {
     var labelNumber = 0;
 
+    var bounds = new google.maps.LatLngBounds();
+
     var markers = locationData.map(function (location, i) 
     {
         let sanitizedLocation = { lat: location._latitude, lng: location._longitude };
-        return new google.maps.Marker(
-        {
-            position: sanitizedLocation,
-        });
+        var newMarker = new google.maps.Marker({ position: sanitizedLocation });
+        bounds.extend(newMarker.position);
+
+        return newMarker;
     });
+
     var markerCluster = new MarkerClusterer(mapRef, markers, 
     {
         imagePath: '/static/imgs/'
     });
+
+    mapRef.fitBounds(bounds);
+    mapRef.setZoom(mapZoomLevel);
 }
