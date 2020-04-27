@@ -2,7 +2,7 @@ var mapRef = null;
 const mapParentElement = document.getElementById('map-display');
 
 /**
- * Callback for Google Maps deferred load that initialized the map
+ * Callback for Google Maps deferred load that initializes the map
  */
 function InitializeMaps() 
 {
@@ -44,19 +44,10 @@ function DisplayClusteredData(locationData)
 
     var markers = locationData.map(function (location, i) 
     {
-        let sanitizedLocation = 
-        {
-            lat: location._latitude,
-            lng: location._longitude
-        };
+        let sanitizedLocation = { lat: location._latitude, lng: location._longitude };
         return new google.maps.Marker(
         {
             position: sanitizedLocation,
-            label: 
-            {
-                text: (labelNumber++).toString(),
-                color: 'white'
-            }
         });
     });
     var markerCluster = new MarkerClusterer(mapRef, markers, 
