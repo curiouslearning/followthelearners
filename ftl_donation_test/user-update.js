@@ -15,12 +15,25 @@ function main() {
   async function FetchUpdatesFromBigQuery(){
     const bigQueryClient = new BigQuery();
     let db = firestore.collection('donor_master');
+    let tables =[
+      `ftm-brazilian-portuguese.analytics_161789655.events_*`,
+      `ftm-hindi.analytics_174638281.events_*`
+    ];
+    let query = ""
+    tables.forEach(table=>{
+      if(query != ""){
+        query = query.concat(" UNION ALL ");
+      }
+      let subquery = `SELECT DISTINCT user_pseudo_id, event_name, event_date, traffic_source.name, geo.continent, geo.country, geo.region FROM \``+ table+`\` WHERE _TABLE_SUFFIX = FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)) AND event_name = \"first_open\"`;
+      query = query.concat(subquery);
+    });
 
-    const query = `SELECT DISTINCT user_pseudo_id, event_name, event_date, traffic_source.name, geo.continent, geo.country, geo.region FROM \`ftm-hindi.analytics_174638281.events_*\` WHERE _TABLE_SUFFIX = FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)) AND event_name = \"first_open\"`;
+    console.log("query is: ", query);
     const options = {
       query: query,
       location: 'US',
     };
+    
     try{
       const [rows] = await bigQueryClient.query(options);
       console.log("successful Query");
