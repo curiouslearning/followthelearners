@@ -36,7 +36,7 @@ html
               button.button.is-primary Submit
             .div#donationResponse
         .container
-          form(method='POST', action='/viewLearners')
+          form(method='GET', action='/viewLearners')
             .help View all your current learners!
 
             .field
@@ -47,7 +47,7 @@ html
               button.button.is-primary View Learners
             .div#learnerResponse
         .container
-          form(method='POST', action='/viewRegion')
+          form(method='GET', action='/viewRegion')
             .help See how many people are supporting a current region
             .field
               label.label region
@@ -57,7 +57,7 @@ html
               button.button.is-primary Sum Donors for Region
             .div#regionResponse
         .container
-          form(method='POST', action='/summary')
+          form(method='GET', action='/summary')
             .help Go to your Donor Summary
             .control
               input.input(name='[email]', type = 'text', placeholder ='region')
