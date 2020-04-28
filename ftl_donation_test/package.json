@@ -1,0 +1,21 @@
+{
+  "name": "ftl_donation_test",
+  "version": "0.0.1",
+  "description": "test server for follow the learners",
+  "main": "app.js",
+  "scripts": {
+    "test": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "github.com/curiouslearning/followthelearners"
+  },
+  "keywords": [
+    "curiouslearning",
+    "ftl",
+    "server",
+    "donor"
+  ],
+  "author": "Curious Learning",
+  "license": "MIT"
+}
