@@ -33,7 +33,16 @@ let memcachedMiddleware = (duration) => {
             }
         });
     }
-    };
+};
+
+let memcachedDeleteKey = (req)=> {
+  let key = "__express__" + req.originalUrl || req.url;
+  memcached.del(key, function(err){
+    if(err){
+      console.log(err);
+    }
+  });
+}
 
 app.use('/static', express.static(__dirname + '/static'));
 app.set('view engine', 'pug');
@@ -52,12 +61,12 @@ app.get('/viewLearners',memcachedMiddleware(CACHETIMEOUT), function (req, res){
   viewLearnersForDonor(req, res);
 });
 
-app.get('/summary', function(req, res){
-  res.redirect('/summary?email=' + req.body.email);
-              });
-// app.get('/summary*', function(req, res){
-//   res.render('summary');
+// app.get('/summary', function(req, res){
+//   res.redirect('/summary?email=' + req.query.email);
 // });
+app.get('/summary*', function(req, res){
+  res.render('summary');
+});
 
 app.get("/viewData", memcachedMiddleware(CACHETIMEOUT), function(req, res) {
   viewSummaryData(req,res);
@@ -73,7 +82,7 @@ function viewRegionSupporters(req, res)
   let region = req.query.region;
   let campaigns = firestore.collectionGroup('donations');
   let donorsForRegion = [];
-  campaigns.where("regions", "array-contains", region).get().then(snapshot=>{
+  campaigns.where("region", "==", region).get().then(snapshot=>{
     if(snapshot.empty){
       console.log("no campaigns associated with region, ", region);
       return;
@@ -95,9 +104,14 @@ function viewRegionSupporters(req, res)
         {
           donorCount++;
         });
-        console.log(donorCount, " people are supporting the region of ", region);
-        let response = donorCount+" people are supporting the region of "+region;
-        res.send(response);
+
+        if(donorCount == 1){
+          console.log(donorCount, " person is supporting the region of ", region);
+           res.send( donorCount+" person is supporting the region of "+region);
+        }else{
+          console.log(donorCount, " people are supporting the region of ", region);
+          res.send(donorCount+" people are supporting the region of "+region);
+        }
       });
   }).catch(err =>{
     console.log("Encountered an error fetching the donors for region! Error: ", err);
@@ -113,16 +127,17 @@ function viewSummaryData(req, res)
   let donor = getDonorsForEmail(req.query.email, function(snapshot){
     donorID = snapshot.docs[0].data().donorID;
   }).then(snapshot=>{
-    return getUsersForDonor(donorID);
+    return getUsersForDonor(donorID).get();
   }).then(snapshot=>{
     if(snapshot.empty){
-      alert("no users for this donor!");
+      console.log("no users for this donor!");
       return;
     }
+    let locationPromises = [];
     snapshot.forEach(doc=>
     {
       console.log(doc);
-      locationPromises.push(firestore.collection('location_reference').where('country', '==', doc.region).get().then(snapshot=>{
+      locationPromises.push(firestore.collection('location_reference').where('country', '==', doc.data().region).get().then(snapshot=>{
         if(snapshot.empty){
           console.log('no reference found');
           return;
@@ -134,7 +149,7 @@ function viewSummaryData(req, res)
       console.log(locations);
       res.json({locations: locations});
     });
-  }).catch(err =>{console.log(err)});
+  }).catch(err =>{console.log(err);});
 }
 
 function viewLearnersForDonor(req, res)
@@ -151,9 +166,13 @@ function viewLearnersForDonor(req, res)
       return getUsersForDonor(donorID).get().then(snapshot=>{
           let userCount = 0;
           snapshot.forEach(user => {userCount++;});
-          console.log("donorID ", donorID, " has ", userCount, " users associated with it");
-          let response = "donorID "+donorID+" has "+userCount+" users associated with it";
-          res.send(response);
+          if(userCount == 1){
+            console.log("donorID ", donorID, " has ", userCount, " user associated with it");
+            res.send("donorID "+donorID+" has "+userCount+" user associated with it");
+          }else{
+            console.log("donorID ", donorID, " has ", userCount, " users associated with it");
+            res.send("donorID "+donorID+" has "+userCount+" users associated with it");
+          }
         });
   }).catch(err => {
       console.log("Encountered an error!", err);
@@ -270,7 +289,7 @@ function getCampaignsForDonor(donorID, campaignList)
 function getUsersForDonor(donorID)
 {
   let db = firestore.collectionGroup('users');
-  return db.where('sourceDonor', '==', donorID).orderBy('sourceCampaign').orderBy('dateCreated');
+  return db.where('sourceDonor', '==', donorID);
 }
 
 function writeDonorToFirestore(donorObject)
