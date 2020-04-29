@@ -58,3 +58,7 @@ sysinfo.txt
 # Crashlytics generated file
 crashlytics-build.properties
 
+#node dependency modules
+node_modules/*
+
+.DS_Store
