@@ -1,0 +1,12 @@
+include ./_link
+//- renders a quick summary of a campaign, with an image and 
+//- a donation link
+mixin campaign (country, imgRef, body, donateRef)
+  .campaign
+    .campaign-header
+      h1 #{country}
+    p #{body}
+    p
+     +link(imgRef, country)(class='img')
+    p
+     +link(donateRef, "Give Now")(class='btn')
