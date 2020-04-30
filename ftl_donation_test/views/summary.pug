@@ -1,3 +1,5 @@
+doctype html
+include mixins/_mapView
 html
     head
         link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css')
@@ -8,9 +10,8 @@ html
 
     body
         .section
-            .container.has-text-centered
-                #map-display(style="width: 100%; height: 600px;")
-
+          each campaign in campaigns
+            +mapView(campaign)
+        script(async, defer, src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDEl20cTMsc72W_TasuK5PlWYIgMrzyuAU&callback=InitializeMaps")
         script(src="/static/js/summary.js")
         script(src="https://unpkg.com/@google/markerclustererplus@4.0.1/dist/markerclustererplus.min.js")
-        script(async, defer, src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDEl20cTMsc72W_TasuK5PlWYIgMrzyuAU&callback=InitializeMaps")
