@@ -81,7 +81,8 @@ function DisplayClusteredData(locationData)
                 sanitizedLocation.lat,
                 sanitizedLocation.lng,
                 180));
-            mapsSharedInfoWindow.open(mapRef, newMarker);
+            mapsSharedInfoWindow.open(mapRef);
+            mapsSharedInfoWindow.setPosition(newMarker.getPosition());
         });
 
         return newMarker;
@@ -93,9 +94,9 @@ function DisplayClusteredData(locationData)
         zoomOnClick: false
     });
 
-    markerCluster.addListener("clusterclick", function()
+    markerCluster.addListener("clusterclick", function(cluster)
     {
-        var currentCluster = markerCluster.getMarkers();
+        var currentCluster = cluster.getMarkers();
         console.log(currentCluster);
         if (currentCluster.length === 0)
         {
@@ -104,14 +105,19 @@ function DisplayClusteredData(locationData)
         else
         {
             var firstMarker = currentCluster[0];
-            // mapsSharedInfoWindow.setContent(constructInfoWindowContent(
-            //     "Australia",
-            //     "Sydney",
-            //     "Random Fact. Random Fact. Random Fact. Random Fact. Random Fact. Random Fact. Random Fact.",
-            //     sanitizedLocation.lat,
-            //     sanitizedLocation.lng,
-            //     180));
-            // mapsSharedInfoWindow.open(mapRef, newMarker);
+            console.log(firstMarker);
+            console.log(firstMarker.getPosition().lat());
+            console.log(firstMarker.getPosition().lng());
+            var content = constructInfoWindowContent(
+                "Australia",
+                "Sydney",
+                "Random Fact. Random Fact. Random Fact. Random Fact. Random Fact. Random Fact. Random Fact.",
+                firstMarker.getPosition().lat(),
+                firstMarker.getPosition().lng(),
+                180);
+            mapsSharedInfoWindow.setContent(content);
+            mapsSharedInfoWindow.open(mapRef);
+            mapsSharedInfoWindow.setPosition(firstMarker.getPosition());
         }
     });
 
