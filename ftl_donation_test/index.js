@@ -91,7 +91,9 @@ app.get('/summary*', function (req, res){
 app.get('/viewData', function(req, res){
   console.log('searching for learners for donor ', req.query.email, 'in region ', req.query.campaign)
   let learnerList = [];
-  getDonorID(req.query.email).then(donorID=>{
+  let donorID =""
+  getDonorID(req.query.email).then(result=>{
+    donorID = result;
     console.log("found donorID: ", donorID);
     return getLearnersForRegion(donorID, req.query.campaign);
   }).then(learners=>{
@@ -99,7 +101,7 @@ app.get('/viewData', function(req, res){
       res.end();
     }else{
       learnerList = learners
-      return getLocDataForRegion(req.query.campaign);
+      return getLocDataForRegion(donorID, req.query.campaign);
     }
   }).then(locData=>{
     res.json({learners: learnerList, locations: locData});
@@ -122,27 +124,32 @@ function getDonorID(email)
     }).catch(err=>{console.error(err)});
 }
 
-function getLocDataForRegion(region)
+function getLocDataForRegion(donorID, region)
 {
-  let dbRef = firestore.collection('loc_ref');
-  return dbRef.where('regions', 'array-contains', region).get().then(snapshot=>{
-    if(snapshot.empty){console.log("empty region: ", region); return [];}
-    let locData = [];
-    snapshot.forEach(doc=>{
-      let data = doc.data();
-      data.regions.forEach(region=>{
-        if(region.locations != undefined){
-          region.locations.forEach(location=>{
+  if(donorID === undefined || region === undefined){console.error("donor and region cannot be undefined!"); return[];}
+  else{console.log("donor: ", donorID, " , region: ", region);}
+  let locRef = firestore.collection('loc_ref');
+  let dbRef = firestore.collection('donor_master').doc(donorID);
+  let donation = dbRef.collection('donations').doc(region);
+  return donation.get().then(doc =>{
+    if(!doc.exists){return [];}
+    let data = doc.data();
+    console.log("country is: ", data.region);
+    return locRef.doc(data.region).get().then(doc=>{
+      if(!doc.exists){return [];}
+      let regions = doc.data().regions;
+      let coords = [];
+      regions.forEach(region=>{
+        console.log('region is: ', region);
+        if(typeof region != 'string'){
+          region.streetViews.locations.forEach(location=>{
             console.log("location: ", location)
-            locData.push({
-              lat: location[0],
-              lng: location[1]
-            });
+            coords.push({lat: location._latitude, lng: location._longitude});
           });
         }
       });
+      return coords;
     });
-    return locData;
   }).catch(err=>{console.error(err)});
 }
 
