@@ -58,8 +58,8 @@ function DisplayClusteredData(locationData, mapRef)
                 "Australia",
                 "Sydney",
                 "Random Fact. Random Fact. Random Fact. Random Fact. Random Fact. Random Fact. Random Fact.",
-                sanitizedLocation.lat,
-                sanitizedLocation.lng,
+                location.lat,
+                location.lng,
                 180));
             mapsSharedInfoWindow.open(mapRef, newMarker);
         });
