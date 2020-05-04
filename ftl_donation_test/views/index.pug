@@ -10,10 +10,12 @@ html
             ul.list
               each campaign in campaigns
                 +campaign(campaign.country, campaign.imgRef, campaign.body, campaign.donateRef)
+        br
         .container
           form(method='GET', action='/summary')
             .help Go to your Donor Summary
             .control
-              input.input(name='[e]', type = 'text', title="Email" placeholder ='user@mail.com')
+              label(for='[e]') E-mail
+              input.input(name='[e]', type = 'text', title="Email" placeholder ='user@gmail.com')
             .control
               button.button.is-primary View Summary
