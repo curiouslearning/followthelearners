@@ -1,6 +1,6 @@
-var mapRef = null;
-const mapParentElement = document.getElementById('map-display');
-const mapZoomLevel = 5;
+var mapRefs = [];
+const mapParentElement = 'map-display';
+const staticMapZoomLevel = 2;
 let mapsSharedInfoWindow = null;
 
 /**
@@ -8,83 +8,82 @@ let mapsSharedInfoWindow = null;
  */
 function InitializeMaps()
 {
-    if (mapParentElement)
+    var targetEmail = getURLParam('[e]');
+    if (targetEmail)
     {
-        mapRef = new google.maps.Map(mapParentElement,
-        {
-            streetViewControl: false,
-            mapTypeControl: false,
-            fullscreenControl: false
-        });
-        mapsSharedInfoWindow = new google.maps.InfoWindow();
+        console.log("Target E-mail: ", targetEmail);
     }
-    var url_string = window.location.href;
-    var url = new URL(url_string);
-    var paramValue = url.searchParams.get('[email]');
-    console.log("found email: ", paramValue);
-    DisplayClusteredData([
-        {lat: -31.563910, lng: 147.154312},
-        {lat: -33.718234, lng: 150.363181},
-        {lat: -33.727111, lng: 150.371124},
-        {lat: -33.848588, lng: 151.209834},
-        {lat: -33.851702, lng: 151.216968},
-        {lat: -34.671264, lng: 150.863657},
-        {lat: -35.304724, lng: 148.662905},
-        {lat: -36.817685, lng: 175.699196},
-        {lat: -36.828611, lng: 175.790222},
-        {lat: -37.750000, lng: 145.116667},
-        {lat: -37.759859, lng: 145.128708},
-        {lat: -37.765015, lng: 145.133858},
-        {lat: -37.770104, lng: 145.143299},
-        {lat: -37.773700, lng: 145.145187},
-        {lat: -37.774785, lng: 145.137978},
-        {lat: -37.819616, lng: 144.968119},
-        {lat: -38.330766, lng: 144.695692},
-        {lat: -39.927193, lng: 175.053218},
-        {lat: -41.330162, lng: 174.865694},
-        {lat: -42.734358, lng: 147.439506},
-        {lat: -42.734358, lng: 147.501315},
-        {lat: -42.735258, lng: 147.438000},
-        {lat: -43.999792, lng: 170.463352}
-      ]);
-    // $(document).ready(function ()
-    // {
-    //     $.get("/viewData", { email: paramValue}, function (data, status)
-    //     {
-    //         DisplayClusteredData(data.locations);
-    //     });
-    // });
+    else
+    {
+        window.location.href = "/";
+    }
+
+    let mapParents = document.getElementsByClassName(mapParentElement);
+
+    if (mapParents != [])
+    {
+      for (var i = 0; i < mapParents.length; i++) {
+        let campaign = $(mapParents[i]).attr('id');
+        console.log("creating map for ", campaign)
+        mapRefs.push(new google.maps.Map(mapParents[i], {
+            streetViewControl: false,
+            mapTypeControl: false
+        }));
+        let mapRef = mapRefs[i]
+        mapsSharedInfoWindow = new google.maps.InfoWindow();
+
+        $(document).ready(function ()
+        {
+            $.get("/viewData", { email: targetEmail, campaign: campaign}, function (data, status)
+            {
+                DisplayClusteredData(data.locations, mapRef);
+            });
+        });
+      }
+    }
 }
 
 /**
  * Displays the clustered location data on maps
  * @param {Array} locationData is an array of lat, lng objects [{lat: -31.56, lng: 147.15}]
  */
-function DisplayClusteredData(locationData)
+function DisplayClusteredData(locationData, mapRef)
 {
-    var labelNumber = 0;
+    console.log("locdata: " + locationData);
+    if (locationData.length == 0)
+    {
+        var center = new google.maps.LatLng(0, 0);
+        mapRef.setCenter(center);
+        mapRef.setZoom(staticMapZoomLevel);
+        return;
+    }
 
     var bounds = new google.maps.LatLngBounds();
 
     var markers = locationData.map(function (location, i)
     {
-        let sanitizedLocation = { lat: location.lat, lng: location.lng };
-        var newMarker = new google.maps.Marker({ position: sanitizedLocation });
-        bounds.extend(newMarker.position);
-
-        newMarker.addListener('click', function()
+        if (location.hasOwnProperty('lat') && !isNaN(location.lat))
         {
-            mapsSharedInfoWindow.setContent(constructInfoWindowContent(
-                "Australia",
-                "Sydney",
-                "Random Fact. Random Fact. Random Fact. Random Fact. Random Fact. Random Fact. Random Fact.",
-                sanitizedLocation.lat,
-                sanitizedLocation.lng,
-                180));
-            mapsSharedInfoWindow.open(mapRef);
-            mapsSharedInfoWindow.setPosition(newMarker.getPosition());
-        });
-
+            var newMarker = new google.maps.Marker({ position: location });
+            bounds.extend(newMarker.position);
+    
+            newMarker.addListener('click', function()
+            {
+                mapsSharedInfoWindow.setContent(constructInfoWindowContent(
+                    "Australia",
+                    "Sydney",
+                    "Random Fact. Random Fact. Random Fact. Random Fact. Random Fact. Random Fact. Random Fact.",
+                    location.lat,
+                    location.lng,
+                    180));
+                mapsSharedInfoWindow.open(mapRef);
+                mapsSharedInfoWindow.setPosition(newMarker.getPosition());
+            });
+    
+            return newMarker;
+        }
+        var newMarker = new google.maps.Marker({position: {lat: 0, lng: 0}});
+        bounds.extend(newMarker.position);
         return newMarker;
     });
 
@@ -98,32 +97,25 @@ function DisplayClusteredData(locationData)
     {
         var currentCluster = cluster.getMarkers();
         console.log(currentCluster);
-        if (currentCluster.length === 0)
+        if (currentCluster.length > 0)
         {
-            console.log("There are no markers in this cluster, how did we get here.");
-        }
-        else
-        {
-            var firstMarker = currentCluster[0];
-            console.log(firstMarker);
-            console.log(firstMarker.getPosition().lat());
-            console.log(firstMarker.getPosition().lng());
+            var randomMarkerIndex = Math.floor((Math.random() * currentCluster.length));
+            console.log(randomMarkerIndex);
+            var randomMarker = currentCluster[randomMarkerIndex];
             var content = constructInfoWindowContent(
                 "Australia",
                 "Sydney",
                 "Random Fact. Random Fact. Random Fact. Random Fact. Random Fact. Random Fact. Random Fact.",
-                firstMarker.getPosition().lat(),
-                firstMarker.getPosition().lng(),
+                randomMarker.getPosition().lat(),
+                randomMarker.getPosition().lng(),
                 180);
             mapsSharedInfoWindow.setContent(content);
             mapsSharedInfoWindow.open(mapRef);
-            mapsSharedInfoWindow.setPosition(firstMarker.getPosition());
+            mapsSharedInfoWindow.setPosition(randomMarker.getPosition());
         }
     });
-
     mapRef.fitBounds(bounds);
     mapRef.panToBounds(bounds);
-    // mapRef.setZoom(mapZoomLevel);
 }
 
 function constructInfoWindowContent(country, region, randomFact, latitude, longitude, heading)
@@ -139,4 +131,11 @@ function constructInfoWindowContent(country, region, randomFact, latitude, longi
                 "<input type='hidden' name='heading' value='" + heading + "'></input>" +
                 "<button type='submit' class='button is-link is-outlined '> Take Me There </button></form></div>";
     return contentString;
+}
+
+function getURLParam(paramKey)
+{
+    var url_string = window.location.href;
+    var url = new URL(url_string);
+    return url.searchParams.get(paramKey);
 }
