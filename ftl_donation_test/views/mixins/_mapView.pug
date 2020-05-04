@@ -1,0 +1,7 @@
+mixin mapView(campaign)
+  h1 #{campaign.data.region}
+  .container
+    p Donation: $#{campaign.data.amount}
+    p You have reached #{campaign.data.userCount} learners
+  .container.has-text-centered
+    .map-display(id= campaign.name style="width: 100%; height: 600px;")

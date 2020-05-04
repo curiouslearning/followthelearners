@@ -53,6 +53,28 @@ app.post('/submit', function(req, res){
   res.send("Thank you for your donation!");
 });
 
+app.get('activeCampaigns', memcachedMiddleware(CACHETIMEOUT), function(req,res){
+  let dbRef = firestore.collection('loc_ref');
+  dbRef.get().then(snapshot=>{
+      if(snapshot.empty){
+        console.log("no active campaigns");
+        return;
+      }
+      let campaigns = [];
+      snapshot.forEach(doc => {
+        let data = doc.data();
+        campaigns.push({
+          country: data.country,
+          body: data.summary,
+          imgRef: data.headerImg,
+          donateRef: data.donationLink
+        });
+      });
+      res.json(campaigns);
+      res.end();
+  }).catch(err=>{console.log(err)});
+});
+
 app.get('/viewRegion', memcachedMiddleware(CACHETIMEOUT), function (req, res) {
   viewRegionSupporters(req, res);
 });
