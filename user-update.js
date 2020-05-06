@@ -38,61 +38,112 @@ function main() {
     try{
       const [rows] = await bigQueryClient.query(options);
       console.log("successful Query");
+      let campaigns = {};
       rows.forEach(row=>{
-        let parseSource = (row)=>{
-          if (row.name != null) {
-            if(row.name.includes('_'))
-            {
-              let parsedName = row.name.split('_');
-              return {donorID: parsedName[1], campaignID: parsedName[2]};
-            }
-            return {donorID: "CuriousLearning", campaignID: row.name};
-          } else {
-            return {donorID: "CuriousLearning", campaignID: "(default)"};
-        }};
-        let source = parseSource(row);
-        console.log(source);
-
-        //parse traffic_source.name and get campaignID and source donor
-        let userRef = db.doc(source.donorID).collection('donations').doc(source.campaignID).collection('users').doc(row.user_pseudo_id);
-        userRef.set({
-          userID: row.user_pseudo_id,
-          dateCreated: row.event_date,
-          sourceDonor: source.donorID,
-          sourceCampaign: source.campaignID,
-          region: [row.region],
-          learnerLevel: row.event_name,
-        },{merge:true});
-        if(row.country != null && row.country != ""){
-          let locationRef = firestore.collection("loc_ref").doc(row.country);
-          locationRef.get().then(doc=>{
-            if(doc.exists){
-              let regions = doc.data().regions;
-              return regions;
-            }
-            return [];
-          }).then(regions=>{
-            if(regions.empty){
-              regions = [row.region];
-            }
-            else if(!regions.includes(row.region)){
-              regions.push(row.region);
-            }
-            locationRef.set({
-              country: row.country,
-              continent: row.continent,
-              regions: regions,
-            },{merge: true});
-          }).catch(err=>{
-            console.log(err);
-          });
+        if(row.name != null && row.name != undefined && row.name != "" && row.name != '(direct)')
+        {
+          if(!campaigns.hasOwnProperty(row.name)){
+            campaigns[row.name] = {users: []};
+          }
+          campaigns[row.name].users.push(CreateUser(row))
+          InsertLocation(row);
         }
       });
+      for (property in campaigns){
+        let dbRef = firestore.collectionGroup('donations');
+        let donors = {};
+        let totalSpend = 0;
+        dbRef.where('campaignID', '==', property).get().then(snapshot=>{
+          if(snapshot.empty) {}
+          snapshot.forEach(doc=>{
+            let data = doc.data();
+            totalSpend += data.amount;
+            if (!donors.hasOwnProperty(data.sourceDonor)){
+              donors[data.sourceDonor]= {amount: data.amount};
+            }else{
+              donors[data.sourceDonor].amount += data.amount;
+            }
+          });
+          for (donor in donors) {
+            let contributionFraction = donors[donor].amount/totalSpend;
+            let usersForDonor = campaigns[property].users.length * contributionFraction;
+            let userList = [];
+            let count = 0;
+            while (count <= usersForDonor)
+            {
+              userList.push(campaigns[property].users[0]);
+              campaigns[property].users.shift();
+              count++;
+            }
+            InsertUsers(donor, userList);
+          }
+        }).catch(err=>{console.error(err);});
+      }
     }catch(err){
       console.error('ERROR', err);
     }
   }
   FetchUpdatesFromBigQuery();
+}
+
+
+function InsertLocation(row)
+{
+  if(row.country != null && row.country != ""){
+    let locationRef = firestore.collection("loc_ref").doc(row.country);
+    locationRef.get().then(doc=>{
+      if(doc.exists){
+        let regions = doc.data().regions;
+        return regions;
+      }
+      return [];
+    }).then(regions=>{
+      if(regions.empty){
+        regions = [row.region];
+      }
+      else if(!regions.includes(row.region)){
+        regions.push(row.region);
+      }
+      locationRef.set({
+        country: row.country,
+        continent: row.continent,
+        regions: regions,
+      },{merge: true});
+    }).catch(err=>{
+      console.log(err);
+    });
+  }
+}
+
+function CreateUser (row)
+{
+  let user = {
+    userID: row.user_pseudo_id,
+    dateCreated: row.event_date,
+    sourceCampaign: row.name,
+    region: row.region,
+    learnerLevel: row.event_name,
+  };
+  return user;
+}
+
+function InsertUsers (donor, userList)
+{
+  let donorRef = firestore.collection('donor_master').doc(donor);
+  userList.forEach(user => {
+    if(user != undefined){
+      console.log("User: ", user.userID);
+      let userRef = donorRef.collection('donations').doc(user.sourceCampaign).collection('users').doc(user.userID);
+      userRef.set({
+        userID: user.userID,
+        dateCreated: user.dateCreated,
+        sourceDonor: donor,
+        sourceCampaign: user.sourceCampaign,
+        region: user.region,
+        learnerLevel: user.learnerLevel
+      },{merge:true});
+    }
+  });
 }
 
 function getCampaignSourceDonor(donorID, result)
