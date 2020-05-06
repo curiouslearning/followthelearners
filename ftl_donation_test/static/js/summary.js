@@ -1,7 +1,11 @@
 var mapRefs = [];
-const mapParentElement = 'map-display';
 const staticMapZoomLevel = 2;
 let mapsSharedInfoWindow = null;
+const mapParentElement = 'map-display';
+let campaignSelectElement = null;
+
+let tabButtonsParent = null;
+let tabsParent = null;
 
 /**
  * Callback for Google Maps deferred load that initializes the map
@@ -19,6 +23,9 @@ function InitializeMaps()
     }
 
     let mapParents = document.getElementsByClassName(mapParentElement);
+    campaignSelectElement = document.getElementById('campaignSelection');
+    tabButtonsParent = document.getElementById('tab-buttons');
+    tabsParent = document.getElementById('tabs-parent');
 
     if (mapParents != [])
     {
@@ -40,6 +47,41 @@ function InitializeMaps()
             });
         });
       }
+    }
+}
+
+function ToggleTab(tabIndex)
+{
+    if (tabButtonsParent && tabsParent)
+    {
+        var tabButtons = tabButtonsParent.children;
+        var tabs = tabsParent.children;
+        if (tabButtons.length !== tabs.length)
+        {
+            console.log("Number of tab buttons and tabs are not equal.");
+            return;
+        }
+        for (var i = 0; i < tabButtons.length; i++)
+        {
+            if (i === tabIndex)
+            {
+                tabButtons[i].classList.add('is-dark');
+                tabs[i].classList.remove('is-hidden');
+            }
+            else
+            {
+                tabButtons[i].classList.remove('is-dark');
+                tabs[i].classList.add('is-hidden');
+            }
+        }
+    }
+}
+
+function OnCampaignSelectionChanged()
+{
+    if (campaignSelectElement)
+    {
+        console.log(campaignSelectElement.value);
     }
 }
 
@@ -70,9 +112,9 @@ function DisplayClusteredData(locationData, mapRef)
             newMarker.addListener('click', function()
             {
                 mapsSharedInfoWindow.setContent(constructInfoWindowContent(
-                    "Australia",
-                    "Sydney",
-                    "Random Fact. Random Fact. Random Fact. Random Fact. Random Fact. Random Fact. Random Fact.",
+                    "India",
+                    "Bihar",
+                    "Fact about Bihar.",
                     location.lat,
                     location.lng,
                     180));
@@ -103,9 +145,9 @@ function DisplayClusteredData(locationData, mapRef)
             console.log(randomMarkerIndex);
             var randomMarker = currentCluster[randomMarkerIndex];
             var content = constructInfoWindowContent(
-                "Australia",
-                "Sydney",
-                "Random Fact. Random Fact. Random Fact. Random Fact. Random Fact. Random Fact. Random Fact.",
+                "India",
+                "Bihar",
+                "Fact about Bihar.",
                 randomMarker.getPosition().lat(),
                 randomMarker.getPosition().lng(),
                 180);
