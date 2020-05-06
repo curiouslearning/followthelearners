@@ -1,18 +1,32 @@
 var mapRefs = [];
-const mapParentElement = 'map-display';
-const mapZoomLevel = 5;
+const staticMapZoomLevel = 2;
 let mapsSharedInfoWindow = null;
+const mapParentElement = 'map-display';
+let campaignSelectElement = null;
+
+let tabButtonsParent = null;
+let tabsParent = null;
 
 /**
  * Callback for Google Maps deferred load that initializes the map
  */
 function InitializeMaps()
 {
-    var url_string = window.location.href;
-    var url = new URL(url_string);
-    var paramValue = url.searchParams.get('[email]');
-    console.log("found email: ", paramValue);
-    let mapParents = document.getElementsByClassName(mapParentElement)
+    var targetEmail = getURLParam('[e]');
+    if (targetEmail)
+    {
+        console.log("Target E-mail: ", targetEmail);
+    }
+    else
+    {
+        window.location.href = "/";
+    }
+
+    let mapParents = document.getElementsByClassName(mapParentElement);
+    campaignSelectElement = document.getElementById('campaignSelection');
+    tabButtonsParent = document.getElementById('tab-buttons');
+    tabsParent = document.getElementById('tabs-parent');
+
     if (mapParents != [])
     {
       for (var i = 0; i < mapParents.length; i++) {
@@ -20,20 +34,54 @@ function InitializeMaps()
         console.log("creating map for ", campaign)
         mapRefs.push(new google.maps.Map(mapParents[i], {
             streetViewControl: false,
-            mapTypeControl: false,
-            fullscreenControl: false
+            mapTypeControl: false
         }));
         let mapRef = mapRefs[i]
         mapsSharedInfoWindow = new google.maps.InfoWindow();
 
         $(document).ready(function ()
         {
-            $.get("/viewData", { email: paramValue, campaign: campaign}, function (data, status)
+            $.get("/viewData", { email: targetEmail, campaign: campaign}, function (data, status)
             {
                 DisplayClusteredData(data.locations, mapRef);
             });
         });
       }
+    }
+}
+
+function ToggleTab(tabIndex)
+{
+    if (tabButtonsParent && tabsParent)
+    {
+        var tabButtons = tabButtonsParent.children;
+        var tabs = tabsParent.children;
+        if (tabButtons.length !== tabs.length)
+        {
+            console.log("Number of tab buttons and tabs are not equal.");
+            return;
+        }
+        for (var i = 0; i < tabButtons.length; i++)
+        {
+            if (i === tabIndex)
+            {
+                tabButtons[i].classList.add('is-dark');
+                tabs[i].classList.remove('is-hidden');
+            }
+            else
+            {
+                tabButtons[i].classList.remove('is-dark');
+                tabs[i].classList.add('is-hidden');
+            }
+        }
+    }
+}
+
+function OnCampaignSelectionChanged()
+{
+    if (campaignSelectElement)
+    {
+        console.log(campaignSelectElement.value);
     }
 }
 
@@ -43,40 +91,73 @@ function InitializeMaps()
  */
 function DisplayClusteredData(locationData, mapRef)
 {
-    var labelNumber = 0;
+    console.log("locdata: " + locationData);
+    if (locationData.length == 0)
+    {
+        var center = new google.maps.LatLng(0, 0);
+        mapRef.setCenter(center);
+        mapRef.setZoom(staticMapZoomLevel);
+        return;
+    }
 
     var bounds = new google.maps.LatLngBounds();
+
     var markers = locationData.map(function (location, i)
     {
-      if(location.hasOwnProperty('lat') && !isNaN(location.lat)) {
-        var newMarker = new google.maps.Marker({ position: location });
-        bounds.extend(newMarker.position);
-
-        newMarker.addListener('click', function()
+        if (location.hasOwnProperty('lat') && !isNaN(location.lat))
         {
-            mapsSharedInfoWindow.setContent(constructInfoWindowContent(
-                "Australia",
-                "Sydney",
-                "Random Fact. Random Fact. Random Fact. Random Fact. Random Fact. Random Fact. Random Fact.",
-                location.lat,
-                location.lng,
-                180));
-            mapsSharedInfoWindow.open(mapRef, newMarker);
-        });
-
+            var newMarker = new google.maps.Marker({ position: location });
+            bounds.extend(newMarker.position);
+    
+            newMarker.addListener('click', function()
+            {
+                mapsSharedInfoWindow.setContent(constructInfoWindowContent(
+                    "India",
+                    "Bihar",
+                    "Fact about Bihar.",
+                    location.lat,
+                    location.lng,
+                    180));
+                mapsSharedInfoWindow.open(mapRef);
+                mapsSharedInfoWindow.setPosition(newMarker.getPosition());
+            });
+    
+            return newMarker;
+        }
+        var newMarker = new google.maps.Marker({position: {lat: 0, lng: 0}});
+        bounds.extend(newMarker.position);
         return newMarker;
-      }
-      var newMarker = new google.maps.Marker({position: {lat: 0, lng: 0}});
-      bounds.extend(newMarker.position);
-      return newMarker
     });
 
     var markerCluster = new MarkerClusterer(mapRef, markers,
     {
-        imagePath: '/static/imgs/'
+        imagePath: '/static/imgs/',
+        zoomOnClick: false
+    });
+
+    markerCluster.addListener("clusterclick", function(cluster)
+    {
+        var currentCluster = cluster.getMarkers();
+        console.log(currentCluster);
+        if (currentCluster.length > 0)
+        {
+            var randomMarkerIndex = Math.floor((Math.random() * currentCluster.length));
+            console.log(randomMarkerIndex);
+            var randomMarker = currentCluster[randomMarkerIndex];
+            var content = constructInfoWindowContent(
+                "India",
+                "Bihar",
+                "Fact about Bihar.",
+                randomMarker.getPosition().lat(),
+                randomMarker.getPosition().lng(),
+                180);
+            mapsSharedInfoWindow.setContent(content);
+            mapsSharedInfoWindow.open(mapRef);
+            mapsSharedInfoWindow.setPosition(randomMarker.getPosition());
+        }
     });
     mapRef.fitBounds(bounds);
-    mapRef.setZoom(mapZoomLevel);
+    mapRef.panToBounds(bounds);
 }
 
 function constructInfoWindowContent(country, region, randomFact, latitude, longitude, heading)
@@ -92,4 +173,11 @@ function constructInfoWindowContent(country, region, randomFact, latitude, longi
                 "<input type='hidden' name='heading' value='" + heading + "'></input>" +
                 "<button type='submit' class='button is-link is-outlined '> Take Me There </button></form></div>";
     return contentString;
+}
+
+function getURLParam(paramKey)
+{
+    var url_string = window.location.href;
+    var url = new URL(url_string);
+    return url.searchParams.get(paramKey);
 }

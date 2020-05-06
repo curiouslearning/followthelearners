@@ -71,7 +71,8 @@ app.get('/', function (req, res){
 
 app.get('/summary*', function (req, res){
   let donations =[];
-  getDonorID(req.query.email).then(donorID=>{
+  let email = req.query.e;
+  getDonorID(email).then(donorID=>{
     return getDonations(donorID)
   }).then(snapshot=>{
     if(snapshot.empty){res.render('summary');}

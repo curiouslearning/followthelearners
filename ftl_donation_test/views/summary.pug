@@ -1,17 +1,48 @@
 doctype html
 include mixins/_mapView
 html
-    head
-        link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css')
-        script(
-            src="https://code.jquery.com/jquery-3.5.0.min.js"
-            integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
-            crossorigin="anonymous")
+  head
+    link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css')
+    script(src="https://kit.fontawesome.com/89be96593a.js" crossorigin="anonymous")
+    script(
+        src="https://code.jquery.com/jquery-3.5.0.min.js"
+        integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
+        crossorigin="anonymous")
 
-    body
+  body
+    header(style='z-index: 10;')
+      .section(style='margin-bottom: -120px;')              
+          p.buttons.is-pulled-right#tab-buttons
+            button.button.is-medium.is-pulled-right.is-dark(onclick='ToggleTab(0)')
+              span.icon.is-small
+                i.fas.fa-map-marker-alt(aria-hidden='true' style='pointer-events: none;')
+              span Campaigns
+
+            button.button.is-medium.is-pulled-right(onclick='ToggleTab(1)')
+              span.icon.is-small
+                i.fas.fa-users(aria-hidden='true' style='pointer-events: none;')
+              span Your Learners
+
+            button.button.is-medium.is-pulled-right(onclick='ToggleTab(2)')
+              span.icon.is-small
+                i.fas.fa-globe(aria-hidden='true' style='pointer-events: none;')
+              span All Learners
+
+    .section#tabs-parent(style='z-index: 5')
+      .section#tab-campaigns
+        h1.title.has-text-grey-dark(style='font-size: 4rem;') Follow The Learners
+        h3.subtitle.is-3.has-text-grey Pick a Campaign
+        // mixins for cards should go here
+      .section.is-hidden#tab-your-learners
+        .select.is-large(style='font-size: 2.2rem')
+          select#campaignSelection(onchange='OnCampaignSelectionChanged()' style='border: none; width: auto; -webkit-appearance: none; -moz-appearance: none; appearance:none;' name='campaignSelection')
+            each campaign in campaigns
+              option() #{campaign.name}
         .section
-          each campaign in campaigns
-            +mapView(campaign)
-        script(async, defer, src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDEl20cTMsc72W_TasuK5PlWYIgMrzyuAU&callback=InitializeMaps")
-        script(src="/static/js/summary.js")
-        script(src="https://unpkg.com/@google/markerclustererplus@4.0.1/dist/markerclustererplus.min.js")
+          +mapView(campaigns[0])
+      .section.is-hidden#tab-all-learners
+        h1.title(style='font-size: 4rem;') All Learners 
+    
+    script(async, defer, src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDEl20cTMsc72W_TasuK5PlWYIgMrzyuAU&callback=InitializeMaps")
+    script(src="/static/js/summary.js")
+    script(src="https://unpkg.com/@google/markerclustererplus@4.0.1/dist/markerclustererplus.min.js")

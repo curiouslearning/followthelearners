@@ -142,6 +142,7 @@ function viewRegionSupporters(req, res)
 
 function viewSummaryData(req, res)
 {
+  console.log("Getting summary location data");
   let donorID = ""
   let campaignList =[];
   let userList = [];
@@ -149,28 +150,29 @@ function viewSummaryData(req, res)
   let donor = getDonorsForEmail(req.query.email, function(snapshot){
     donorID = snapshot.docs[0].data().donorID;
   }).then(snapshot=>{
-    return getUsersForDonor(donorID).get();
+    return getUsersForDonor(donorID);
   }).then(snapshot=>{
     if(snapshot.empty){
       console.log("no users for this donor!");
       return;
     }
     let locationPromises = [];
-    snapshot.forEach(doc=>
-    {
-      console.log(doc);
-      locationPromises.push(firestore.collection('location_reference').where('country', '==', doc.data().region).get().then(snapshot=>{
-        if(snapshot.empty){
-          console.log('no reference found');
-          return;
-        }
-        snapshot.forEach(doc=>{locations.push(doc.data().streetViews.locations[0]);});
-      }));
-    });
-    return Promise.all(locationPromises).then(results=>{
-      console.log(locations);
-      res.json({locations: locations});
-    });
+    return true;
+    // snapshot.forEach(doc=>
+    // {
+    //   console.log(doc);
+    //   locationPromises.push(firestore.collection('loc_ref').where('country', '==', doc.data().region).get().then(snapshot=>{
+    //     if(snapshot.empty){
+    //       console.log('no reference found');
+    //       return;
+    //     }
+    //     snapshot.forEach(doc=>{locations.push(doc.data());});
+    //   }));
+    // });
+    // return Promise.all(locationPromises).then(results=>{
+    //   console.log(locations);
+    //   res.json({locations: locations});
+    // });
   }).catch(err =>{console.log(err);});
 }
 
@@ -310,8 +312,17 @@ function getCampaignsForDonor(donorID, campaignList)
 
 function getUsersForDonor(donorID)
 {
-  let db = firestore.collectionGroup('users');
-  return db.where('sourceDonor', '==', donorID);
+  console.log("Attempting to get all donations for donor: " + donorID);
+  let donorDonations = firestore.collection('donor_master').doc(donorID).collection('donations');
+
+  return donorDonations.get().then(snapshot => {
+    if (snapshot.empty) {
+      console.log("User has no donations.");
+    }
+    snapshot.forEach(doc => {
+      console.log(doc.data());
+    });
+  });
 }
 
 function writeDonorToFirestore(donorObject)
