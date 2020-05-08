@@ -140,7 +140,16 @@ function getLocDataForRegion(donorID, region)
       console.log("loc data: " + data.region);
       if(!doc.exists){ return []; }
       let regions = doc.data().regions;
+      let facts = doc.data().facts;
       let locData = {country: data.region, coords: []};
+      if (facts)
+      {
+        locData["fact"] = facts[Math.floor((Math.random() * facts.length))];
+      }
+      else
+      {
+        locData["fact"] = "No facts are available for the country at the moment.";
+      }
       regions.forEach(region=>{
         console.log('region is: ', region);
         if(typeof region != 'string'){
