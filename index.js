@@ -141,22 +141,23 @@ function getLocDataForRegion(donorID, region)
       if(!doc.exists){ return []; }
       let regions = doc.data().regions;
       let facts = doc.data().facts;
-      let locData = {country: data.region, coords: []};
-      if (facts)
-      {
-        locData["fact"] = facts[Math.floor((Math.random() * facts.length))];
-      }
-      else
-      {
-        locData["fact"] = "No facts are available for the country at the moment.";
-      }
+      let locData = {country: data.region, facts: facts, markerData: []};
+      
       regions.forEach(region=>{
         console.log('region is: ', region);
         if(typeof region != 'string'){
-          region.streetViews.locations.forEach(location=>{
+          for (var i = 0; i < region.streetViews.locations.length; i++)
+          {
+            var location = region.streetViews.locations[i];
             console.log("location: ", location)
-            locData.coords.push({lat: location._latitude, lng: location._longitude});
-          });
+
+            var heading = region.streetViews.headingValues[i];
+            
+            locData.markerData.push(
+            { 
+              lat: location._latitude, lng: location._longitude, region: region.region, headingValue: heading
+            });
+          }
         }
       });
       return locData;
