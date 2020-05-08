@@ -102,24 +102,26 @@ function DisplayClusteredData(locationData, mapRef)
 
     var bounds = new google.maps.LatLngBounds();
 
-    var markers = locationData.coords.map(function (location, i)
+    var markers = locationData.markerData.map(function (location, i)
     {
         if (location.hasOwnProperty('lat') && !isNaN(location.lat))
         {
             var newMarker = new google.maps.Marker({ position: location });
             bounds.extend(newMarker.position);
             newMarker["country"] = locationData.country;
-            newMarker["fact"] = locationData.fact;
+            newMarker["facts"] = locationData.facts;
+            newMarker["region"] = location.region;
+            newMarker["heading"] = location.heading;
     
             newMarker.addListener('click', function()
             {
                 mapsSharedInfoWindow.setContent(constructInfoWindowContent(
                     newMarker.country,
-                    "Bihar",
-                    newMarker.fact,
+                    newMarker.region,
+                    getRandomFact(newMarker.facts),
                     location.lat,
                     location.lng,
-                    180));
+                    newMarker.heading));
                 mapsSharedInfoWindow.open(mapRef);
                 mapsSharedInfoWindow.setPosition(newMarker.getPosition());
             });
@@ -148,18 +150,29 @@ function DisplayClusteredData(locationData, mapRef)
             var randomMarker = currentCluster[randomMarkerIndex];
             var content = constructInfoWindowContent(
                 randomMarker.country,
-                "Bihar",
-                randomMarker.fact,
+                randomMarker.region,
+                getRandomFact(randomMarker.facts),
                 randomMarker.getPosition().lat(),
                 randomMarker.getPosition().lng(),
-                180);
+                randomMarker.heading);
             mapsSharedInfoWindow.setContent(content);
             mapsSharedInfoWindow.open(mapRef);
-            mapsSharedInfoWindow.setPosition(randomMarker.getPosition());
+            // Pick the first marker position as the position of the info window to avoid floating info windows
+            mapsSharedInfoWindow.setPosition(currentCluster[0].getPosition());
         }
     });
     mapRef.fitBounds(bounds);
     mapRef.panToBounds(bounds);
+}
+
+function getRandomFact(factsArray)
+{
+    return factsArray ? getRandomFrom(factsArray) : 'No facts are available for the country at the moment.';
+}
+
+function getRandomFrom(inputArray, nullString)
+{
+    return inputArray[Math.floor((Math.random() * inputArray.length))];
 }
 
 function constructInfoWindowContent(country, region, randomFact, latitude, longitude, heading)
@@ -167,7 +180,7 @@ function constructInfoWindowContent(country, region, randomFact, latitude, longi
     var contentString = "<div style='text-align: left;'>" +
                 "<span style='font-size: 18px; color: #606060'><b>" + region + " </b></span>" +
                 "<span style='font-size: 16px; color: #909090'><b>(" + country + ")</b></span>" +
-                "<br><br> <p style='max-width: 280px; color: #505050'>" + randomFact +
+                "<br><br> <p style='max-width: 300px; color: #505050; font-size: 16px'>" + randomFact +
                 "</p> <br> <form action='https://google.com/maps/@?' method='get' target='_blank' style='text-align: center;'>" +
                 "<input type='hidden' name='api' value='1'></input>" +
                 "<input type='hidden' name='map_action' value='pano'></input>" +
