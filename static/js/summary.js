@@ -43,7 +43,7 @@ function InitializeMaps()
         {
             $.get("/viewData", { email: targetEmail, campaign: campaign}, function (data, status)
             {
-                DisplayClusteredData(data.locations, mapRef);
+                DisplayClusteredData(data, mapRef);
             });
         });
       }
@@ -91,7 +91,7 @@ function OnCampaignSelectionChanged()
  */
 function DisplayClusteredData(locationData, mapRef)
 {
-    console.log("locdata: " + locationData);
+    console.log("Loc data: " + locationData);
     if (locationData.length == 0)
     {
         var center = new google.maps.LatLng(0, 0);
@@ -102,17 +102,18 @@ function DisplayClusteredData(locationData, mapRef)
 
     var bounds = new google.maps.LatLngBounds();
 
-    var markers = locationData.map(function (location, i)
+    var markers = locationData.coords.map(function (location, i)
     {
         if (location.hasOwnProperty('lat') && !isNaN(location.lat))
         {
             var newMarker = new google.maps.Marker({ position: location });
             bounds.extend(newMarker.position);
+            newMarker["country"] = locationData.country;
     
             newMarker.addListener('click', function()
             {
                 mapsSharedInfoWindow.setContent(constructInfoWindowContent(
-                    "India",
+                    newMarker.country,
                     "Bihar",
                     "Fact about Bihar.",
                     location.lat,
@@ -145,7 +146,7 @@ function DisplayClusteredData(locationData, mapRef)
             console.log(randomMarkerIndex);
             var randomMarker = currentCluster[randomMarkerIndex];
             var content = constructInfoWindowContent(
-                "India",
+                randomMarker.country,
                 "Bihar",
                 "Fact about Bihar.",
                 randomMarker.getPosition().lat(),
