@@ -1,5 +1,6 @@
 doctype html
 include mixins/_mapView
+include mixins/_campaign
 html
   head
     link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css')
@@ -32,7 +33,10 @@ html
       .section#tab-campaigns
         h1.title.has-text-grey-dark(style='font-size: 4rem;') Follow The Learners
         h3.subtitle.is-3.has-text-grey Pick a Campaign
-        // mixins for cards should go here
+        .section(style='padding-top: 1rem')
+          .columns.is-desktop
+            each campaign in staticCampaignData
+              +campaign(campaign.title, '/static/imgs/campaign-imgs/' + campaign.img, campaign.description, "")
       .section.is-hidden#tab-your-learners
         .select.is-large(style='font-size: 2.2rem')
           select#campaignSelection(onchange='onCampaignSelectionChanged()' style='border: none; width: auto; -webkit-appearance: none; -moz-appearance: none; appearance:none;' name='campaignSelection')
