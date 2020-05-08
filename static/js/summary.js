@@ -142,7 +142,7 @@ function constructInfoWindowContent(country, region, randomFact, latitude,
     region + ' </b></span>' +
     '<span style=\'font-size: 16px; color: #909090\'><b>(' +
     country + ')</b></span>' +
-    '<br><br> <p style=\'max-width: 300px; color: #505050; font-size: 16px\'>' +
+    '<br><br> <p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
     randomFact +
     '</p> <br> <form action=\'https://google.com/maps/@?\' method=\'get\' ' +
     'target=\'_blank\' style=\'text-align: center;\'>' +
@@ -153,7 +153,7 @@ function constructInfoWindowContent(country, region, randomFact, latitude,
     '<input type=\'hidden\' name=\'heading\' value=\'' +
     heading + '\'></input>' +
     '<button type=\'submit\' class=\'button is-link is-outlined \'>' +
-    ' Take Me There ' +
+    ' <i class="fas fa-street-view"></i>&nbsp;&nbsp;Take Me There ' +
     '</button></form></div>';
   return contentString;
 }
