@@ -2,7 +2,7 @@ include ./_link
 //- renders a quick summary of a campaign, with an image and 
 //- a donation link
 mixin campaign (title, imgRef, body, donateRef)
-  .card.column.is-shadowless(style='border: none; margin: 10px;')
+  .card.column.is-shadowless(style='border: none; margin: 10px; height: 100%')
     .card-image
       figure.image.is-5by3
         img(src=imgRef, alt='Campaign Image')
