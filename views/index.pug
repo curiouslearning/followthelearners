@@ -1,5 +1,9 @@
 html
   include mixins/_campaign
+  script(
+        src="https://code.jquery.com/jquery-3.5.0.min.js"
+        integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
+        crossorigin="anonymous")
   head
     link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css')
   body
@@ -9,7 +13,11 @@ html
           .div
             ul.list
               each campaign in campaigns
-                +campaign(campaign.country, campaign.imgRef, campaign.body, campaign.donateRef)
+                +campaign(campaign.country, campaign.imgRef, campaign.body, campaign.campaignID, campaign.amount)
+              script.
+                function goToDonate(campaignID, amount){
+                    window.location = "/donate?campaign="+campaignID+"&amount="+amount;
+                }
         br
         .container
           form(method='GET', action='/summary')
