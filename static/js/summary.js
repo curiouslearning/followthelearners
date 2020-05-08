@@ -43,7 +43,7 @@ function InitializeMaps()
         {
             $.get("/viewData", { email: targetEmail, campaign: campaign}, function (data, status)
             {
-                DisplayClusteredData(data, mapRef);
+                DisplayClusteredData(data.locations, mapRef);
             });
         });
       }
