@@ -109,13 +109,14 @@ function DisplayClusteredData(locationData, mapRef)
             var newMarker = new google.maps.Marker({ position: location });
             bounds.extend(newMarker.position);
             newMarker["country"] = locationData.country;
+            newMarker["fact"] = locationData.fact;
     
             newMarker.addListener('click', function()
             {
                 mapsSharedInfoWindow.setContent(constructInfoWindowContent(
                     newMarker.country,
                     "Bihar",
-                    "Fact about Bihar.",
+                    newMarker.fact,
                     location.lat,
                     location.lng,
                     180));
@@ -148,7 +149,7 @@ function DisplayClusteredData(locationData, mapRef)
             var content = constructInfoWindowContent(
                 randomMarker.country,
                 "Bihar",
-                "Fact about Bihar.",
+                randomMarker.fact,
                 randomMarker.getPosition().lat(),
                 randomMarker.getPosition().lng(),
                 180);
