@@ -12,32 +12,29 @@ html
 
   body
     header(style='z-index: 10;')
-      .section(style='margin-bottom: -120px;')              
-          p.buttons.is-pulled-right#tab-buttons
-            button.button.is-medium.is-pulled-right.is-dark(onclick='toggleTab(0)')
-              span.icon.is-small
-                i.fas.fa-map-marker-alt(aria-hidden='true' style='pointer-events: none;')
-              span Campaigns
+      .section(style='margin-bottom: -120px;')
+        p.buttons.is-pulled-right
+          // Your Learners Button
+          button.button.is-medium.is-pulled-right.is-dark(onclick='tabSelector.ToggleTab(0)')
+            span.icon.is-small
+              i.fas.fa-users(aria-hidden='true' style='pointer-events: none;')
+            span Your Learners
 
-            button.button.is-medium.is-pulled-right(onclick='toggleTab(1)')
-              span.icon.is-small
-                i.fas.fa-users(aria-hidden='true' style='pointer-events: none;')
-              span Your Learners
-
-            button.button.is-medium.is-pulled-right(onclick='toggleTab(2)')
-              span.icon.is-small
-                i.fas.fa-globe(aria-hidden='true' style='pointer-events: none;')
-              span All Learners
+          // All Learners Button
+          button.button.is-medium.is-pulled-right(onclick='tabSelector.ToggleTab(1)')
+            span.icon.is-small
+              i.fas.fa-globe(aria-hidden='true' style='pointer-events: none;')
+            span All Learners
+        
+        p.buttons.is-pulled-right#tab-buttons
+          // Campaigns Button
+          a.button.is-medium.is-pulled-right(href='/' style='margin-right: 0.5rem')
+            span.icon.is-small
+              i.fas.fa-map-marker-alt(aria-hidden='true' style='pointer-events: none;')
+            span Campaigns
 
     .section#tabs-parent(style='z-index: 5')
-      .section#tab-campaigns
-        h1.title.has-text-grey-dark(style='font-size: 4rem;') Follow The Learners
-        h3.subtitle.is-3.has-text-grey Pick a Campaign
-        .section(style='padding-top: 1rem')
-          .columns.is-desktop
-            each campaign in staticCampaignData
-              +campaign(campaign.title, '/static/imgs/campaign-imgs/' + campaign.img, campaign.description, "https://curiouslearning.org")
-      .section.is-hidden#tab-your-learners
+      .section#tab-your-learners
         .select.is-large(style='font-size: 2.2rem')
           select#campaignSelection(onchange='onCampaignSelectionChanged()' style='border: none; width: auto; -webkit-appearance: none; -moz-appearance: none; appearance:none;' name='campaignSelection')
             each campaign in campaigns
@@ -48,5 +45,6 @@ html
         h1.title(style='font-size: 4rem;') All Learners 
     
     script(async, defer, src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDEl20cTMsc72W_TasuK5PlWYIgMrzyuAU&callback=initializeMaps")
+    script(src="/static/js/tab-selector.js")
     script(src="/static/js/summary.js")
     script(src="https://unpkg.com/@google/markerclustererplus@4.0.1/dist/markerclustererplus.min.js")
