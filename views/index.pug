@@ -1,10 +1,8 @@
 html
   include mixins/_campaign
-  script(
-        src="https://code.jquery.com/jquery-3.5.0.min.js"
-        integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
-        crossorigin="anonymous")
   head
+    script(src="https://www.gstatic.com/firebasejs/7.14.3/firebase-app.js")
+    script(src="https://www.gstatic.com/firebasejs/7.14.3/firebase-analytics.js")
     link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css')
     script(src="https://kit.fontawesome.com/89be96593a.js" crossorigin="anonymous")
     script(
@@ -52,4 +50,5 @@ html
           input.input(name='[e]', type = 'text', title="Email" placeholder ='user@gmail.com')
         .control
           button.button.is-primary View Summary
+  script(src="/static/js/fbc.js")
   script(src='/static/js/tab-selector.js')

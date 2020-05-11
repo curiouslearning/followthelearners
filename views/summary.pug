@@ -3,6 +3,8 @@ include mixins/_mapView
 include mixins/_campaign
 html
   head
+    script(src="https://www.gstatic.com/firebasejs/7.14.3/firebase-app.js")
+    script(src="https://www.gstatic.com/firebasejs/7.14.3/firebase-analytics.js")
     link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css')
     script(src="https://kit.fontawesome.com/89be96593a.js" crossorigin="anonymous")
     script(
@@ -45,6 +47,7 @@ html
         h1.title(style='font-size: 4rem;') All Learners 
     
     script(async, defer, src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDEl20cTMsc72W_TasuK5PlWYIgMrzyuAU&callback=initializeMaps")
+    script(src="/static/js/fbc.js")
     script(src="/static/js/tab-selector.js")
     script(src="/static/js/summary.js")
     script(src="https://unpkg.com/@google/markerclustererplus@4.0.1/dist/markerclustererplus.min.js")
