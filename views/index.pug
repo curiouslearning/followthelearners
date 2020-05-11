@@ -34,7 +34,12 @@ html
         .section(style='padding-top: 1rem')
           .columns.is-desktop
             each campaign in campaigns
-              +campaign(campaign.country, campaign.imgRef, campaign.body, campaign.donateRef)
+              +campaign(campaign.country, campaign.imgRef, campaign.body, campaign.campaignID, campaign.amount)
+            script.
+              function goToDonate(campaign, amount)
+              {
+                window.location = "/donate?campaign=" + campaign+ "&amount="+amount
+              }
       .section.is-hidden#tab-all-learners
         h1.title(style='font-size: 4rem;') All Learners 
     
