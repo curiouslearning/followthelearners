@@ -4,7 +4,6 @@ const Memcached = require('memcached');
 const fireStoreAdmin = require('firebase-admin');
 let serviceAccount = require('./keys/firestore-key.json');
 const bodyParser = require('body-parser');
-const fs = require('fs');
 const app = express();
 const CACHETIMEOUT = 720; //the cache timeout in minutes
 
@@ -86,11 +85,7 @@ app.get('/summary*', function (req, res){
     });
     return Promise.all(promises);
   }).then(snapshot=>{
-    let rawStaticCampaignData = fs.readFileSync('./data/static-campaigns.json');
-    let staticCampaignData = JSON.parse(rawStaticCampaignData);
-
-    res.render('summary', {campaigns: donations,
-      staticCampaignData: staticCampaignData});
+    res.render('summary', {campaigns: donations});
   }).catch(err=>{console.error(err)})
 });
 
