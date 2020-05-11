@@ -6,24 +6,45 @@ html
         crossorigin="anonymous")
   head
     link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css')
+    script(src="https://kit.fontawesome.com/89be96593a.js" crossorigin="anonymous")
+    script(
+        src="https://code.jquery.com/jquery-3.5.0.min.js"
+        integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
+        crossorigin="anonymous")
   body
-    .section
-      .containers
-        .container
-          .div
-            ul.list
-              each campaign in campaigns
-                +campaign(campaign.country, campaign.imgRef, campaign.body, campaign.campaignID, campaign.amount)
-              script.
-                function goToDonate(campaignID, amount){
-                    window.location = "/donate?campaign="+campaignID+"&amount="+amount;
-                }
-        br
-        .container
-          form(method='GET', action='/summary')
-            .help Go to your Donor Summary
-            .control
-              label(for='[e]') E-mail
-              input.input(name='[e]', type = 'text', title="Email" placeholder ='user@gmail.com')
-            .control
-              button.button.is-primary View Summary
+    header(style='z-index: 10;')
+      .section(style='margin-bottom: -120px;')              
+          p.buttons.is-pulled-right#tab-buttons
+            // Campaigns Button
+            button.button.is-medium.is-pulled-right.is-dark(onclick='tabSelector.ToggleTab(0)')
+              span.icon.is-small
+                i.fas.fa-map-marker-alt(aria-hidden='true' style='pointer-events: none;')
+              span Campaigns
+
+            // All Learners Button
+            button.button.is-medium.is-pulled-right(onclick='tabSelector.ToggleTab(1)')
+              span.icon.is-small
+                i.fas.fa-globe(aria-hidden='true' style='pointer-events: none;')
+              span All Learners
+
+    .section#tabs-parent(style='z-index: 5')
+      .section#tab-campaigns
+        h1.title.has-text-grey-dark(style='font-size: 4rem;') Follow The Learners
+        h3.subtitle.is-3.has-text-grey Pick a Campaign
+        .section(style='padding-top: 1rem')
+          .columns.is-desktop
+            each campaign in campaigns
+              +campaign(campaign.country, campaign.imgRef, campaign.body, campaign.donateRef)
+      .section.is-hidden#tab-all-learners
+        h1.title(style='font-size: 4rem;') All Learners 
+    
+    br
+    .container
+      form(method='GET', action='/summary')
+        .help Go to your Donor Summary
+        .control
+          label(for='[e]') E-mail
+          input.input(name='[e]', type = 'text', title="Email" placeholder ='user@gmail.com')
+        .control
+          button.button.is-primary View Summary
+  script(src='/static/js/tab-selector.js')

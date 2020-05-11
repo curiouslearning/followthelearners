@@ -1,14 +1,9 @@
 const staticMapZoomLevel = 2;
 const mapParentElement = 'map-display';
-const selectedTabButtonClassName = 'is-dark';
-const hiddenTabClassName = 'is-hidden';
 
 const mapRefs = [];
 let mapsSharedInfoWindow = null;
 let campaignSelectElement = null;
-
-let tabButtonsParent = null;
-let tabsParent = null;
 
 /**
  * Callback for Google Maps deferred load that initializes the map
@@ -23,8 +18,6 @@ function initializeMaps() {
 
   const mapParents = document.getElementsByClassName(mapParentElement);
   campaignSelectElement = document.getElementById('campaignSelection');
-  tabButtonsParent = document.getElementById('tab-buttons');
-  tabsParent = document.getElementById('tabs-parent');
 
   if (mapParents != []) {
     for (let i = 0; i < mapParents.length; i++) {
@@ -43,30 +36,6 @@ function initializeMaps() {
               displayClusteredData(data.locations, mapRef);
             });
       });
-    }
-  }
-}
-
-/**
- * Toggles the tab with the given index & updates the tab buttons selected state
- * @param {Number} tabIndex is the index of the tab that needs to be toggled
- */
-function toggleTab(tabIndex) {
-  if (tabButtonsParent && tabsParent) {
-    const tabButtons = tabButtonsParent.children;
-    const tabs = tabsParent.children;
-    if (tabButtons.length !== tabs.length) {
-      console.log('Number of tab buttons and tabs are not equal.');
-      return;
-    }
-    for (let i = 0; i < tabButtons.length; i++) {
-      if (i === tabIndex) {
-        tabButtons[i].classList.add(selectedTabButtonClassName);
-        tabs[i].classList.remove(hiddenTabClassName);
-      } else {
-        tabButtons[i].classList.remove(selectedTabButtonClassName);
-        tabs[i].classList.add(hiddenTabClassName);
-      }
     }
   }
 }

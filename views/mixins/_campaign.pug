@@ -1,14 +1,15 @@
 include ./_link
 //- renders a quick summary of a campaign, with an image and 
 //- a donation link
-mixin campaign (country, imgRef, body, campaignID, amount)
-  .campaign
-    .campaign-header
-      h1 #{country}
-    p #{body}
-    p
-     +link(imgRef, country)(class='img')
-    p
-    .button(type='button', id='giveNow'+campaignID+amount, onclick = "goToDonate(\""+campaignID +"\",\"" + amount + "\")") Give Now
-    
-    
+mixin campaign (title, imgRef, body, donateRef)
+  .card.column.is-shadowless(style='border: none; margin: 10px; height: 100%')
+    .card-image
+      figure.image.is-5by3
+        img(src=imgRef, alt='Campaign Image')
+    br
+    .card-header.is-shadowless
+      h1.title.is-size-2.has-text-grey-dark #{title}
+    .card-content
+      .subtitle.is-size-6.has-text-grey #{body}
+    .card-footer(style='border: none; justify-content: center;')
+       .button is-medium(type='button', id='giveNow'+campaignID+amount, onclick = "goToDonate(\""+campaignID +"\",\"" + amount + "\")") Give Now

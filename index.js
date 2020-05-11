@@ -132,7 +132,7 @@ app.get('/summary*', function (req, res){
         donations.push(donation);
       }));
     });
-    return Promise.all(promises)
+    return Promise.all(promises);
   }).then(snapshot=>{
     res.render('summary', {campaigns: donations});
   }).catch(err=>{console.error(err)})
