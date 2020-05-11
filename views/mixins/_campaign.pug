@@ -1,7 +1,7 @@
 include ./_link
 //- renders a quick summary of a campaign, with an image and 
 //- a donation link
-mixin campaign (country, imgRef, body, donateRef)
+mixin campaign (country, imgRef, body, campaignID, amount)
   .campaign
     .campaign-header
       h1 #{country}
@@ -9,4 +9,6 @@ mixin campaign (country, imgRef, body, donateRef)
     p
      +link(imgRef, country)(class='img')
     p
-     +link(donateRef, "Give Now")(class='btn')
+    .button(type='button', id='giveNow'+campaignID+amount, onclick = "goToDonate(\""+campaignID +"\",\"" + amount + "\")") Give Now
+    
+    
