@@ -17,7 +17,8 @@ function main() {
     let db = firestore.collection('donor_master');
     let tables =[
       `ftm-brazilian-portuguese.analytics_161789655.events_*`,
-      `ftm-hindi.analytics_174638281.events_*`
+      `ftm-hindi.analytics_174638281.events_*`,
+      `ftm-swahili.analytics_160694316.events*`
     ];
     let query = ""
     tables.forEach(table=>{
@@ -33,7 +34,7 @@ function main() {
       query: query,
       location: 'US',
     };
-    
+
     try{
       const [rows] = await bigQueryClient.query(options);
       console.log("successful Query");
