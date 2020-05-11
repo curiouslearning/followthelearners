@@ -108,5 +108,9 @@ dist/
 tmp/
 temp/
 
+#local system files
+.DS_Store
+.htaccess
+
 # End of https://www.gitignore.io/api/node
 

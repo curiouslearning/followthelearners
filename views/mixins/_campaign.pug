@@ -12,5 +12,4 @@ mixin campaign (title, imgRef, body, donateRef)
     .card-content
       .subtitle.is-size-6.has-text-grey #{body}
     .card-footer(style='border: none; justify-content: center;')
-       +link(donateRef, "Give Now")(class='button is-medium')
-
+       .button is-medium(type='button', id='giveNow'+campaignID+amount, onclick = "goToDonate(\""+campaignID +"\",\"" + amount + "\")") Give Now

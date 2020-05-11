@@ -56,17 +56,66 @@ app.get('/', function (req, res){
     }
     snapshot.forEach(doc=>{
       let data = doc.data();
+      console.log("data: ", data);
       campaigns.push({
         country: data.country,
         imgRef: data.imgRef,
         body: data.summary,
-        donateRef: data.donateRef,
+        amount: '5.00',
+        campaignID: data.campaignID
       });
     });
     return campaigns;
   }).then(snapshot=>{
     res.render('index', {campaigns: campaigns});
   }).catch(err=> console.error(err));
+});
+
+app.get('/donate', function(req, res){
+  let json = {
+    campaign: req.query.campaign,
+    amount: req.query.amount,
+  };
+  res.render('donate', json);
+});
+
+app.post('/donate', function (req, res){
+  let donorRef = firestore.collection('donor_master');
+  getDonorID(req.body.email).then(donorID=>{
+    let donor = {};
+    if(donorID === "" || donorID === undefined || donorID === null){ //create record for first time donors
+      donor = donorRef.doc();
+      donor.get().then(doc=>{
+        donorID = doc.id;
+        let donorObject ={
+          firstName: req.body.firstName,
+          lastName: req.body.lastName,
+          donorID: doc.id,
+          email: req.body.email,
+          dateCreated: getDateTime()
+        };
+        writeDonorToFirestore(donorObject);
+      });
+    }
+    let campaign = firestore.collection('campaigns').where('campaignID', '==', req.body.campaign).get().then(snapshot=>{
+      if(snapshot.empty){ //all donations must be linked to an existing campaign
+        res.render('donate', {response:"Sorry, this is not an active campaign! please choose an active campaign from the home page"});
+        res.end();
+        return;
+      }
+      let data = snapshot.docs[0].data();
+      let donationObject = {
+        campaignID: req.body.campaign,
+        amount: req.body.amount,
+        region: data.country,
+        startDate: getDateTime(),
+        sourceDonor: donorID,
+      };
+      writeCampaignToFirestore(donationObject);
+      res.render('donate', {response:"Thank you for your donation!"});
+      res.end();
+    });
+  }).catch(err=>{console.error(err)});
 });
 
 app.get('/summary*', function (req, res){
@@ -142,7 +191,7 @@ function getLocDataForRegion(donorID, region)
       let regions = doc.data().regions;
       let facts = doc.data().facts;
       let locData = {country: data.region, facts: facts, markerData: []};
-      
+
       regions.forEach(region=>{
         console.log('region is: ', region);
         if(typeof region != 'string'){
@@ -152,9 +201,9 @@ function getLocDataForRegion(donorID, region)
             console.log("location: ", location)
 
             var heading = region.streetViews.headingValues[i];
-            
+
             locData.markerData.push(
-            { 
+            {
               lat: location._latitude, lng: location._longitude, region: region.region, headingValue: heading
             });
           }
@@ -254,4 +303,41 @@ function getLearnersForRegion(donorID, region)
     });
     return users;
   }).catch(err=>{console.error(err)});
+}
+function writeDonorToFirestore(donorObject)
+{
+  console.log("Creating Donor with ID: ", donorObject.donorID);
+    let donorRef = firestore.collection('donor_master').doc(donorObject.donorID.toString());
+
+    let setWithOptions = donorRef.set({
+      donorID: donorObject.donorID,
+      dateCreated: donorObject.dateCreated,
+      lastName: donorObject.lastName,
+      firstName: donorObject.firstName,
+      email: donorObject.email,
+    },{merge: true});
+}
+
+function writeCampaignToFirestore(campaignObject)
+{
+  let dbRef = firestore.collection('donor_master');
+  let messageRef = dbRef.doc(campaignObject.sourceDonor).collection("donations").doc(campaignObject.campaignID);
+  let setWithOptions = messageRef.set({
+    campaignID: campaignObject.campaignID,
+    sourceDonor: campaignObject.sourceDonor,
+    startDate: campaignObject.startDate,
+    amount: campaignObject.amount,
+    region: campaignObject.region,
+  }, {merge: true});
+}
+
+function generateGooglePlayURL (appID, source, campaignID, donorID) {
+    return "https://play.google.com/store/apps/details?id=" + appID + "&referrer=utm_source%3D" + source + "%26utm_campaign%3D"+ campaignID+'_'+donorID;
+}
+
+function getDateTime(){
+  let today = new Date();
+  let date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+  let time = today.getHours()+":"+today.getMinutes()+":"+today.getSeconds();
+  return date+' '+time;
 }
