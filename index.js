@@ -147,14 +147,20 @@ app.get('/viewData', function(req, res){
     console.log("found donorID: ", donorID);
     return getLearnersForRegion(donorID, req.query.campaign);
   }).then(learners=>{
-    if(learners.empty){
-      res.end();
+    console.log("learners: ", learners);
+    if(learners.empty || learners.length == 0){
+      return[];
     }else{
       learnerList = learners
       return getLocDataForRegion(donorID, req.query.campaign);
     }
   }).then(locData=>{
-    res.json({learners: learnerList, locations: locData});
+    if(locData != []){
+      res.json({learners: learnerList, locations: locData});
+    }
+    else {
+      res.end();
+    }
   }).catch(err=>{console.error(err)});
 });
 app.get('*', function(req,res){res.render('404')});
