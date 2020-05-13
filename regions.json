@@ -1,0 +1,294 @@
+[{
+	"country": "India",
+	"regions": [{
+			"region": "Kerala",
+			"streetViews": {
+				"headingValue": [220],
+				"locations": [{
+					"lat": 9.2611412,
+					"lng": 76.7793764
+				}]
+			}
+		},
+		{
+			"region": "Gujarat",
+			"streetViews": {
+				"headingValue": [90.93],
+				"locations": [{
+					"lat": 22.1570994,
+					"lng": 71.7709499
+				}]
+			}
+		},
+		{
+			"region": "Tamil Nadu",
+			"streetViews": {
+				"headingValue": [234.36],
+				"locations": [{
+					"lat": 13.160655,
+					"lng": 80.2037499
+				}]
+			}
+		},
+		{
+			"region": "West Bengal",
+			"streetViews": {
+				"headingValue": [346.88],
+				"locations": [{
+					"lat": 22.4747416,
+					"lng": 89.5977835
+				}]
+			}
+		},
+		{
+			"region": "Haryana",
+			"streetViews": {
+				"headingValue": [246.5],
+				"locations": [{
+					"lat": 28.6979328,
+					"lng": 77.1442826
+				}]
+			}
+		},
+		{
+			"region": "Chhattisgarh",
+			"streetViews": {
+				"headingValue": [78.7],
+				"locations": [{
+					"lat": 20.6986181,
+					"lng": 81.5443872
+				}]
+			}
+		},
+		{
+			"region": "Puducherry",
+			"streetViews": {
+				"headingValue": [317.83],
+				"locations": [{
+					"lat": 11.8953071,
+					"lng": 79.8043234
+				}]
+			}
+		},
+		{
+			"region": "Punjab",
+			"streetViews": {
+				"headingValue": [272.88],
+				"locations": [{
+					"lat": 30.32791,
+					"lng": 74.8723894
+				}]
+			}
+		},
+		{
+			"region": "Uttarakhand",
+			"streetViews": {
+				"headingValue": [21.69],
+				"locations": [{
+					"lat": 30.1402317,
+					"lng": 79.3197383
+				}]
+			}
+		},
+		{
+			"region": "Manipur",
+			"streetViews": {
+				"headingValue": [194.53],
+				"locations": [{
+					"lat": 24.4797751,
+					"lng": 93.8081638
+				}]
+			}
+		},
+		{
+			"region": "Jammu and Kashmir",
+			"streetViews": {
+				"headingValue": [169.39],
+				"locations": [{
+					"lat": 34.5409579,
+					"lng": 77.5606881
+				}]
+			}
+		},
+		{
+			"region": "Chandigarh",
+			"streetViews": {
+				"headingValue": [26.1],
+				"locations": [{
+					"lat": 30.752535,
+					"lng": 76.8101038
+				}]
+			}
+		},
+		{
+			"region": "Assam",
+			"streetViews": {
+				"headingValue": [90.68],
+				"locations": [{
+					"lat": 26.348009,
+					"lng": 92.6838111
+				}]
+			}
+		},
+		{
+			"region": "Odisha",
+			"streetViews": {
+				"headingValue": [331.95],
+				"locations": [{
+					"lat": 20.4776392,
+					"lng": 86.1268117
+				}]
+			}
+		},
+		{
+			"region": "Andhra Pradesh",
+			"streetViews": {
+				"headingValue": [189.32],
+				"locations": [{
+					"lat": 16.3342281,
+					"lng": 81.7331401
+				}]
+			}
+		},
+		{
+			"region": "Himachal Pradesh",
+			"streetViews": {
+				"headingValue": [290.01],
+				"locations": [{
+					"lat": 31.1042677,
+					"lng": 77.1759054
+				}]
+			}
+		},
+		{
+			"region": "Madhya Pradesh",
+			"streetViews": {
+				"headingValue": [2.93],
+				"locations": [{
+					"lat": 22.7187802,
+					"lng": 75.8580255
+				}]
+			}
+		},
+		{
+			"region": "Meghalaya",
+			"streetViews": {
+				"headingValue": [21.87],
+				"locations": [{
+					"lat": 25.51247,
+					"lng": 90.6049696
+				}]
+			}
+		},
+		{
+			"region": "Delhi",
+			"streetViews": {
+				"headingValue": [25.74],
+				"locations": [{
+					"lat": 28.6721794,
+					"lng": 77.0593707
+				}]
+			}
+		},
+		{
+			"region": "Telangana",
+			"streetViews": {
+				"headingValue": [313.21],
+				"locations": [{
+					"lat": 17.4313078,
+					"lng": 78.4069317
+				}]
+			}
+		},
+		{
+			"region": "Jharkhand",
+			"streetViews": {
+				"headingValue": [200],
+				"locations": [{
+					"lat": 23.1461487,
+					"lng": 85.4672813
+				}]
+			}
+		},
+		{
+			"region": "Tripura",
+			"streetViews": {
+				"headingValue": [142.29],
+				"locations": [{
+					"lat": 23.6102022,
+					"lng": 91.3431742
+				}]
+			}
+		},
+		{
+			"region": "Goa",
+			"streetViews": {
+				"headingValue": [297.34],
+				"locations": [{
+					"lat": 15.5466373,
+					"lng": 73.7621383
+				}]
+			}
+		},
+		{
+			"region": "Uttar Pradesh",
+			"streetViews": {
+				"headingValue": [348.36],
+				"locations": [{
+					"lat": 27.5078671,
+					"lng": 82.0397056
+				}]
+			}
+		},
+		{
+			"region": "Rajasthan",
+			"streetViews": {
+				"headingValue": [100],
+				"locations": [{
+					"lat": 25.0239506,
+					"lng": 75.9161911
+				}]
+			}
+		},
+		{
+			"region": "Maharashtra",
+			"streetViews": {
+				"headingValue": [202.58],
+				"locations": [{
+					"lat": 26.9249789,
+					"lng": 75.6962913
+				}]
+			}
+		},
+		{
+			"region": "Bihar",
+			"streetViews": {
+				"headingValue": [80],
+				"locations": [{
+					"lat": 25.6128703,
+					"lng": 85.081193
+				}]
+			}
+		},
+		{
+			"region": "Mizoram",
+			"streetViews": {
+				"headingValue": [200],
+				"locations": [{
+					"lat": 23.4782422,
+					"lng": 93.3256145
+				}]
+			}
+		},
+		{
+			"region": "Karnataka",
+			"streetViews": {
+				"headingValue": [310.75],
+				"locations": [{
+					"lat": 12.9807988,
+					"lng": 77.718538
+				}]
+			}
+		}
+	]
+}]
