@@ -13,6 +13,7 @@ class TabSelector {
   constructor(hiddenTab, activeBtn, btnParentID, tabParentID) {
     this.hiddenTabClassName = hiddenTab;
     this.selectedTabButtonClassName = activeBtn;
+    this.preToggleListeners = [];
     this.toggleListeners = [];
 
     this.tabButtonsParentElement = document.getElementById(btnParentID);
@@ -34,6 +35,8 @@ class TabSelector {
   addEventListener(eventName, listener) {
     if (eventName === 'tabToggle') {
       this.toggleListeners.push(listener);
+    } else if (eventName === 'preTabToggle') {
+      this.preToggleListeners.push(listener);
     }
   }
 
