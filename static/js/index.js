@@ -1,42 +1,73 @@
-const staticMapZoomLevel = 2;
-const mapParentElement = 'map-display';
+let donorModal = null;
+const donorEmailElementId = 'donor-email';
+let currentDonorEmail = null;
 
-const mapRefs = [];
+let mapRef = null;
+const mapParentElementId = 'map-display';
 let mapsSharedInfoWindow = null;
 let campaignSelectElement = null;
+const staticMapZoomLevel = 2;
+
+$(document).ready(function() {
+  donorModal = document.getElementById('donor-email-modal');
+
+  if (tabSelector) {
+    tabSelector.addEventListener('preTabToggle', (tabId) => {
+      if (currentDonorEmail === null && donorModal && 
+        tabId === 'tab-your-learners') {
+        tabSelector.preventDefault();
+        donorModal.classList.add('is-active');
+      } else if (currentDonorEmail !== null && donorModal &&
+        tabId === 'tab-your-learners') {
+        
+      }
+    });
+    tabSelector.addEventListener('tabToggle', (tabId) => {
+      console.log(tabId);
+    });
+  }
+});
+
+/**
+ * 
+ */
+function GoToDonorLearners() {
+  currentDonorEmail = document.getElementById(donorEmailElementId).value;
+  if (donorModal) {
+    donorModal.classList.remove('is-active');
+  }
+  // TODO: replace this with string based tab selection 'tab-your-learners'
+  tabSelector.ToggleTab(1);
+  $.get('/getDonorCampaigns', {e: currentDonorEmail}, function(data, status) {
+    let firstCampaignName = data.campaigns[0].name;
+    $.get('/viewData', {email: currentDonorEmail, campaign: firstCampaignName},
+        function(locData, locDataStatus) {
+          displayClusteredData(locData.locations, mapRef);
+        });
+  });
+}
 
 /**
  * Callback for Google Maps deferred load that initializes the map
  */
 function initializeMaps() {
-  const targetEmail = getURLParam('[e]');
-  if (targetEmail) {
-    console.log('Target E-mail: ', targetEmail);
-  } else {
-    window.location.href = '/';
-  }
+  // const targetEmail = getURLParam('[e]');
+  // if (targetEmail) {
+  //   console.log('Target E-mail: ', targetEmail);
+  // } else {
+  //   window.location.href = '/';
+  // }
 
-  const mapParents = document.getElementsByClassName(mapParentElement);
+  let mapParent = document.getElementById(mapParentElementId);
   campaignSelectElement = document.getElementById('campaignSelection');
 
-  if (mapParents != []) {
-    for (let i = 0; i < mapParents.length; i++) {
-      const campaign = $(mapParents[i]).attr('id');
-      console.log('creating map for ', campaign);
-      mapRefs.push(new google.maps.Map(mapParents[i], {
-        streetViewControl: false,
-        mapTypeControl: false,
-      }));
-      const mapRef = mapRefs[i];
-      mapsSharedInfoWindow = new google.maps.InfoWindow();
+  mapsSharedInfoWindow = new google.maps.InfoWindow();
 
-      $(document).ready(function() {
-        $.get('/viewData', {email: targetEmail, campaign: campaign},
-            function(data, status) {
-              displayClusteredData(data.locations, mapRef);
-            });
-      });
-    }
+  if (mapParent) {
+    mapRef = new google.maps.Map(mapParent, {
+      streetViewControl: false,
+      mapTypeControl: false
+    });
   }
 }
 
