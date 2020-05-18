@@ -118,7 +118,7 @@ app.post('/donate', function (req, res){
   }).catch(err=>{console.error(err)});
 });
 
-app.get('/summary*', function (req, res){
+app.get('/getDonorCampaigns', function (req, res){
   let donations =[];
   let email = req.query.e;
   getDonorID(email).then(donorID=>{
@@ -134,14 +134,15 @@ app.get('/summary*', function (req, res){
     });
     return Promise.all(promises);
   }).then(snapshot=>{
-    res.render('summary', {campaigns: donations});
+    // res.render('summary', {campaigns: donations});
+    res.json({campaigns: donations});
   }).catch(err=>{console.error(err)})
 });
 
 app.get('/viewData', function(req, res){
   console.log('searching for learners for donor ', req.query.email, 'in region ', req.query.campaign)
   let learnerList = [];
-  let donorID =""
+  let donorID = "";
   getDonorID(req.query.email).then(result=>{
     donorID = result;
     console.log("found donorID: ", donorID);
@@ -157,8 +158,7 @@ app.get('/viewData', function(req, res){
   }).then(locData=>{
     if(locData != []){
       res.json({learners: learnerList, locations: locData});
-    }
-    else {
+    } else {
       res.end();
     }
   }).catch(err=>{console.error(err)});
@@ -206,7 +206,10 @@ function getLocDataForRegion(donorID, region)
             var location = region.streetViews.locations[i];
             console.log("location: ", location)
 
-            var heading = region.streetViews.headingValues[i];
+            var heading = 0;
+            if (region.streetViews && region.headingValues && region.headingValues.length != 0) {
+              heading = region.streetViews.headingValues[i];
+            }
 
             locData.markerData.push(
             {
