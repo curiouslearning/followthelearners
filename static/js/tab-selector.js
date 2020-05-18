@@ -15,6 +15,7 @@ class TabSelector {
     this.selectedTabButtonClassName = activeBtn;
     this.preToggleListeners = [];
     this.toggleListeners = [];
+    this.preventDefaultAction = false;
 
     this.tabButtonsParentElement = document.getElementById(btnParentID);
     if (!this.tabButtonsParentElement) {
@@ -27,10 +28,19 @@ class TabSelector {
   }
 
   /**
+   * Prevents the default toggle action to execute as needed
+   */
+  preventDefault() {
+    this.preventDefaultAction = true;
+  }
+
+  /**
    * Add event listener with give eventName and listener
-   * @param {String} eventName is the name of the event ('tabToggle' |)
+   * @param {String} eventName is the name of the event ('preTabToggle' | 
+   * 'tabToggle')
    * @param {Method} listener method that's getting called upon event occurence
-   * ('tabToggle' event passes DOM tab element ID)
+   * ('preTabToggle' event passes DOM tab element ID |
+   * 'tabToggle' event passes DOM tab element ID)
    */
   addEventListener(eventName, listener) {
     if (eventName === 'tabToggle') {
@@ -46,6 +56,7 @@ class TabSelector {
    * be toggled
    */
   ToggleTab(tabIndex) {
+    this.preventDefaultAction = false;
     if (this.tabButtonsParentElement && this.tabsParentElement) {
       const tabButtons = this.tabButtonsParentElement.children;
       const tabs = this.tabsParentElement.children;
@@ -55,15 +66,25 @@ class TabSelector {
       }
       for (let i = 0; i < tabButtons.length; i++) {
         if (i === tabIndex) {
-          tabButtons[i].classList.add(this.selectedTabButtonClassName);
-          tabs[i].classList.remove(this.hiddenTabClassName);
-          // Call listeners for tab toggle event with tab ID
-          this.toggleListeners.forEach((listener) => {
+          this.preToggleListeners.forEach((listener) => {
             listener(tabs[i].id);
-          });
-        } else {
-          tabButtons[i].classList.remove(this.selectedTabButtonClassName);
-          tabs[i].classList.add(this.hiddenTabClassName);
+          })
+        }
+      }
+      
+      if (!this.preventDefaultAction) {
+        for (let i = 0; i < tabButtons.length; i++) {
+          if (i === tabIndex) {
+            tabButtons[i].classList.add(this.selectedTabButtonClassName);
+            tabs[i].classList.remove(this.hiddenTabClassName);
+            // Call listeners for tab toggle event with tab ID
+            this.toggleListeners.forEach((listener) => {
+              listener(tabs[i].id);
+            });
+          } else {
+            tabButtons[i].classList.remove(this.selectedTabButtonClassName);
+            tabs[i].classList.add(this.hiddenTabClassName);
+          }
         }
       }
     }
