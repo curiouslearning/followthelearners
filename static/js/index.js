@@ -1,12 +1,17 @@
 let donorModal = null;
 const donorEmailElementId = 'donor-email';
 let currentDonorEmail = null;
+let currentDonorCampaignData = null;
+
+let campaignSelectElement = null;
 
 let mapRef = null;
 const mapParentElementId = 'map-display';
 let mapsSharedInfoWindow = null;
-let campaignSelectElement = null;
 const staticMapZoomLevel = 2;
+
+let loadedMarkers = [];
+let markerClusterer = null;
 
 $(document).ready(function() {
   donorModal = document.getElementById('donor-email-modal');
@@ -27,25 +32,6 @@ $(document).ready(function() {
     });
   }
 });
-
-/**
- * 
- */
-function GoToDonorLearners() {
-  currentDonorEmail = document.getElementById(donorEmailElementId).value;
-  if (donorModal) {
-    donorModal.classList.remove('is-active');
-  }
-  // TODO: replace this with string based tab selection 'tab-your-learners'
-  tabSelector.ToggleTab(1);
-  $.get('/getDonorCampaigns', {e: currentDonorEmail}, function(data, status) {
-    let firstCampaignName = data.campaigns[0].name;
-    $.get('/viewData', {email: currentDonorEmail, campaign: firstCampaignName},
-        function(locData, locDataStatus) {
-          displayClusteredData(locData.locations, mapRef);
-        });
-  });
-}
 
 /**
  * Callback for Google Maps deferred load that initializes the map
@@ -72,11 +58,87 @@ function initializeMaps() {
 }
 
 /**
+ * Called from the donor email form
+ */
+function GoToDonorLearners() {
+  currentDonorEmail = document.getElementById(donorEmailElementId).value;
+  if (donorModal) {
+    donorModal.classList.remove('is-active');
+  }
+  // TODO: replace this with string based tab selection 'tab-your-learners'
+  $.get('/getDonorCampaigns', {e: currentDonorEmail}, function(data, status) {
+    currentDonorCampaignData = data.campaigns;
+    let campaignSelectionOptions = [];
+    if (campaignSelectElement) {
+      campaignSelectElement.options = [];
+      for (let i = 0; i < data.campaigns.length; i++) {
+        campaignSelectElement.options[i] = new Option(
+          data.campaigns[i].data.campaignID, data.campaigns[i].data.campaignID);
+      }
+    }
+    updateCampaignAndLocationData();
+  });
+}
+
+/**
+ * 
+ */
+function updateCampaignAndLocationData() {
+  if (campaignSelectElement) {
+    let selectedCampaignID = campaignSelectElement.
+      options[campaignSelectElement.selectedIndex].value;
+    let campaignData = null;
+    for (let i = 0; i < currentDonorCampaignData.length; i++) {
+      if (currentDonorCampaignData[i].data.campaignID === selectedCampaignID) {
+        campaignData = currentDonorCampaignData[i];
+      }
+    }
+    document.getElementById('donation-amount').innerText = 
+      campaignData.data.amount;
+
+    tabSelector.ToggleTab(1);
+
+    let userCounter = new CountUp('learner-count', 
+      campaignData.data.userCount, { 
+        useEasing: true, 
+        useGrouping: true,
+        duration: 5
+    });
+    if (!userCounter.error) {
+      userCounter.start();
+    } else {
+      console.log(userCounter.error);
+    }
+
+    clearAllMarkers();
+
+    $.get('/viewData', {email: currentDonorEmail, campaign: selectedCampaignID},
+        function(locData, locDataStatus) {
+          displayClusteredData(locData.locations, mapRef);
+        });
+  }
+}
+
+
+
+/**
  * Called from the UI when the campaign is changed for the user
  */
 function onCampaignSelectionChanged() {
-  if (campaignSelectElement) {
-    console.log(campaignSelectElement.value);
+  updateCampaignAndLocationData();
+}
+
+function clearAllMarkers() {
+  // Clear markers
+  if (loadedMarkers.length > 0) {
+    for (let i = 0; i < loadedMarkers.length; i++) {
+      loadedMarkers[i].setMap(null);
+      loadedMarkers[i] = null;
+    }
+    loadedMarkers = [];
+    if (markerClusterer) {
+      markerClusterer.clearMarkers();
+    }
   }
 }
 
@@ -97,7 +159,7 @@ function displayClusteredData(locationData, mapRef) {
 
   const bounds = new google.maps.LatLngBounds();
 
-  const markers = locationData.markerData.map(function(location, i) {
+  loadedMarkers = locationData.markerData.map(function(location, i) {
     if (location.hasOwnProperty('lat') && !isNaN(location.lat)) {
       const newMarker = new google.maps.Marker({position: location});
       bounds.extend(newMarker.position);
@@ -116,7 +178,9 @@ function displayClusteredData(locationData, mapRef) {
             newMarker.heading));
         mapsSharedInfoWindow.open(mapRef);
         mapsSharedInfoWindow.setPosition(newMarker.getPosition());
-      });
+      }); 
+
+      loadedMarkers.push(newMarker);
 
       return newMarker;
     }
@@ -124,13 +188,13 @@ function displayClusteredData(locationData, mapRef) {
     return newMarker;
   });
 
-  const markerCluster = new MarkerClusterer(mapRef, markers,
-      {
-        imagePath: '/static/imgs/',
-        zoomOnClick: false,
-      });
+  markerClusterer = new MarkerClusterer(mapRef, loadedMarkers,
+    {
+      imagePath: '/static/imgs/',
+      zoomOnClick: false,
+    });
 
-  markerCluster.addListener('clusterclick', function(cluster) {
+  markerClusterer.addListener('clusterclick', function(cluster) {
     const currentCluster = cluster.getMarkers();
     console.log(currentCluster);
     if (currentCluster.length > 0) {
