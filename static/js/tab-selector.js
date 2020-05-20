@@ -52,10 +52,10 @@ class TabSelector {
 
   /**
    * Toggles the tab with given tabIndex & updates the button selection state
-   * @param {Number} tabIndex is the index of the button and the tab that should
+   * @param {String} tabID is the id of the button and the tab that should
    * be toggled
    */
-  ToggleTab(tabIndex) {
+  ToggleTab(tabID) {
     this.preventDefaultAction = false;
     if (this.tabButtonsParentElement && this.tabsParentElement) {
       const tabButtons = this.tabButtonsParentElement.children;
@@ -64,8 +64,10 @@ class TabSelector {
         console.log('Number of tab buttons and tabs are not equal.');
         return;
       }
-      for (let i = 0; i < tabButtons.length; i++) {
-        if (i === tabIndex) {
+      let tabIndex = 0;
+      for (let i = 0; i < tabs.length; i++) {
+        if (tabs[i].id === tabID) {
+          tabIndex = i;
           this.preToggleListeners.forEach((listener) => {
             listener(tabs[i].id);
           })

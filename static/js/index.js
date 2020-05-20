@@ -96,7 +96,8 @@ function updateCampaignAndLocationData() {
     document.getElementById('donation-amount').innerText = 
       campaignData.data.amount;
 
-    tabSelector.ToggleTab(1);
+    // TODO: toggle the tab using it's ID: tab-your-learners
+    tabSelector.ToggleTab('tab-your-learners');
 
     let userCounter = new CountUp('learner-count', 
       campaignData.data.userCount, { 
