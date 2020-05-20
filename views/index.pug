@@ -46,13 +46,17 @@ html
                 window.location = "/donate?campaign=" + campaign+ "&amount=" + amount
               }
       .section.is-hidden#tab-your-learners
-        .select.is-large(style='font-size: 2.2rem')
+        .select.is-large(style='font-size: 2.4rem')
           select#campaignSelection(onchange='onCampaignSelectionChanged()' style='border: none; width: auto; -webkit-appearance: none; -moz-appearance: none; appearance:none;' name='campaignSelection')
-            //- each campaign in campaigns
-            //-   option() #{campaign.name}
-        .section
-          .container.has-text-centered
-            #map-display(style="width: 100%; height: 600px;")
+        .section(style='margin-top: none; padding-top: 0.5rem; padding-bottom: 0.2rem; margin-bottom: none;')
+          h3.subtitle.is-3.has-text-grey Donation: 
+            span#donation-amount
+            span $
+          h3.subtitle.is-3.has-text-grey You've reached&nbsp;
+            span#learner-count
+            span &nbsp;Learners
+        .section(style='margin-top: none; padding-top: 0.5rem;')
+          #map-display(style="width: 100%; height: 640px;")
 
       .section.is-hidden#tab-all-learners
         h1.title(style='font-size: 4rem;') All Learners 
@@ -80,5 +84,6 @@ html
   script(async, defer, src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDEl20cTMsc72W_TasuK5PlWYIgMrzyuAU&callback=initializeMaps")
   script(src="/static/js/fbc.js")
   script(src='/static/js/tab-selector.js')
+  script(src='static/js/countUp.js')
   script(src="/static/js/index.js")
   script(src="https://unpkg.com/@google/markerclustererplus@4.0.1/dist/markerclustererplus.min.js")
