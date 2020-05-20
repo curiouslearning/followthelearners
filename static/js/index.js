@@ -65,7 +65,6 @@ function GoToDonorLearners() {
   if (donorModal) {
     donorModal.classList.remove('is-active');
   }
-  // TODO: replace this with string based tab selection 'tab-your-learners'
   $.get('/getDonorCampaigns', {e: currentDonorEmail}, function(data, status) {
     currentDonorCampaignData = data.campaigns;
     let campaignSelectionOptions = [];
@@ -81,7 +80,8 @@ function GoToDonorLearners() {
 }
 
 /**
- * 
+ * Update the campaign and location data based on the dropdown campaign
+ * selection
  */
 function updateCampaignAndLocationData() {
   if (campaignSelectElement) {
@@ -119,8 +119,6 @@ function updateCampaignAndLocationData() {
   }
 }
 
-
-
 /**
  * Called from the UI when the campaign is changed for the user
  */
@@ -128,6 +126,9 @@ function onCampaignSelectionChanged() {
   updateCampaignAndLocationData();
 }
 
+/**
+ * Clears all loaded markers and the maker clusterer on the map
+ */
 function clearAllMarkers() {
   // Clear markers
   if (loadedMarkers.length > 0) {
