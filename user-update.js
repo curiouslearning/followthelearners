@@ -50,19 +50,25 @@ function main() {
         }
       });
       for (property in campaigns){
+        console.log("Property is ", property.toString());
         let dbRef = firestore.collectionGroup('donations');
         let donors = {};
         let totalSpend = 0;
         dbRef.where('campaignID', '==', property).get().then(snapshot=>{
-          if(snapshot.empty) {}
+          if(snapshot.empty) {return;}
           snapshot.forEach(doc=>{
-            let data = doc.data();
-            totalSpend += data.amount;
-            if (!donors.hasOwnProperty(data.sourceDonor)){
-              donors[data.sourceDonor]= {amount: data.amount};
-            }else{
-              donors[data.sourceDonor].amount += data.amount;
+            if(doc.exists)
+            {
+              let data = doc.data();
+              totalSpend += Number(data.amount);
+              console.log("campaign ", property.toString(), " has $", totalSpend, "associated with it");
+              if (!donors.hasOwnProperty(data.sourceDonor)){
+                donors[data.sourceDonor]= {amount: data.amount};
+              }else{
+                donors[data.sourceDonor].amount += data.amount;
+              }
             }
+
           });
           for (donor in donors) {
             let contributionFraction = donors[donor].amount/totalSpend;
@@ -98,7 +104,7 @@ function InsertLocation(row)
       }
       return [];
     }).then(regions=>{
-      if(regions.empty){
+      if(regions == undefined || regions.empty){
         regions = [row.region];
       }
       else if(!regions.includes(row.region)){
