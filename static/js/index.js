@@ -1,42 +1,122 @@
-const staticMapZoomLevel = 2;
-const mapParentElement = 'map-display';
+let donorModal = null;
+const donorEmailElementId = 'donor-email';
+let currentDonorEmail = null;
+let currentDonorCampaignData = null;
 
-const mapRefs = [];
-let mapsSharedInfoWindow = null;
 let campaignSelectElement = null;
+
+let mapRef = null;
+const mapParentElementId = 'map-display';
+let mapsSharedInfoWindow = null;
+const staticMapZoomLevel = 2;
+
+let loadedMarkers = [];
+let markerClusterer = null;
+
+$(document).ready(function() {
+  donorModal = document.getElementById('donor-email-modal');
+
+  if (tabSelector) {
+    tabSelector.addEventListener('preTabToggle', (tabId) => {
+      if (currentDonorEmail === null && donorModal && 
+        tabId === 'tab-your-learners') {
+        tabSelector.preventDefault();
+        donorModal.classList.add('is-active');
+      } else if (currentDonorEmail !== null && donorModal &&
+        tabId === 'tab-your-learners') {
+        
+      }
+    });
+    tabSelector.addEventListener('tabToggle', (tabId) => {
+      console.log(tabId);
+    });
+  }
+});
 
 /**
  * Callback for Google Maps deferred load that initializes the map
  */
 function initializeMaps() {
-  const targetEmail = getURLParam('[e]');
-  if (targetEmail) {
-    console.log('Target E-mail: ', targetEmail);
-  } else {
-    window.location.href = '/';
-  }
+  // const targetEmail = getURLParam('[e]');
+  // if (targetEmail) {
+  //   console.log('Target E-mail: ', targetEmail);
+  // } else {
+  //   window.location.href = '/';
+  // }
 
-  const mapParents = document.getElementsByClassName(mapParentElement);
+  let mapParent = document.getElementById(mapParentElementId);
   campaignSelectElement = document.getElementById('campaignSelection');
 
-  if (mapParents != []) {
-    for (let i = 0; i < mapParents.length; i++) {
-      const campaign = $(mapParents[i]).attr('id');
-      console.log('creating map for ', campaign);
-      mapRefs.push(new google.maps.Map(mapParents[i], {
-        streetViewControl: false,
-        mapTypeControl: false,
-      }));
-      const mapRef = mapRefs[i];
-      mapsSharedInfoWindow = new google.maps.InfoWindow();
+  mapsSharedInfoWindow = new google.maps.InfoWindow();
 
-      $(document).ready(function() {
-        $.get('/viewData', {email: targetEmail, campaign: campaign},
-            function(data, status) {
-              displayClusteredData(data.locations, mapRef);
-            });
-      });
+  if (mapParent) {
+    mapRef = new google.maps.Map(mapParent, {
+      streetViewControl: false,
+      mapTypeControl: false
+    });
+  }
+}
+
+/**
+ * Called from the donor email form
+ */
+function GoToDonorLearners() {
+  currentDonorEmail = document.getElementById(donorEmailElementId).value;
+  if (donorModal) {
+    donorModal.classList.remove('is-active');
+  }
+  $.get('/getDonorCampaigns', {e: currentDonorEmail}, function(data, status) {
+    currentDonorCampaignData = data.campaigns;
+    let campaignSelectionOptions = [];
+    if (campaignSelectElement) {
+      campaignSelectElement.options = [];
+      for (let i = 0; i < data.campaigns.length; i++) {
+        campaignSelectElement.options[i] = new Option(
+          data.campaigns[i].data.campaignID, data.campaigns[i].data.campaignID);
+      }
     }
+    updateCampaignAndLocationData();
+  });
+}
+
+/**
+ * Update the campaign and location data based on the dropdown campaign
+ * selection
+ */
+function updateCampaignAndLocationData() {
+  if (campaignSelectElement) {
+    let selectedCampaignID = campaignSelectElement.
+      options[campaignSelectElement.selectedIndex].value;
+    let campaignData = null;
+    for (let i = 0; i < currentDonorCampaignData.length; i++) {
+      if (currentDonorCampaignData[i].data.campaignID === selectedCampaignID) {
+        campaignData = currentDonorCampaignData[i];
+      }
+    }
+    document.getElementById('donation-amount').innerText = 
+      campaignData.data.amount;
+
+    // TODO: toggle the tab using it's ID: tab-your-learners
+    tabSelector.ToggleTab('tab-your-learners');
+
+    let userCounter = new CountUp('learner-count', 
+      campaignData.data.userCount, { 
+        useEasing: true, 
+        useGrouping: true,
+        duration: 5
+    });
+    if (!userCounter.error) {
+      userCounter.start();
+    } else {
+      console.log(userCounter.error);
+    }
+
+    clearAllMarkers();
+
+    $.get('/viewData', {email: currentDonorEmail, campaign: selectedCampaignID},
+        function(locData, locDataStatus) {
+          displayClusteredData(locData.locations, mapRef);
+        });
   }
 }
 
@@ -44,8 +124,23 @@ function initializeMaps() {
  * Called from the UI when the campaign is changed for the user
  */
 function onCampaignSelectionChanged() {
-  if (campaignSelectElement) {
-    console.log(campaignSelectElement.value);
+  updateCampaignAndLocationData();
+}
+
+/**
+ * Clears all loaded markers and the maker clusterer on the map
+ */
+function clearAllMarkers() {
+  // Clear markers
+  if (loadedMarkers.length > 0) {
+    for (let i = 0; i < loadedMarkers.length; i++) {
+      loadedMarkers[i].setMap(null);
+      loadedMarkers[i] = null;
+    }
+    loadedMarkers = [];
+    if (markerClusterer) {
+      markerClusterer.clearMarkers();
+    }
   }
 }
 
@@ -66,7 +161,7 @@ function displayClusteredData(locationData, mapRef) {
 
   const bounds = new google.maps.LatLngBounds();
 
-  const markers = locationData.markerData.map(function(location, i) {
+  loadedMarkers = locationData.markerData.map(function(location, i) {
     if (location.hasOwnProperty('lat') && !isNaN(location.lat)) {
       const newMarker = new google.maps.Marker({position: location});
       bounds.extend(newMarker.position);
@@ -85,7 +180,9 @@ function displayClusteredData(locationData, mapRef) {
             newMarker.heading));
         mapsSharedInfoWindow.open(mapRef);
         mapsSharedInfoWindow.setPosition(newMarker.getPosition());
-      });
+      }); 
+
+      loadedMarkers.push(newMarker);
 
       return newMarker;
     }
@@ -93,13 +190,13 @@ function displayClusteredData(locationData, mapRef) {
     return newMarker;
   });
 
-  const markerCluster = new MarkerClusterer(mapRef, markers,
-      {
-        imagePath: '/static/imgs/',
-        zoomOnClick: false,
-      });
+  markerClusterer = new MarkerClusterer(mapRef, loadedMarkers,
+    {
+      imagePath: '/static/imgs/',
+      zoomOnClick: false,
+    });
 
-  markerCluster.addListener('clusterclick', function(cluster) {
+  markerClusterer.addListener('clusterclick', function(cluster) {
     const currentCluster = cluster.getMarkers();
     console.log(currentCluster);
     if (currentCluster.length > 0) {
