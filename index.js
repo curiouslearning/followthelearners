@@ -122,7 +122,10 @@ app.get('/getDonorCampaigns', function (req, res){
   let donations =[];
   let email = req.query.e;
   getDonorID(email).then(donorID=>{
-    return getDonations(donorID)
+    if (donorID === "" || donorID === undefined || donorID === null) {
+      res.end();
+    }
+    return getDonations(donorID);
   }).then(snapshot=>{
     if(snapshot.empty){res.render('summary');}
     let promises = []
