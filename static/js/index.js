@@ -10,6 +10,8 @@ const mapParentElementId = 'map-display';
 let mapsSharedInfoWindow = null;
 const staticMapZoomLevel = 2;
 
+let newDonorInfoTextId = '#new-donor-info-text';
+
 let loadedMarkers = [];
 let markerClusterer = null;
 
@@ -20,11 +22,9 @@ $(document).ready(function() {
     tabSelector.addEventListener('preTabToggle', (tabId) => {
       if (currentDonorEmail === null && donorModal && 
         tabId === 'tab-your-learners') {
+        $(newDonorInfoTextId).addClass('is-hidden');
         tabSelector.preventDefault();
         donorModal.classList.add('is-active');
-      } else if (currentDonorEmail !== null && donorModal &&
-        tabId === 'tab-your-learners') {
-        
       }
     });
     tabSelector.addEventListener('tabToggle', (tabId) => {
@@ -62,10 +62,15 @@ function initializeMaps() {
  */
 function GoToDonorLearners() {
   currentDonorEmail = document.getElementById(donorEmailElementId).value;
-  if (donorModal) {
-    donorModal.classList.remove('is-active');
-  }
   $.get('/getDonorCampaigns', {e: currentDonorEmail}, function(data, status) {
+    if (data === "" || data === null || data === undefined) {
+      $(newDonorInfoTextId).removeClass('is-hidden');
+      setTimeout(() => {
+        $(newDonorInfoTextId).addClass('is-hidden');
+        $('#' + donorEmailElementId).val('');
+      }, 7000);
+      return;
+    }
     currentDonorCampaignData = data.campaigns;
     let campaignSelectionOptions = [];
     if (campaignSelectElement) {
@@ -74,6 +79,9 @@ function GoToDonorLearners() {
         campaignSelectElement.options[i] = new Option(
           data.campaigns[i].data.campaignID, data.campaigns[i].data.campaignID);
       }
+    }
+    if (donorModal) {
+      donorModal.classList.remove('is-active');
     }
     updateCampaignAndLocationData();
   });
