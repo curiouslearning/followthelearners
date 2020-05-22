@@ -68,6 +68,13 @@ html
           p.modal-card-title.has-text-grey-dark Enter Your E-Mail
           button.delete(aria-label='close' onclick="document.getElementById('donor-email-modal').classList.remove('is-active');")
         .modal-card-body
+          p.has-text-info.is-hidden#new-donor-info-text
+            span.icon.is-small.is-left
+              i.fas.fa-info-circle
+            span &nbsp;Oops! Looks like you haven't made any contributions yet! Why not take a look at our campaigns and join us in bringing access to reading education to every child!
+            span
+              br
+              br
           form
             //- .help Go to your Donor Summary
             //- br
