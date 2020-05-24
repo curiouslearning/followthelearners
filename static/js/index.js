@@ -105,7 +105,9 @@ function updateCampaignAndLocationData() {
     document.getElementById('donation-amount').innerText = 
       campaignData.data.amount;
 
-    // TODO: toggle the tab using it's ID: tab-your-learners
+    document.getElementById('donation-date').innerText = 
+      campaignData.data.dateCreated;
+
     tabSelector.ToggleTab('tab-your-learners');
 
     let userCounter = new CountUp('learner-count', 
@@ -221,7 +223,7 @@ function displayClusteredData(locationData, mapRef) {
         streetView = randomMarker.otherViews[Math.floor((Math.random() * 
           randomMarker.otherViews.length))];
       }
-      
+
       const content = constructInfoWindowContent(
           randomMarker.country,
           randomMarker.region,
