@@ -155,8 +155,8 @@ app.get('/viewData', function(req, res){
     if(learners.empty || learners.length == 0){
       return[];
     }else{
-      learnerList = learners
-      return getLocDataForRegion(donorID, req.query.campaign);
+      learnerList = learners;
+      return getLocDataForRegion(donorID, req.query.campaign, learners);
     }
   }).then(locData=>{
     if(locData != []){
@@ -183,7 +183,7 @@ function getDonorID(email)
     }).catch(err=>{console.error(err)});
 }
 
-function getLocDataForRegion(donorID, region)
+function getLocDataForRegion(donorID, region, learners)
 {
   if(donorID === undefined || region === undefined){console.error("donor and region cannot be undefined!"); return[];}
   else{console.log("donor: ", donorID, " , region: ", region);}
