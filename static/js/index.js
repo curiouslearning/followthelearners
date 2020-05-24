@@ -123,9 +123,9 @@ function updateCampaignAndLocationData() {
     clearAllMarkers();
 
     $.get('/viewData', {email: currentDonorEmail, campaign: selectedCampaignID},
-        function(locData, locDataStatus) {
-          displayClusteredData(locData.locations, mapRef);
-        });
+      function(locData, locDataStatus) {
+        displayClusteredData(locData.locations, mapRef);
+      });
   }
 }
 
@@ -178,6 +178,7 @@ function displayClusteredData(locationData, mapRef) {
       newMarker['facts'] = locationData.facts;
       newMarker['region'] = location.region;
       newMarker['heading'] = location.headingValue;
+      newMarker['otherViews'] = location.otherViews;
 
       newMarker.addListener('click', function() {
         mapsSharedInfoWindow.setContent(constructInfoWindowContent(
@@ -199,27 +200,35 @@ function displayClusteredData(locationData, mapRef) {
     return newMarker;
   });
 
-  markerClusterer = new MarkerClusterer(mapRef, loadedMarkers,
-    {
-      imagePath: '/static/imgs/',
-      zoomOnClick: false,
-    });
+  markerClusterer = new MarkerClusterer(mapRef, loadedMarkers, {
+    imagePath: '/static/imgs/',
+    zoomOnClick: false,
+  });
 
   markerClusterer.addListener('clusterclick', function(cluster) {
     const currentCluster = cluster.getMarkers();
     console.log(currentCluster);
     if (currentCluster.length > 0) {
-      const randomMarkerIndex = Math.floor(
-          (Math.random() * currentCluster.length));
-      console.log(randomMarkerIndex);
+      const randomMarkerIndex = Math.floor((Math.random() * 
+        currentCluster.length));
       const randomMarker = currentCluster[randomMarkerIndex];
+
+      let streetView = { lat: randomMarker.getPosition().lat(), 
+        lng: randomMarker.getPosition().lng(), 
+        headingValue: randomMarker.heading };
+
+      if (randomMarker.otherViews && Math.floor(Math.random() * 2) === 1) {
+        streetView = randomMarker.otherViews[Math.floor((Math.random() * 
+          randomMarker.otherViews.length))];
+      }
+      
       const content = constructInfoWindowContent(
           randomMarker.country,
           randomMarker.region,
           getRandomFact(randomMarker.facts),
-          randomMarker.getPosition().lat(),
-          randomMarker.getPosition().lng(),
-          randomMarker.heading);
+          streetView.lat,
+          streetView.lng,
+          streetView.headingValue);
       mapsSharedInfoWindow.setContent(content);
       mapsSharedInfoWindow.open(mapRef);
       // Pick the first marker position as the position of
