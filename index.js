@@ -194,33 +194,44 @@ function getLocDataForRegion(donorID, region, learners)
     if(!doc.exists){return [];}
     let data = doc.data();
     console.log("country is: ", data.region);
-    return locRef.doc(data.region).get().then(doc=>{
+    return locRef.doc(data.region).get().then(doc=> {
       console.log("loc data: " + data.region);
       if(!doc.exists){ return []; }
       let regions = doc.data().regions;
       let facts = doc.data().facts;
       let locData = {country: data.region, facts: facts, markerData: []};
 
-      regions.forEach(region=>{
-        console.log('region is: ', region);
-        if(typeof region != 'string'){
-          for (var i = 0; i < region.streetViews.locations.length; i++)
-          {
-            var location = region.streetViews.locations[i];
-            console.log("location: ", location)
+      learners.forEach(learner => {
+        let markerData = { lat: 0, lng: 0, region: "", headingValue: 0,
+          otherViews: [] };
+        let learnerRegion = regions.find(reg => 
+          reg.region.toLowerCase() ===  learner.region.toLowerCase());
+        let streetViews = learnerRegion.streetViews;
 
-            var heading = 0;
-            if (region.streetViews && region.headingValues && region.headingValues.length != 0) {
-              heading = region.streetViews.headingValues[i];
-            }
+        if (!streetViews && !streetViews.locations &&
+            !streetViews.headingValues && streetViews.locations.length !== 
+            streetViews.headingValues.length) {
+          markerData.push(null);
+          return;
+        }
+        markerData.region = learner.region;
+        markerData.lat = streetViews.locations[0]._latitude;
+        markerData.lng = streetViews.locations[0]._longitude;
+        markerData.headingValue = streetViews.headingValues[0];
 
-            locData.markerData.push(
-            {
-              lat: location._latitude, lng: location._longitude, region: region.region, headingValue: heading
-            });
+        if (streetViews.locations.length > 1) {
+          for (let i = 1; i < streetViews.locations.length; i++) {
+            let m = { lat: 0, lng: 0, headingValue: 0 };
+            m.lat = streetViews.locations[i]._latitude;
+            m.lng = streetViews.locations[i]._longitude;
+            m.headingValue = streetViews.headingValues[i];
+            markerData.otherViews.push(m);
           }
         }
+
+        locData.markerData.push(markerData);
       });
+      console.log(locData);
       return locData;
     });
   }).catch(err=>{console.error(err)});
