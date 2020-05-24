@@ -308,7 +308,7 @@ function getLearnersForRegion(donorID, region)
     snapshot.forEach(doc=>{
       let data = doc.data();
       users.push({
-        region: region,
+        region: data.region.length === 0 ? null : data.region[0],
         sourceCampaign: data.sourceCampaign,
         learnerLevel: data.learnerLevel,
       });
