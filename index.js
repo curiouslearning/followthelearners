@@ -4,6 +4,7 @@ const Memcached = require('memcached');
 const fireStoreAdmin = require('firebase-admin');
 let serviceAccount = require('./keys/firestore-key.json');
 const bodyParser = require('body-parser');
+const dateFormat = require('date-format');
 const app = express();
 const CACHETIMEOUT = 720; //the cache timeout in minutes
 
@@ -284,7 +285,6 @@ function sumDonors(region)
   }).catch(err=>{console.error(err)});
 }
 
-
 function getDonation(donorID, donationID)
 {
   let donation = firestore.collection('donor_master').doc(donorID).collection('donations').doc(donationID);
@@ -300,7 +300,10 @@ function getDonations(donorID)
     if(snapshot.empty){return [];}
     let donations =[];
     snapshot.forEach(doc=>{
-      donations.push({name: doc.id, data: doc.data()});
+      let data = doc.data();
+      data.dateCreated = dateFormat.asString("MM / dd / yyyy hh:mm", 
+        data.dateCreated.toDate());
+      donations.push({name: doc.id, data: data});
     });
     return donations;
   }).catch(err=>{console.error(err)});
