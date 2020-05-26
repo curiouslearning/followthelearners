@@ -124,7 +124,7 @@ function updateCampaignAndLocationData() {
 
     clearAllMarkers();
 
-    $.get('/viewData', {email: currentDonorEmail, campaign: selectedCampaignID},
+    $.get('/yourLearners', {email: currentDonorEmail, campaign: selectedCampaignID},
       function(locData, locDataStatus) {
         displayClusteredData(locData.locations, mapRef);
       });
