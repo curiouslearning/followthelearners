@@ -143,7 +143,7 @@ app.get('/getDonorCampaigns', function (req, res){
   }).catch(err=>{console.error(err)})
 });
 
-app.get('/viewData', function(req, res){
+app.get('/yourLearners', function(req, res){
   console.log('searching for learners for donor ', req.query.email, 'in region ', req.query.campaign)
   let learnerList = [];
   let donorID = "";
