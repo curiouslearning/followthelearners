@@ -167,6 +167,21 @@ app.get('/yourLearners', function(req, res){
     }
   }).catch(err=>{console.error(err)});
 });
+function getAllUsers() {
+  let usersQuery = firestore.collectionGroup('users');
+  return usersQuery.get().then(snapshot => {
+    if (snapshot.empty) {
+      console.log('No users found...');
+      return [];
+    }
+    let users = [];
+    snapshot.forEach(doc => {
+      users.push(doc.data());
+    });
+    return users;
+  }).catch(err => { console.error(err); });
+}
+
 app.get('*', function(req,res){res.render('404')});
 
 app.listen(3000);
