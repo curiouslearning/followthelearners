@@ -167,6 +167,15 @@ app.get('/yourLearners', function(req, res){
     }
   }).catch(err=>{console.error(err)});
 });
+
+app.get('/allLearners', function(req, res){
+  console.log('Getting location data for all learners...');
+  getAllUsers().then(users => {
+    console.log(users);
+    // TODO: get all learner location data
+  });
+});
+
 function getAllUsers() {
   let usersQuery = firestore.collectionGroup('users');
   return usersQuery.get().then(snapshot => {
