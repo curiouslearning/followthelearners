@@ -37,13 +37,6 @@ $(document).ready(function() {
  * Callback for Google Maps deferred load that initializes the map
  */
 function initializeMaps() {
-  // const targetEmail = getURLParam('[e]');
-  // if (targetEmail) {
-  //   console.log('Target E-mail: ', targetEmail);
-  // } else {
-  //   window.location.href = '/';
-  // }
-
   let mapParent = document.getElementById(mapParentElementId);
   campaignSelectElement = document.getElementById('campaignSelection');
 
@@ -55,13 +48,20 @@ function initializeMaps() {
       mapTypeControl: false
     });
   }
+
+  const targetEmail = getURLParam('email');
+  if (targetEmail) {
+    currentDonorEmail = targetEmail;
+    GoToDonorLearners();
+  }
 }
 
 /**
  * Called from the donor email form
  */
 function GoToDonorLearners() {
-  currentDonorEmail = document.getElementById(donorEmailElementId).value;
+  if (currentDonorEmail === null)
+    currentDonorEmail = document.getElementById(donorEmailElementId).value;
   $.get('/getDonorCampaigns', {e: currentDonorEmail}, function(data, status) {
     if (data === "" || data === null || data === undefined) {
       $(newDonorInfoTextId).removeClass('is-hidden');
@@ -69,6 +69,7 @@ function GoToDonorLearners() {
         $(newDonorInfoTextId).addClass('is-hidden');
         $('#' + donorEmailElementId).val('');
       }, 7000);
+      currentDonorEmail = null;
       return;
     }
     currentDonorCampaignData = data.campaigns;
