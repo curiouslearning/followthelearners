@@ -4,9 +4,12 @@ let currentDonorEmail = null;
 let currentDonorCampaignData = null;
 
 let campaignSelectElement = null;
+const campaignSelectElementId = 'campaignSelection';
 
-let mapRef = null;
-const mapParentElementId = 'map-display';
+let mapYourLearners = null;
+let mapAllLearners = null;
+const mapYourLearnersParentElementId = 'map-display-your-learners';
+const mapAllLearnersParentElementId = 'map-display-all-learners';
 let mapsSharedInfoWindow = null;
 const staticMapZoomLevel = 2;
 
@@ -20,30 +23,45 @@ $(document).ready(function() {
 
   if (tabSelector) {
     tabSelector.addEventListener('preTabToggle', (tabId) => {
-      if (currentDonorEmail === null && donorModal && 
-        tabId === 'tab-your-learners') {
+      if (tabId === 'tab-your-learners' && currentDonorEmail === null && 
+        donorModal) {
         $(newDonorInfoTextId).addClass('is-hidden');
         tabSelector.preventDefault();
         donorModal.classList.add('is-active');
+      } else if (tabId === 'tab-all-learners') {
+        tabSelector.preventDefault();
+        GetDataAndSwitchToAllLearners();
       }
     });
     tabSelector.addEventListener('tabToggle', (tabId) => {
       console.log(tabId);
     });
   }
+
 });
 
 /**
  * Callback for Google Maps deferred load that initializes the map
  */
 function initializeMaps() {
-  let mapParent = document.getElementById(mapParentElementId);
-  campaignSelectElement = document.getElementById('campaignSelection');
+  let mapYourLearnersParent = document.getElementById(
+    mapYourLearnersParentElementId);
+  let mapAllLearnersParent = document.getElementById(
+    mapAllLearnersParentElementId);
+  campaignSelectElement = document.getElementById(
+    campaignSelectElementId);
 
   mapsSharedInfoWindow = new google.maps.InfoWindow();
 
-  if (mapParent) {
-    mapRef = new google.maps.Map(mapParent, {
+  if (mapYourLearnersParent) {
+    mapYourLearners = new google.maps.Map(mapYourLearnersParent, {
+      streetViewControl: false,
+      mapTypeControl: false
+    });
+  }
+
+  if (mapAllLearnersParent) {
+    mapAllLearners = new google.maps.Map(mapAllLearnersParent, {
       streetViewControl: false,
       mapTypeControl: false
     });
@@ -52,14 +70,28 @@ function initializeMaps() {
   const targetEmail = getURLParam('email');
   if (targetEmail) {
     currentDonorEmail = targetEmail;
-    GoToDonorLearners();
+    GetDataAndGoToDonorLearners();
   }
+}
+
+
+/**
+ * 
+ */
+function GetDataAndSwitchToAllLearners() {
+  $.get('/allLearners', {e: currentDonorEmail}, function(data, status) {
+    if (!data) {
+      console.log("Couldn't get data for All Learners!");
+      return;
+    }
+    console.log(data);
+  });
 }
 
 /**
  * Called from the donor email form
  */
-function GoToDonorLearners() {
+function GetDataAndGoToDonorLearners() {
   if (currentDonorEmail === null)
     currentDonorEmail = document.getElementById(donorEmailElementId).value;
   $.get('/getDonorCampaigns', {e: currentDonorEmail}, function(data, status) {
@@ -124,9 +156,10 @@ function updateCampaignAndLocationData() {
 
     clearAllMarkers();
 
-    $.get('/yourLearners', {email: currentDonorEmail, campaign: selectedCampaignID},
+    $.get('/yourLearners', 
+      {email: currentDonorEmail, campaign: selectedCampaignID},
       function(locData, locDataStatus) {
-        displayClusteredData(locData.locations, mapRef);
+        displayClusteredData(locData.locations, mapYourLearners);
       });
   }
 }
