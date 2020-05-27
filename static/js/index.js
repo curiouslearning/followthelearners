@@ -271,7 +271,8 @@ function displayClusteredData(mapRef, locationData) {
       let streetView = { lat: randomMarker.lat, lng: randomMarker.lng, 
         headingValue: randomMarker.heading };
 
-      if (randomMarker.otherViews && Math.floor(Math.random() * 2) === 1) {
+      if (randomMarker.otherViews && randomMarker.otherViews.length !== 0 && 
+        Math.floor(Math.random() * 2) === 1) {
         streetView = randomMarker.otherViews[Math.floor((Math.random() * 
           randomMarker.otherViews.length))];
       }
@@ -310,9 +311,10 @@ function displayClusteredData(mapRef, locationData) {
  */
 function constructInfoWindowContent(country, region, randomFact, latitude,
     longitude, heading) {
+  region = region === "no-region" ? "Region not available" : region;
   const contentString = '<div style=\'text-align: left;\'>' +
     '<span style=\'font-size: 18px; color: #606060\'><b>' +
-    region + ' </b></span>' +
+    region + ' </b></span>' + 
     '<span style=\'font-size: 16px; color: #909090\'><b>(' +
     country + ')</b></span>' +
     '<br><br> <p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
