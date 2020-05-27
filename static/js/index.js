@@ -285,8 +285,12 @@ function displayClusteredData(mapRef, locationData) {
       mapsSharedInfoWindow.setPosition(currentCluster[0].getPosition());
     }
   });
+
   mapRef.fitBounds(bounds);
   mapRef.panToBounds(bounds);
+  if (mapRef === mapAllLearners) {
+    mapRef.setZoom(staticMapZoomLevel);
+  }
 }
 
 /**
