@@ -209,7 +209,7 @@ function clearAllMarkers() {
  */
 function displayClusteredData(mapRef, locationData) {
   console.log('Loc data: ' + locationData);
-  if (locationData.markerData.length == 0) {
+  if (!locationData.markerData || locationData.markerData.length == 0) {
     const center = new google.maps.LatLng(0, 0);
     mapRef.setCenter(center);
     mapRef.setZoom(staticMapZoomLevel);
