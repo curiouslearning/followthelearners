@@ -161,7 +161,7 @@ app.get('/yourLearners', function(req, res){
     }
   }).then(locData=>{
     if(locData != []){
-      res.json({learners: learnerList, locations: locData});
+      res.json({learners: learnerList, locData: locData});
     } else {
       res.end();
     }
@@ -170,11 +170,92 @@ app.get('/yourLearners', function(req, res){
 
 app.get('/allLearners', function(req, res){
   console.log('Getting location data for all learners...');
+  let usersList = [];
   getAllUsers().then(users => {
-    console.log(users);
-    // TODO: get all learner location data
-  });
+    // usersList = users;
+    usersList = users.filter(user => user.country !== null && 
+      user.country !== undefined && user.country !== "");
+    return getAllLocations();
+  }).then(locations => {
+    let locData = getLocDataForAllLearners(usersList, locations);
+    if (locData !== null && locData !== []) {
+      res.json({locData: locData});
+    } else {
+      res.end();
+    }
+  }).catch(err => { console.error(err); res.end(); });
 });
+
+function getLocDataForAllLearners(usersList, locations) {
+  let locData = { facts: {}, markerData: [] };
+
+  for (let locKey in locations) {
+    if (locations[locKey].facts) {
+      locData.facts[locations[locKey].country] = locations[locKey].facts;
+    }
+  }
+
+  usersList.forEach(user => {
+    let markerData = { lat: 0, lng: 0, country: user.country, 
+      region: user.region, headingValue: 0, otherViews: [] };
+    let regions = locations[user.country].regions;
+    let userRegion = regions.find(reg => {
+      if (reg.region === null || reg.region === "" || user.region === null ||
+      user.region === "") {
+        return false;
+      } else {
+        return reg.region.toLowerCase() === user.region.toLowerCase();
+      }
+    });
+    if (!userRegion) {
+      console.log("User region: ", user.region, " not found in regions of",
+        user.country);
+      return;
+    }
+    let streetViews = userRegion.streetViews;
+
+    if (!streetViews && !streetViews.locations &&
+        !streetViews.headingValues && streetViews.locations.length !== 
+        streetViews.headingValues.length) {
+      console.log("User region: ", user.region, 
+        " doesn't have any street view data.");
+      return;
+    }
+
+    markerData.lat = streetViews.locations[0]._latitude;
+    markerData.lng = streetViews.locations[0]._longitude;
+    markerData.headingValue = streetViews.headingValues[0];
+
+    if (streetViews.locations.length > 1) {
+      for (let i = 1; i < streetViews.locations.length; i++) {
+        let m = { lat: 0, lng: 0, headingValue: 0 };
+        m.lat = streetViews.locations[i]._latitude;
+        m.lng = streetViews.locations[i]._longitude;
+        m.headingValue = streetViews.headingValues[i];
+        markerData.otherViews.push(m);
+      }
+    }
+
+    locData.markerData.push(markerData);
+  });
+
+  return locData;
+}
+
+function getAllLocations() {
+  let locationsQuery = firestore.collection('loc_ref');
+  return locationsQuery.get().then(snapshot => {
+    if (snapshot.empty) {
+      console.log("No locations found...");
+      return [];
+    }
+    let locations = [];
+    snapshot.forEach(doc => {
+      locations[doc.data().country] = doc.data();
+    });
+    return locations;
+  }).catch(err => { console.log(err); });
+}
 
 function getAllUsers() {
   let usersQuery = firestore.collectionGroup('users');
@@ -224,13 +305,13 @@ function getLocDataForRegion(donorID, region, learners)
       if(!doc.exists){ return []; }
       let regions = doc.data().regions;
       let facts = doc.data().facts;
-      let locData = {country: data.region, facts: facts, markerData: []};
-
+      let locData = { facts: {}, markerData: [] };
+      locData.facts[data.region] = facts;
       learners.forEach(learner => {
-        let markerData = { lat: 0, lng: 0, region: "", headingValue: 0,
+        let markerData = { lat: 0, lng: 0, country: data.region, region: "", headingValue: 0,
           otherViews: [] };
         let learnerRegion = regions.find(reg => 
-          reg.region.toLowerCase() ===  learner.region.toLowerCase());
+          reg.region.toLowerCase() === learner.region.toLowerCase());
         let streetViews = learnerRegion.streetViews;
 
         if (!streetViews && !streetViews.locations &&
@@ -256,7 +337,6 @@ function getLocDataForRegion(donorID, region, learners)
 
         locData.markerData.push(markerData);
       });
-      console.log(locData);
       return locData;
     });
   }).catch(err=>{console.error(err)});
@@ -346,7 +426,7 @@ function getLearnersForRegion(donorID, region)
     snapshot.forEach(doc=>{
       let data = doc.data();
       users.push({
-        region: data.region.length === 0 ? null : data.region[0],
+        region: data.region,
         sourceCampaign: data.sourceCampaign,
         learnerLevel: data.learnerLevel,
       });
