@@ -11,7 +11,7 @@ let mapAllLearners = null;
 const mapYourLearnersParentElementId = 'map-display-your-learners';
 const mapAllLearnersParentElementId = 'map-display-all-learners';
 let mapsSharedInfoWindow = null;
-const staticMapZoomLevel = 2;
+const staticMapZoomLevel = 3;
 
 let newDonorInfoTextId = '#new-donor-info-text';
 
@@ -39,6 +39,8 @@ $(document).ready(function() {
         GetDataAndSwitchToAllLearners();
       } else if (tabId === 'tab-all-learners' && allLearnersData) {
         clearAllMarkers();
+        createCountUpTextInElement('all-learners-count', 
+          allLearnersData.markerData.length);
         displayClusteredData(mapAllLearners, allLearnersData);
       }
     });
@@ -92,8 +94,7 @@ function GetDataAndSwitchToAllLearners() {
       console.log("Couldn't get data for All Learners!");
       return;
     }
-    document.getElementById('all-learners-count').innerText = 
-      data.locData.markerData.length;
+    createCountUpTextInElement('all-learners-count', data.locData.markerData.length);
     allLearnersData = data.locData;
     displayClusteredData(mapAllLearners, data.locData);
     tabSelector.ToggleTab('tab-all-learners');
@@ -154,17 +155,7 @@ function updateCampaignAndLocationData() {
 
     tabSelector.ToggleTab('tab-your-learners');
 
-    let userCounter = new CountUp('learner-count', 
-      campaignData.data.userCount, { 
-        useEasing: true, 
-        useGrouping: true,
-        duration: 5
-    });
-    if (!userCounter.error) {
-      userCounter.start();
-    } else {
-      console.log(userCounter.error);
-    }
+    createCountUpTextInElement('learner-count', campaignData.data.userCount);
 
     clearAllMarkers();
 
@@ -174,6 +165,20 @@ function updateCampaignAndLocationData() {
         yourLearnersData = locData.locData;
         displayClusteredData(mapYourLearners, locData.locData);
       });
+  }
+}
+
+function createCountUpTextInElement(elementId, finalCountValue) {
+  let userCounter = new CountUp(elementId, 
+    finalCountValue, { 
+      useEasing: true, 
+      useGrouping: true,
+      duration: 5
+  });
+  if (!userCounter.error) {
+    userCounter.start();
+  } else {
+    console.log(userCounter.error);
   }
 }
 
