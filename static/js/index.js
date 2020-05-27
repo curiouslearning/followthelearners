@@ -18,6 +18,9 @@ let newDonorInfoTextId = '#new-donor-info-text';
 let loadedMarkers = [];
 let markerClusterer = null;
 
+let allLearnersData = null;
+let yourLearnersData = null;
+
 $(document).ready(function() {
   donorModal = document.getElementById('donor-email-modal');
 
@@ -28,9 +31,15 @@ $(document).ready(function() {
         $(newDonorInfoTextId).addClass('is-hidden');
         tabSelector.preventDefault();
         donorModal.classList.add('is-active');
-      } else if (tabId === 'tab-all-learners') {
+      } else if (tabId === 'tab-your-learners' && yourLearnersData) {
+        clearAllMarkers();
+        displayClusteredData(mapYourLearners, yourLearnersData);
+      } else if (tabId === 'tab-all-learners' && allLearnersData === null) {
         tabSelector.preventDefault();
         GetDataAndSwitchToAllLearners();
+      } else if (tabId === 'tab-all-learners' && allLearnersData) {
+        clearAllMarkers();
+        displayClusteredData(mapAllLearners, allLearnersData);
       }
     });
     tabSelector.addEventListener('tabToggle', (tabId) => {
@@ -70,13 +79,12 @@ function initializeMaps() {
   const targetEmail = getURLParam('email');
   if (targetEmail) {
     currentDonorEmail = targetEmail;
-    GetDataAndGoToDonorLearners();
+    GetDataAndSwitchToDonorLearners();
   }
 }
 
-
 /**
- * 
+ * Gets the location data for all learners and switches the tab to all learners
  */
 function GetDataAndSwitchToAllLearners() {
   $.get('/allLearners', {e: currentDonorEmail}, function(data, status) {
@@ -84,14 +92,18 @@ function GetDataAndSwitchToAllLearners() {
       console.log("Couldn't get data for All Learners!");
       return;
     }
-    console.log(data);
+    document.getElementById('all-learners-count').innerText = 
+      data.locData.markerData.length;
+    allLearnersData = data.locData;
+    displayClusteredData(mapAllLearners, data.locData);
+    tabSelector.ToggleTab('tab-all-learners');
   });
 }
 
 /**
  * Called from the donor email form
  */
-function GetDataAndGoToDonorLearners() {
+function GetDataAndSwitchToDonorLearners() {
   if (currentDonorEmail === null)
     currentDonorEmail = document.getElementById(donorEmailElementId).value;
   $.get('/getDonorCampaigns', {e: currentDonorEmail}, function(data, status) {
@@ -159,7 +171,8 @@ function updateCampaignAndLocationData() {
     $.get('/yourLearners', 
       {email: currentDonorEmail, campaign: selectedCampaignID},
       function(locData, locDataStatus) {
-        displayClusteredData(locData.locations, mapYourLearners);
+        yourLearnersData = locData.locData;
+        displayClusteredData(mapYourLearners, locData.locData);
       });
   }
 }
@@ -194,9 +207,9 @@ function clearAllMarkers() {
  * [{lat: -31.56, lng: 147.15}]
  * @param {Map} mapRef is a reference to the map
  */
-function displayClusteredData(locationData, mapRef) {
+function displayClusteredData(mapRef, locationData) {
   console.log('Loc data: ' + locationData);
-  if (locationData.length == 0) {
+  if (locationData.markerData.length == 0) {
     const center = new google.maps.LatLng(0, 0);
     mapRef.setCenter(center);
     mapRef.setZoom(staticMapZoomLevel);
@@ -209,7 +222,9 @@ function displayClusteredData(locationData, mapRef) {
     if (location.hasOwnProperty('lat') && !isNaN(location.lat)) {
       const newMarker = new google.maps.Marker({position: location});
       bounds.extend(newMarker.position);
-      newMarker['country'] = locationData.country;
+      newMarker['lat'] = location.lat;
+      newMarker['lng'] = location.lng;
+      newMarker['country'] = location.country;
       newMarker['facts'] = locationData.facts;
       newMarker['region'] = location.region;
       newMarker['heading'] = location.headingValue;
@@ -219,7 +234,7 @@ function displayClusteredData(locationData, mapRef) {
         mapsSharedInfoWindow.setContent(constructInfoWindowContent(
             newMarker.country,
             newMarker.region,
-            getRandomFact(newMarker.facts),
+            getRandomFact(newMarker.facts[newMarker.country]),
             location.lat,
             location.lng,
             newMarker.heading));
@@ -248,8 +263,7 @@ function displayClusteredData(locationData, mapRef) {
         currentCluster.length));
       const randomMarker = currentCluster[randomMarkerIndex];
 
-      let streetView = { lat: randomMarker.getPosition().lat(), 
-        lng: randomMarker.getPosition().lng(), 
+      let streetView = { lat: randomMarker.lat, lng: randomMarker.lng, 
         headingValue: randomMarker.heading };
 
       if (randomMarker.otherViews && Math.floor(Math.random() * 2) === 1) {
@@ -260,7 +274,7 @@ function displayClusteredData(locationData, mapRef) {
       const content = constructInfoWindowContent(
           randomMarker.country,
           randomMarker.region,
-          getRandomFact(randomMarker.facts),
+          getRandomFact(randomMarker.facts[randomMarker.country]),
           streetView.lat,
           streetView.lng,
           streetView.headingValue);
