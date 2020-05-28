@@ -62,7 +62,7 @@ html
         .section(style='margin-top: none; padding-top: 0.5rem; padding-bottom: 0.2rem; margin-bottom: none;')
           h1.title.has-text-grey-dark(style='font-size: 4rem;') All Learners
           h3.subtitle.is-3.has-text-grey(style='margin-top: 1rem;') We've reached&nbsp;
-            span#all-learners-count 10000
+            span#all-learners-count
             span &nbsp;Learners
         .section(style='margin-top: none; padding-top: 0.5rem;')
           #map-display-all-learners(style="width: 100%; height: 640px;")
@@ -91,7 +91,7 @@ html
                 i.fas.fa-envelope
             br
             .control
-              input.button(type='button' onclick='GetDataAndGoToDonorLearners()' value='View Your Learners')
+              input.button(type='button' onclick='GetDataAndSwitchToDonorLearners()' value='View Your Learners')
 
 
   script(async, defer, src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDEl20cTMsc72W_TasuK5PlWYIgMrzyuAU&callback=initializeMaps")
