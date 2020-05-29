@@ -122,6 +122,7 @@ function CreateUser (row)
     dateCreated: row.event_date,
     sourceCampaign: row.name,
     region: row.region,
+    country: row.country,
     learnerLevel: row.event_name,
   };
   return user;
