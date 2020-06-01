@@ -177,7 +177,7 @@ app.get('/allLearners', function(req, res){
   let usersList = [];
   getAllUsers().then(users => {
     // usersList = users;
-    usersList = users.filter(user => user.country !== null && 
+    usersList = users.filter(user => user.country !== null &&
       user.country !== undefined && user.country !== "");
     return getAllLocations();
   }).then(locations => {
@@ -200,7 +200,7 @@ function getLocDataForAllLearners(usersList, locations) {
   }
 
   usersList.forEach(user => {
-    let markerData = { lat: 0, lng: 0, country: user.country, 
+    let markerData = { lat: 0, lng: 0, country: user.country,
       region: user.region, headingValue: 0, otherViews: [] };
     let regions = locations[user.country].regions;
     let userRegion = regions.find(reg => {
@@ -219,9 +219,9 @@ function getLocDataForAllLearners(usersList, locations) {
     let streetViews = userRegion.streetViews;
 
     if (!streetViews && !streetViews.locations &&
-        !streetViews.headingValues && streetViews.locations.length !== 
+        !streetViews.headingValues && streetViews.locations.length !==
         streetViews.headingValues.length) {
-      console.log("User region: ", user.region, 
+      console.log("User region: ", user.region,
         " doesn't have any street view data.");
       return;
     }
@@ -314,12 +314,12 @@ function getLocDataForRegion(donorID, region, learners)
       learners.forEach(learner => {
         let markerData = { lat: 0, lng: 0, country: data.region, region: "", headingValue: 0,
           otherViews: [] };
-        let learnerRegion = regions.find(reg => 
+        let learnerRegion = regions.find(reg =>
           reg.region.toLowerCase() === learner.region.toLowerCase());
         let streetViews = learnerRegion.streetViews;
 
         if (!streetViews && !streetViews.locations &&
-            !streetViews.headingValues && streetViews.locations.length !== 
+            !streetViews.headingValues && streetViews.locations.length !==
             streetViews.headingValues.length) {
           markerData.push(null);
           return;
@@ -409,7 +409,7 @@ function getDonations(donorID)
     let donations =[];
     snapshot.forEach(doc=>{
       let data = doc.data();
-      data.dateCreated = dateFormat.asString("MM / dd / yyyy hh:mm", 
+      data.dateCreated = dateFormat.asString("MM / dd / yyyy hh:mm",
         data.dateCreated.toDate());
       donations.push({name: doc.id, data: data});
     });
@@ -460,7 +460,7 @@ function writeCampaignToFirestore(campaignObject)
     campaignID: campaignObject.campaignID,
     sourceDonor: campaignObject.sourceDonor,
     startDate: campaignObject.startDate,
-    amount: campaignObject.amount,
+    amount: Number(campaignObject.amount),
     region: campaignObject.region,
   }, {merge: true});
 }
@@ -470,8 +470,9 @@ function generateGooglePlayURL (appID, source, campaignID, donorID) {
 }
 
 function getDateTime(){
-  let today = new Date();
-  let date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
-  let time = today.getHours()+":"+today.getMinutes()+":"+today.getSeconds();
-  return date+' '+time;
+  // let today = new Date();
+  // let date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+  // let time = today.getHours()+":"+today.getMinutes()+":"+today.getSeconds();
+  return fireStoreAdmin.firestore.Timestamp.now();
+  //return date+' '+time;
 }
