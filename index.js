@@ -48,6 +48,10 @@ app.set('view engine', 'pug');
 app.use(bodyParser.urlencoded({ extended: true}));
 
 app.get('/', function (req, res){
+  res.render('landing-page');
+});
+
+app.get('/campaigns', function(req, res) {
   let dbRef = firestore.collection('campaigns');
   let campaigns =[];
   dbRef.where('isActive', '==', true).get().then(snapshot=>{
