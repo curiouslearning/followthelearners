@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const {BigQuery} = require ('@google-cloud/bigquery');
 const fireStoreAdmin = require('firebase-admin');
+// const firebase = require('firebase/app');
 let serviceAccount = require('./keys/firestore-key.json');
 const bodyParser = require('body-parser');
 const app = express();
@@ -123,15 +124,31 @@ function InsertLocation(row)
 
 function CreateUser (row)
 {
+  if(row.region === null || row.region === undefined || row.region === "")
+  {
+    row.region = "no-region";
+  }
+
   let user = {
     userID: row.user_pseudo_id,
-    dateCreated: row.event_date,
+    dateCreated: MakeTimestamp(row.event_date),
     sourceCampaign: row.name,
     region: row.region,
     country: row.country,
     learnerLevel: row.event_name,
   };
   return user;
+}
+
+function MakeTimestamp(date)
+{
+  let year = date.slice(0,4);
+  let month = Number(date.slice(4,6)) - 1;
+  let day = date.slice(6);
+  let dateString = year.toString()+"-"+month.toString()+"-"+day.toString();
+  let parsedDate = new Date(dateString);
+  let timestamp = fireStoreAdmin.firestore.Timestamp.fromDate(new Date(dateString));
+  return timestamp;
 }
 
 function InsertUsers (donor, userList)

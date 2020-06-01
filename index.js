@@ -469,6 +469,6 @@ function getDateTime(){
   // let today = new Date();
   // let date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
   // let time = today.getHours()+":"+today.getMinutes()+":"+today.getSeconds();
-  return firebase.Timestamp().now();
+  return fireStoreAdmin.firestore.Timestamp.now();
   //return date+' '+time;
 }
