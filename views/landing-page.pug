@@ -12,35 +12,96 @@ html
         crossorigin="anonymous")
 
   body
-    .hero.is-large.is-info(style="background-image: url('/static/imgs/hero-cover.jpg'); background-position: center -100; background-size: cover; background-repeat:  no-repeat; background-attachment: fixed;")
+    .hero.is-large.is-info(style="background-image: url('/static/imgs/hero-cover.jpg'); background-position: center -200; background-size: cover; background-repeat:  no-repeat; background-attachment: fixed;")
       .hero-head
         .navbar
           .section
             .navbar-brand
               a(href='/')
-                img(src="/static/imgs/cl_white_logo.png", alt='logo' style='width: 256px; height: auto;')
-            span.navbar-burger.burger(data-target="navbarHeroMenu")
-              span
-          .navbar-menu#navbarHeroMenu
+                img(src="/static/imgs/cl_white_logo.png", alt='logo' style='width: 196px; height: auto;')
+              a.navbar-burger(data-target="navbarHeroMenu" role="button" aria-label="menu" aria-expanded="false")
+                span(aria-hidden="true" style="color: white")
+                span(aria-hidden="true" style="color: white")
+                span(aria-hidden="true" style="color: white")
+          .navbar-menu#navbarHeroMenu(style="background-color: rgba(0, 0, 0, 0)")
             .navbar-end(style='align-items: center; padding-right: 1.5rem')
               button.button.is-rounded.navbar-item.is-active.is-primary.is-large(style='color: white; background-color: #8CCDC9')
                 span Get Started
       .hero-body(style='padding-top: 0; padding-bottom: 20rem; padding-left: 0; padding-right: 0')
         .container.has-text-centered
-          h1.title(style='font-size: 6rem;') Follow The Learners
+          h1.title(style='font-size: 5.5rem;') Follow The Learners
           h3.subtitle.is-size-3 Use our Follow the Learners™ tool to track the impact of your donation
         .columns(style='margin-top: 8rem;')
-          .column.is-two-fifths(style="background-color: #8CCDC9; opacity: 0.8;") 
+          .column.is-two-fifths(style="background-color: rgba(140, 205, 201, 0.7);") 
             .columns
-              .column
-              .column
+              .column.is-two-thirds
                 h1.title.has-text-right(style='font-size: 4rem;') 60,975
               .column(style='display: flex; align-items: flex-end')
                 h3.subtitle.is-size-3 Learners
           .column
+    
+    br
+    br
+
     .section
       .container
-        h1.title.has-text-centered(style='font-size: 4rem;')
+        h1.title.has-text-centered(style='font-size: 3.6rem;')
           span Every dollar you give puts literacy
           br
           span apps in the hands of 2-4 children.
+    br
+    br
+    br
+    br
+    
+    .columns
+      .column
+        .rows
+          .row(style="background-color: rgba(140, 205, 201, 0.7); font-size: 4rem;") &nbsp;
+          .row(style="margin-top: -12rem")
+            .columns
+              .column.is-half
+              .column(style="margin-right: 10rem")
+                img(src="/static/imgs/streetview_phone.png")
+      .column
+        h1.title(style='font-size: 3.2rem; margin-bottom: 4rem')
+          span Follow the learners takes you on a virtual visit to our service locations and lets you watch literacy take root day by day.
+          br
+          span —changing lives forever.
+        .rows
+          .row(style="background-color: rgba(0, 0, 0, 0); font-size: 4rem;") &nbsp;
+          .row(style="background-color: rgba(140, 205, 201, 0.7); font-size: 4rem;") &nbsp;
+          .row(style="margin-top: -12rem")
+            .columns(style="margin-left: 1rem")
+              .column
+                img(src="/static/imgs/streetview_phone.png")
+              .column
+                img(src="/static/imgs/streetview_phone.png")
+              .column
+              .column
+    br
+    br
+    br
+
+    .section
+      h1.title.has-text-centered(style='font-size: 3.4rem;') How Follow the Learners™ Lets You Track Your Donation
+    
+    br
+    br
+    br
+
+    .section
+      .container
+        img(src="/static/imgs/landingpage-infographic.png")
+
+    .section
+      .container
+        .columns
+          .column
+          .column.has-text-centered
+            button.button.is-rounded.is-active.is-primary.is-large(style='color: white; background-color: #8CCDC9')
+              span Get Started
+          .column
+
+    script(src='/static/js/fbc.js')
+    script(src='/static/js/landing-page.js')
