@@ -23,21 +23,21 @@ html
                 span(aria-hidden="true" style="color: white")
                 span(aria-hidden="true" style="color: white")
                 span(aria-hidden="true" style="color: white")
-          .navbar-menu#navbarHeroMenu(style="background-color: rgba(0, 0, 0, 0)")
-            .navbar-end(style='align-items: center; padding-right: 1.5rem')
-              button.button.is-rounded.navbar-item.is-active.is-primary.is-large(style='color: white; background-color: #8CCDC9')
+          .navbar-menu#navbarHeroMenu //(style="background-color: #8CCDC9")
+            .navbar-end(style='align-items: center; padding-right: 1.5rem; padding-left: 1.5rem')
+              a.button.is-rounded.navbar-item.is-active.is-primary.is-large(style='color: white; background-color: #8CCDC9')
                 span Get Started
       .hero-body(style='padding-top: 0; padding-bottom: 20rem; padding-left: 0; padding-right: 0')
         .container.has-text-centered
           h1.title(style='font-size: 5.5rem;') Follow The Learners
           h3.subtitle.is-size-3 Use our Follow the Learners™ tool to track the impact of your donation
         .columns(style='margin-top: 8rem;')
-          .column.is-two-fifths(style="background-color: rgba(140, 205, 201, 0.7);") 
+          .column.is-half(style="background-color: rgba(140, 205, 201, 0.7);") 
             .columns
               .column.is-two-thirds
                 h1.title.has-text-right(style='font-size: 4rem;') 60,975
               .column(style='display: flex; align-items: flex-end')
-                h3.subtitle.is-size-3 Learners
+                h3.subtitle(style="font-size: 2rem") Learners
           .column
     
     br
@@ -54,7 +54,7 @@ html
     br
     br
     
-    .columns
+    .columns.is-desktop
       .column
         .rows
           .row(style="background-color: rgba(140, 205, 201, 0.7); font-size: 4rem;") &nbsp;
