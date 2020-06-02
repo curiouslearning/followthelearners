@@ -4,6 +4,7 @@ const Memcached = require('memcached');
 const fireStoreAdmin = require('firebase-admin');
 let serviceAccount = require('./keys/firestore-key.json');
 const bodyParser = require('body-parser');
+const dateFormat = require('date-format');
 const app = express();
 const CACHETIMEOUT = 720; //the cache timeout in minutes
 
@@ -47,6 +48,10 @@ app.set('view engine', 'pug');
 app.use(bodyParser.urlencoded({ extended: true}));
 
 app.get('/', function (req, res){
+  res.render('landing-page');
+});
+
+app.get('/campaigns', function(req, res) {
   let dbRef = firestore.collection('campaigns');
   let campaigns =[];
   dbRef.where('isActive', '==', true).get().then(snapshot=>{
@@ -122,7 +127,10 @@ app.get('/getDonorCampaigns', function (req, res){
   let donations =[];
   let email = req.query.e;
   getDonorID(email).then(donorID=>{
-    return getDonations(donorID)
+    if (donorID === "" || donorID === undefined || donorID === null) {
+      res.end();
+    }
+    return getDonations(donorID);
   }).then(snapshot=>{
     if(snapshot.empty){res.render('summary');}
     let promises = []
@@ -139,7 +147,7 @@ app.get('/getDonorCampaigns', function (req, res){
   }).catch(err=>{console.error(err)})
 });
 
-app.get('/viewData', function(req, res){
+app.get('/yourLearners', function(req, res){
   console.log('searching for learners for donor ', req.query.email, 'in region ', req.query.campaign)
   let learnerList = [];
   let donorID = "";
@@ -152,17 +160,122 @@ app.get('/viewData', function(req, res){
     if(learners.empty || learners.length == 0){
       return[];
     }else{
-      learnerList = learners
-      return getLocDataForRegion(donorID, req.query.campaign);
+      learnerList = learners;
+      return getLocDataForRegion(donorID, req.query.campaign, learners);
     }
   }).then(locData=>{
     if(locData != []){
-      res.json({learners: learnerList, locations: locData});
+      res.json({learners: learnerList, locData: locData});
     } else {
       res.end();
     }
   }).catch(err=>{console.error(err)});
 });
+
+app.get('/allLearners', function(req, res){
+  console.log('Getting location data for all learners...');
+  let usersList = [];
+  getAllUsers().then(users => {
+    // usersList = users;
+    usersList = users.filter(user => user.country !== null &&
+      user.country !== undefined && user.country !== "");
+    return getAllLocations();
+  }).then(locations => {
+    let locData = getLocDataForAllLearners(usersList, locations);
+    if (locData !== null && locData !== []) {
+      res.json({locData: locData});
+    } else {
+      res.end();
+    }
+  }).catch(err => { console.error(err); res.end(); });
+});
+
+function getLocDataForAllLearners(usersList, locations) {
+  let locData = { facts: {}, markerData: [] };
+
+  for (let locKey in locations) {
+    if (locations[locKey].facts) {
+      locData.facts[locations[locKey].country] = locations[locKey].facts;
+    }
+  }
+
+  usersList.forEach(user => {
+    let markerData = { lat: 0, lng: 0, country: user.country,
+      region: user.region, headingValue: 0, otherViews: [] };
+    let regions = locations[user.country].regions;
+    let userRegion = regions.find(reg => {
+      if (reg.region === null || reg.region === "" || user.region === null ||
+      user.region === "") {
+        return false;
+      } else {
+        return reg.region.toLowerCase() === user.region.toLowerCase();
+      }
+    });
+    if (!userRegion) {
+      console.log("User region: ", user.region, " not found in regions of",
+        user.country);
+      return;
+    }
+    let streetViews = userRegion.streetViews;
+
+    if (!streetViews && !streetViews.locations &&
+        !streetViews.headingValues && streetViews.locations.length !==
+        streetViews.headingValues.length) {
+      console.log("User region: ", user.region,
+        " doesn't have any street view data.");
+      return;
+    }
+
+    markerData.lat = streetViews.locations[0]._latitude;
+    markerData.lng = streetViews.locations[0]._longitude;
+    markerData.headingValue = streetViews.headingValues[0];
+
+    if (streetViews.locations.length > 1) {
+      for (let i = 1; i < streetViews.locations.length; i++) {
+        let m = { lat: 0, lng: 0, headingValue: 0 };
+        m.lat = streetViews.locations[i]._latitude;
+        m.lng = streetViews.locations[i]._longitude;
+        m.headingValue = streetViews.headingValues[i];
+        markerData.otherViews.push(m);
+      }
+    }
+
+    locData.markerData.push(markerData);
+  });
+
+  return locData;
+}
+
+function getAllLocations() {
+  let locationsQuery = firestore.collection('loc_ref');
+  return locationsQuery.get().then(snapshot => {
+    if (snapshot.empty) {
+      console.log("No locations found...");
+      return [];
+    }
+    let locations = [];
+    snapshot.forEach(doc => {
+      locations[doc.data().country] = doc.data();
+    });
+    return locations;
+  }).catch(err => { console.log(err); });
+}
+
+function getAllUsers() {
+  let usersQuery = firestore.collectionGroup('users');
+  return usersQuery.get().then(snapshot => {
+    if (snapshot.empty) {
+      console.log('No users found...');
+      return [];
+    }
+    let users = [];
+    snapshot.forEach(doc => {
+      users.push(doc.data());
+    });
+    return users;
+  }).catch(err => { console.error(err); });
+}
+
 app.get('*', function(req,res){res.render('404')});
 
 app.listen(3000);
@@ -180,7 +293,7 @@ function getDonorID(email)
     }).catch(err=>{console.error(err)});
 }
 
-function getLocDataForRegion(donorID, region)
+function getLocDataForRegion(donorID, region, learners)
 {
   if(donorID === undefined || region === undefined){console.error("donor and region cannot be undefined!"); return[];}
   else{console.log("donor: ", donorID, " , region: ", region);}
@@ -191,32 +304,42 @@ function getLocDataForRegion(donorID, region)
     if(!doc.exists){return [];}
     let data = doc.data();
     console.log("country is: ", data.region);
-    return locRef.doc(data.region).get().then(doc=>{
+    return locRef.doc(data.region).get().then(doc=> {
       console.log("loc data: " + data.region);
       if(!doc.exists){ return []; }
       let regions = doc.data().regions;
       let facts = doc.data().facts;
-      let locData = {country: data.region, facts: facts, markerData: []};
+      let locData = { facts: {}, markerData: [] };
+      locData.facts[data.region] = facts;
+      learners.forEach(learner => {
+        let markerData = { lat: 0, lng: 0, country: data.region, region: "", headingValue: 0,
+          otherViews: [] };
+        let learnerRegion = regions.find(reg =>
+          reg.region.toLowerCase() === learner.region.toLowerCase());
+        let streetViews = learnerRegion.streetViews;
 
-      regions.forEach(region=>{
-        console.log('region is: ', region);
-        if(typeof region != 'string'){
-          for (var i = 0; i < region.streetViews.locations.length; i++)
-          {
-            var location = region.streetViews.locations[i];
-            console.log("location: ", location)
+        if (!streetViews && !streetViews.locations &&
+            !streetViews.headingValues && streetViews.locations.length !==
+            streetViews.headingValues.length) {
+          markerData.push(null);
+          return;
+        }
+        markerData.region = learner.region;
+        markerData.lat = streetViews.locations[0]._latitude;
+        markerData.lng = streetViews.locations[0]._longitude;
+        markerData.headingValue = streetViews.headingValues[0];
 
-            var heading = 0;
-            if (region.streetViews && region.headingValues && region.headingValues.length != 0) {
-              heading = region.streetViews.headingValues[i];
-            }
-
-            locData.markerData.push(
-            {
-              lat: location._latitude, lng: location._longitude, region: region.region, headingValue: heading
-            });
+        if (streetViews.locations.length > 1) {
+          for (let i = 1; i < streetViews.locations.length; i++) {
+            let m = { lat: 0, lng: 0, headingValue: 0 };
+            m.lat = streetViews.locations[i]._latitude;
+            m.lng = streetViews.locations[i]._longitude;
+            m.headingValue = streetViews.headingValues[i];
+            markerData.otherViews.push(m);
           }
         }
+
+        locData.markerData.push(markerData);
       });
       return locData;
     });
@@ -270,7 +393,6 @@ function sumDonors(region)
   }).catch(err=>{console.error(err)});
 }
 
-
 function getDonation(donorID, donationID)
 {
   let donation = firestore.collection('donor_master').doc(donorID).collection('donations').doc(donationID);
@@ -286,7 +408,10 @@ function getDonations(donorID)
     if(snapshot.empty){return [];}
     let donations =[];
     snapshot.forEach(doc=>{
-      donations.push({name: doc.id, data: doc.data()});
+      let data = doc.data();
+      data.startDate = dateFormat.asString("MM / dd / yyyy hh:mm",
+        data.startDate.toDate());
+      donations.push({name: doc.id, data: data});
     });
     return donations;
   }).catch(err=>{console.error(err)});
@@ -305,7 +430,7 @@ function getLearnersForRegion(donorID, region)
     snapshot.forEach(doc=>{
       let data = doc.data();
       users.push({
-        region: region,
+        region: data.region,
         sourceCampaign: data.sourceCampaign,
         learnerLevel: data.learnerLevel,
       });
@@ -335,7 +460,7 @@ function writeCampaignToFirestore(campaignObject)
     campaignID: campaignObject.campaignID,
     sourceDonor: campaignObject.sourceDonor,
     startDate: campaignObject.startDate,
-    amount: campaignObject.amount,
+    amount: Number(campaignObject.amount),
     region: campaignObject.region,
   }, {merge: true});
 }
@@ -345,8 +470,9 @@ function generateGooglePlayURL (appID, source, campaignID, donorID) {
 }
 
 function getDateTime(){
-  let today = new Date();
-  let date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
-  let time = today.getHours()+":"+today.getMinutes()+":"+today.getSeconds();
-  return date+' '+time;
+  // let today = new Date();
+  // let date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+  // let time = today.getHours()+":"+today.getMinutes()+":"+today.getSeconds();
+  return fireStoreAdmin.firestore.Timestamp.now();
+  //return date+' '+time;
 }

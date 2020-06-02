@@ -1,0 +1,116 @@
+html
+  include mixins/_campaign
+  head
+    script(src="https://www.gstatic.com/firebasejs/7.14.3/firebase-app.js")
+    script(src="https://www.gstatic.com/firebasejs/7.14.3/firebase-analytics.js")
+    script(src="/static/js/hj.js")
+    link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css')
+    script(src="https://kit.fontawesome.com/89be96593a.js" crossorigin="anonymous")
+    script(
+        src="https://code.jquery.com/jquery-3.5.0.min.js"
+        integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
+        crossorigin="anonymous")
+
+  body
+    .hero.is-large.is-info(style="background-image: url('/static/imgs/hero-cover.jpg'); background-position: center -200; background-size: cover; background-repeat:  no-repeat; background-attachment: fixed;")
+      .hero-head
+        .navbar
+          .section
+            .navbar-brand
+              a(href='/')
+                img(src="/static/imgs/cl_white_logo.png", alt='logo' style='width: 196px; height: auto;')
+              a.navbar-burger(data-target="navbarHeroMenu" role="button" aria-label="menu" aria-expanded="false" style="background-color: #8CCDC9")
+                span(aria-hidden="true" style="color: white")
+                span(aria-hidden="true" style="color: white")
+                span(aria-hidden="true" style="color: white")
+          .navbar-menu#navbarHeroMenu
+            .navbar-end(style='align-items: center; padding-right: 1.5rem; padding-left: 1.5rem')
+              a.button.is-rounded.navbar-item.is-active.is-primary.is-large(href="/campaigns" style='color: white; background-color: #8CCDC9')
+                span Get Started
+      .hero-body(style='padding-top: 0; padding-bottom: 20rem; padding-left: 0; padding-right: 0')
+        .container.has-text-centered
+          h1.title(style='font-size: 5.5rem;') Follow The Learners
+          h3.subtitle.is-size-3 Use our Follow the Learners™ tool to track the impact of your donation
+        .columns(style='margin-top: 8rem;')
+          .column.is-half(style="background-color: rgba(140, 205, 201, 0.7);") 
+            .columns
+              .column.is-two-thirds
+                h1.title.has-text-right(style='font-size: 4rem;') 60,975
+              .column(style='display: flex; align-items: flex-end')
+                h3.subtitle(style="font-size: 2rem") Learners
+          .column
+    
+    br
+    br
+
+    .section
+      .container
+        h1.title.has-text-centered(style='font-size: 3.6rem;')
+          span Every dollar you give puts literacy
+          br
+          span apps in the hands of 2-4 children.
+    br
+    br
+    br
+    br
+    
+    .columns.is-desktop
+      .column
+        .rows
+          .row(style="background-color: rgba(140, 205, 201, 0.7); font-size: 4rem;") &nbsp;
+          .row(style="margin-top: -12rem")
+            .columns
+              .column.is-half
+              .column(style="margin-right: 10rem")
+                img(src="/static/imgs/streetview_phone.png")
+      .column
+        h1.title(style='font-size: 3.2rem; margin-bottom: 4rem; padding-left: 2rem; padding-right: 2rem;')
+          span Follow the learners takes you on a virtual visit to our service locations and lets you watch literacy take root day by day.
+          br
+          span —changing lives forever.
+        .rows
+          .row(style="background-color: rgba(0, 0, 0, 0); font-size: 4rem;") &nbsp;
+          .row(style="background-color: rgba(140, 205, 201, 0.7); font-size: 4rem;") &nbsp;
+          .row(style="margin-top: -12rem")
+            .columns(style="margin-left: 1rem")
+              .column
+                img(src="/static/imgs/gdl_phone_screen.png")
+              .column
+                img(src="/static/imgs/ftm_phone_screen.png")
+              .column
+              .column
+    br
+
+    .section
+      .container
+        .columns
+          .column
+          .column.has-text-centered
+            a.button.is-rounded.is-active.is-primary.is-large(href="/campaigns" style='color: white; background-color: #8CCDC9')
+              span Get Started
+          .column
+    
+    br
+
+    .section
+      h1.title.has-text-centered(style='font-size: 3.4rem;') How Follow the Learners™ Lets You Track Your Donation
+    
+    br
+    br
+    br
+
+    .section
+      .container
+        img(src="/static/imgs/landingpage-infographic.png")
+
+    .section
+      .container
+        .columns
+          .column
+          .column.has-text-centered
+            a.button.is-rounded.is-active.is-primary.is-large(href="/campaigns" style='color: white; background-color: #8CCDC9')
+              span Get Started
+          .column
+
+    script(src='/static/js/fbc.js')
+    script(src='/static/js/landing-page.js')
