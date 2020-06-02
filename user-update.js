@@ -164,6 +164,7 @@ function InsertUsers (donor, userList)
         sourceDonor: donor,
         sourceCampaign: user.sourceCampaign,
         region: user.region,
+        country: user.country,
         learnerLevel: user.learnerLevel
       },{merge:true});
     }
