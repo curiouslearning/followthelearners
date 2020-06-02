@@ -409,8 +409,8 @@ function getDonations(donorID)
     let donations =[];
     snapshot.forEach(doc=>{
       let data = doc.data();
-      data.dateCreated = dateFormat.asString("MM / dd / yyyy hh:mm",
-        data.dateCreated.toDate());
+      data.startDate = dateFormat.asString("MM / dd / yyyy hh:mm",
+        data.startDate.toDate());
       donations.push({name: doc.id, data: data});
     });
     return donations;

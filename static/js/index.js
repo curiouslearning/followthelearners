@@ -151,7 +151,7 @@ function updateCampaignAndLocationData() {
       campaignData.data.amount;
 
     document.getElementById('donation-date').innerText = 
-      campaignData.data.dateCreated;
+      campaignData.data.startDate;
 
     tabSelector.ToggleTab('tab-your-learners');
 
