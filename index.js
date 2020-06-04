@@ -217,7 +217,7 @@ function getLocDataForAllLearners(usersList, locations) {
       region: user.region, headingValue: 0, otherViews: [] };
     let regions = locations[user.country].regions;
     let userRegion = regions.find(reg => {
-      if (reg.region === null || reg.region === "" || user.region === null ||
+      if (reg.region === null || reg.region === "" ||reg.region === undefined || user.region === undefined || user.region === null ||
       user.region === "") {
         return false;
       } else {
