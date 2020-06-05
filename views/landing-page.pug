@@ -12,7 +12,7 @@ html
         crossorigin="anonymous")
 
   body
-    .hero.is-large.is-info(style="background-image: url('/static/imgs/hero-cover.jpg'); background-position: center -200; background-size: cover; background-repeat:  no-repeat; background-attachment: fixed;")
+    .hero.is-large.is-info(style="background-image: url('/static/imgs/hero-cover.jpg'); background-position: center -100; background-size: cover; background-repeat:  no-repeat; background-attachment: fixed;")
       .hero-head
         .navbar
           .section
@@ -27,11 +27,12 @@ html
             .navbar-end(style='align-items: center; padding-right: 1.5rem; padding-left: 1.5rem')
               a.button.is-rounded.navbar-item.is-active.is-primary.is-large(href="/campaigns" style='color: white; background-color: #8CCDC9')
                 span Get Started
-      .hero-body(style='padding-top: 0; padding-bottom: 20rem; padding-left: 0; padding-right: 0')
-        .container.has-text-centered
+      .hero-body(style='padding: 0')
+        .container.has-text-centered(style="margin-bottom: 18rem; margin-top: 4rem")
           h1.title(style='font-size: 5.5rem;') Follow The Learners™
           h3.subtitle.is-size-3 Use our Follow the Learners™ tool to track the impact of your donation
-        .columns(style='margin-top: 8rem;')
+
+        .columns.is-desktop(style="margin-bottom: 4rem")
           .column.is-half(style="background-color: rgba(140, 205, 201, 0.7);") 
             .columns
               .column.is-two-thirds
@@ -39,9 +40,6 @@ html
               .column(style='display: flex; align-items: flex-end')
                 h3.subtitle(style="font-size: 2rem") Learners
           .column
-    
-    br
-    br
 
     .section
       .container
