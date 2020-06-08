@@ -190,6 +190,19 @@ app.get('/allLearners', function(req, res){
   }).catch(err => { console.error(err); res.end(); });
 });
 
+app.get('/allLearnersCount', function(req, res) {
+  console.log('Getting all learners count...');
+  getAllUsers().then(users => {
+    let userList = users.filter(user => user.country !== null &&
+      user.country !== undefined && user.country !== "");
+    if (userList) {
+      res.json({allLearnersCount: userList.length});
+    } else {
+      res.end();
+    }
+  }).catch(err => { console.error(err); res.end(); });
+});
+
 function getLocDataForAllLearners(usersList, locations) {
   let locData = { facts: {}, markerData: [] };
 
