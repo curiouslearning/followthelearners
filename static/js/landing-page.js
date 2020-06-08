@@ -1,3 +1,5 @@
+const learnersCountElementId = 'learners-count';
+
 $(document).ready(function() {
   const $navbarBurgers = Array.prototype.slice.call(
     document.querySelectorAll('.navbar-burger'), 0);
@@ -18,4 +20,22 @@ $(document).ready(function() {
       });
     });
   }
+
+  $.get('/allLearnersCount', { }, function(data, status) {
+    if (!data) {
+      console.log("Couldn't get count data for All Learners!");
+      return;
+    }
+    let learnersCounter = new CountUp(learnersCountElementId, 
+      data.allLearnersCount, { 
+      useEasing: true,
+      useGrouping: true,
+      duration: 5
+    });
+    if (!learnersCounter.error) {
+      learnersCounter.start();
+    } else {
+      console.log(learnersCounter.error);
+    }
+  })
 });
