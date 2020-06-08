@@ -1,4 +1,5 @@
 const learnersCountElementId = 'learners-count';
+const learnersCountParentId = 'learners-parent';
 
 $(document).ready(function() {
   const $navbarBurgers = Array.prototype.slice.call(
@@ -25,6 +26,10 @@ $(document).ready(function() {
     if (!data) {
       console.log("Couldn't get count data for All Learners!");
       return;
+    }
+    let learnersParent = document.getElementById(learnersCountParentId);
+    if (learnersParent) {
+      learnersParent.style.opacity = 1;
     }
     let learnersCounter = new CountUp(learnersCountElementId, 
       data.allLearnersCount, { 
