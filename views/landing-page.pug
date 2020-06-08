@@ -36,7 +36,7 @@ html
           .column.is-half(style="background-color: rgba(140, 205, 201, 0.7);") 
             .columns
               .column.is-two-thirds
-                h1.title.has-text-right(style='font-size: 4rem;') 60,975
+                h1.title.has-text-right#learners-count(style='font-size: 4rem;') 0
               .column(style='display: flex; align-items: flex-end')
                 h3.subtitle(style="font-size: 2rem") Learners
           .column
@@ -109,4 +109,5 @@ html
           .column
 
     script(src='/static/js/fbc.js')
+    script(src="/static/js/countUp.js")
     script(src='/static/js/landing-page.js')
