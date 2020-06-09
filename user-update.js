@@ -39,58 +39,37 @@ function main() {
     try{
       const [rows] = await bigQueryClient.query(options);
       console.log("successful Query");
-      let campaigns = {};
       rows.forEach(row=>{
         if(row.name != null && row.name != undefined && row.name != "" && row.name != '(direct)')
         {
-          if(!campaigns.hasOwnProperty(row.name)){
-            campaigns[row.name] = {users: []};
-          }
-          campaigns[row.name].users.push(CreateUser(row))
+          AddUserToPool(CreateUser(row));
           InsertLocation(row);
         }
       });
-      for (property in campaigns){
-        console.log("Property is ", property.toString());
-        let dbRef = firestore.collectionGroup('donations');
-        let donors = {};
-        let totalSpend = 0;
-        dbRef.where('campaignID', '==', property).get().then(snapshot=>{
-          if(snapshot.empty) {return;}
-          snapshot.forEach(doc=>{
-            if(doc.exists)
-            {
-              let data = doc.data();
-              totalSpend += Number(data.amount);
-              console.log("campaign ", property.toString(), " has $", totalSpend, "associated with it");
-              if (!donors.hasOwnProperty(data.sourceDonor)){
-                donors[data.sourceDonor]= {amount: data.amount};
-              }else{
-                donors[data.sourceDonor].amount += data.amount;
-              }
-            }
-
-          });
-          for (donor in donors) {
-            let contributionFraction = donors[donor].amount/totalSpend;
-            let usersForDonor = campaigns[property].users.length * contributionFraction;
-            let userList = [];
-            let count = 0;
-            while (count <= usersForDonor)
-            {
-              userList.push(campaigns[property].users[0]);
-              campaigns[property].users.shift();
-              count++;
-            }
-            InsertUsers(donor, userList);
-          }
-        }).catch(err=>{console.error(err);});
-      }
     }catch(err){
       console.error('ERROR', err);
     }
   }
   FetchUpdatesFromBigQuery();
+
+  function RemoveOldLearnersFromPool(){
+    let poolRef = firestore.collection('user_pool');
+    let oldUsers = firestore.collection('unassigned_users');
+    let date = new Date();
+    let timestamp = fireStoreAdmin.firestore.Timestamp.fromDate(date.getDate()-5);
+    poolRef.where('dateCreated', '>=', date.getDate()-5).get().then(snapshot=>{
+      if(snapshot.empty){return;}
+      snapshot.forEach(doc=>{
+        let msgRef = oldUsers.doc(doc.id);
+        msgRef.set(doc.data(),{merge:true}).then(()=>{
+          doc.delete();
+        });
+      });
+    })
+  }
+  RemoveOldLearnersFromPool();
+
+  
 }
 
 
@@ -137,6 +116,7 @@ function CreateUser (row)
     country: row.country,
     learnerLevel: row.event_name,
   };
+  console.log("created user: " + user.userID);
   return user;
 }
 
@@ -151,6 +131,20 @@ function MakeTimestamp(date)
   return timestamp;
 }
 
+function AddUserToPool(user)
+{
+  let dbRef = firestore.collection('user_pool').doc(user.userID);
+  dbRef.set({
+    userID: user.userID,
+    dateCreated: user.dateCreated,
+    sourceDonor: "unassigned",
+    sourceCampaign: user.sourceCampaign,
+    region: user.region,
+    country: user.country,
+    learnerLevel: user.learnerLevel
+  },{merge:true});
+
+}
 function InsertUsers (donor, userList)
 {
   let donorRef = firestore.collection('donor_master').doc(donor);
