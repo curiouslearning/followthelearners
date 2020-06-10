@@ -168,10 +168,15 @@ function updateCampaignAndLocationData() {
   }
 }
 
+/**
+ * 
+ * @param {String} elementId Id of the element
+ * @param {Number} finalCountValue final value of the counter
+ */
 function createCountUpTextInElement(elementId, finalCountValue) {
   let userCounter = new CountUp(elementId, 
     finalCountValue, { 
-      useEasing: true, 
+      useEasing: true,
       useGrouping: true,
       duration: 5
   });
