@@ -217,8 +217,9 @@ function getLocDataForAllLearners(usersList, locations) {
       region: user.region, headingValue: 0, otherViews: [] };
     let regions = locations[user.country].regions;
     let userRegion = regions.find(reg => {
-      if (reg.region === null || reg.region === "" || user.region === null ||
-      user.region === "") {
+      if (reg.region === null || reg.region === "" || 
+        reg.region === undefined || user.region === null || 
+        user.region === "" || user.region === undefined) {
         return false;
       } else {
         return reg.region.toLowerCase() === user.region.toLowerCase();
