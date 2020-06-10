@@ -21,7 +21,28 @@ function main() {
     let tables =[
       `ftm-brazilian-portuguese.analytics_161789655.events_*`,
       `ftm-hindi.analytics_174638281.events_*`,
-      `ftm-swahili.analytics_160694316.events*`
+      `ftm-zulu.analytics_155849122.events_*`,
+      `ftm-swahili.analytics_160694316.events*`,
+      `ftm-english.analytics_152408808.events_*`,
+      `ftm-afrikaans.analytics_177200876.events_*`,
+      `ftm-australian-english.analytics_159083443.events_*`,
+      `ftm-brazilian-portuguese.analytics_161789655.events_*`,
+      `ftm-french.analytics_173880465.events_*`,
+      `ftm-hausa.analytics_164138311.events_*`,
+      `ftm-indian-english.analytics_160227348.events_*`,
+      `ftm-isixhosa.analytics_180747962.events_*`,
+      `ftm-kinayrwanda.analytics_177922191.events_*`,
+      `ftm-ndebele.analytics_181170652.events_*`,
+      `ftm-oromo.analytics_167539175.events_*`,
+      `ftm-sepedi.analytics_180755978.events_*`,
+      `ftm-sesotho.analytics_177536906.events_*`,
+      `ftm-siswati.analytics_181021951.events_*`,
+      `ftm-somali.analytics_159630038.events_*`,
+      `ftm-southafricanenglish.analytics_173750850.events_*`,
+      `ftm-spanish.analytics_158656398.events_*`,
+      `ftm-tsonga.analytics_177920210.events_*`,
+      `ftm-tswana.analytics_181020641.events_*`,
+      `ftm-venda.analytics_179631877.events_*`
     ];
     let query = ""
     tables.forEach(table=>{
