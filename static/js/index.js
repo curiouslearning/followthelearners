@@ -13,6 +13,8 @@ const mapAllLearnersParentElementId = 'map-display-all-learners';
 let mapsSharedInfoWindow = null;
 const staticMapZoomLevel = 3;
 
+const allLearnersCountElementId = 'all-learners-count';
+
 let newDonorInfoTextId = '#new-donor-info-text';
 
 let loadedMarkers = [];
