@@ -101,11 +101,55 @@ function GetDataAndSwitchToAllLearners() {
       console.log("Couldn't get data for All Learners!");
       return;
     }
-    createCountUpTextInElement('all-learners-count', data.locData.markerData.length);
+    createCountUpTextInElement(allLearnersCountElementId, data.locData.markerData.length);
     allLearnersData = data.locData;
+    initializeCountrySelect(data.locData);
     displayClusteredData(mapAllLearners, data.locData);
     tabSelector.ToggleTab('tab-all-learners');
   });
+}
+
+/**
+ * Initialized the country select element with location data country values
+ * @param {Object} locationData array of location data
+ */
+function initializeCountrySelect(locationData) {
+  if (!countrySelectElement) {
+    console.error("Unable to find country select element.");
+    return;
+  }
+  countrySelectElement.options = [];
+  countrySelectElement.options[0] = new Option('All Learners', 'all-learners');
+  for (var keyCountry in locationData.facts) {
+    countrySelectElement.options.add(new Option(keyCountry, keyCountry));
+  }
+}
+
+/**
+ * Called when the country select element value changes
+ */
+function onCountrySelectionChanged() {
+  if (!countrySelectElement) {
+    console.error("Unable to find country select element.");
+    return;
+  }
+  let countrySelection = countrySelectElement.
+    options[countrySelectElement.selectedIndex].value;
+  
+  let learnersLocationData = {};
+  if (countrySelection === 'all-learners') {
+    learnersLocationData = allLearnersData;
+  } else {
+    learnersLocationData = { facts: allLearnersData.facts };
+    learnersLocationData['markerData'] = allLearnersData.markerData.
+      filter((marker) => { 
+        return marker.country === countrySelection 
+      });
+  }
+  clearAllMarkers();
+  createCountUpTextInElement(allLearnersCountElementId,
+    learnersLocationData.markerData.length);
+  displayClusteredData(mapAllLearners, learnersLocationData);
 }
 
 /**
