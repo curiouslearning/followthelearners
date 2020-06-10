@@ -6,6 +6,8 @@ const fireStoreAdmin = require('firebase-admin');
 let serviceAccount = require('./keys/firestore-key.json');
 const bodyParser = require('body-parser');
 const app = express();
+const PRUNEDATE = 5;
+const DAYINMS = 86400000;
 
 fireStoreAdmin.initializeApp({
     credential: fireStoreAdmin.credential.cert(serviceAccount)
@@ -49,29 +51,27 @@ function main() {
     }catch(err){
       console.error('ERROR', err);
     }
+    RemoveOldLearnersFromPool();
   }
   FetchUpdatesFromBigQuery();
+}
 
   function RemoveOldLearnersFromPool(){
     let poolRef = firestore.collection('user_pool');
     let oldUsers = firestore.collection('unassigned_users');
     let date = new Date();
-    let timestamp = fireStoreAdmin.firestore.Timestamp.fromDate(date.getDate()-5);
-    poolRef.where('dateCreated', '>=', date.getDate()-5).get().then(snapshot=>{
+    date.setMilliseconds(Date.now() - (DAYINMS * PRUNEDATE));
+    let timestamp = MakeTimestamp(date.getFullYear().toString() + date.getMonth().toString() + date.getDay().toString());
+    poolRef.where('dateCreated', '<=', timestamp).get().then(snapshot=>{
       if(snapshot.empty){return;}
       snapshot.forEach(doc=>{
         let msgRef = oldUsers.doc(doc.id);
         msgRef.set(doc.data(),{merge:true}).then(()=>{
-          doc.delete();
+          poolRef.doc(doc.id).delete();
         });
       });
-    })
+    }).catch(err=>{console.error(err);});
   }
-  RemoveOldLearnersFromPool();
-
-  
-}
-
 
 function InsertLocation(row)
 {
@@ -123,7 +123,7 @@ function CreateUser (row)
 function MakeTimestamp(date)
 {
   let year = date.slice(0,4);
-  let month = Number(date.slice(4,6)) - 1;
+  let month = date.slice(4,6);
   let day = date.slice(6);
   let dateString = year.toString()+"-"+month.toString()+"-"+day.toString();
   let parsedDate = new Date(dateString);
