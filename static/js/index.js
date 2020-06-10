@@ -6,6 +6,9 @@ let currentDonorCampaignData = null;
 let campaignSelectElement = null;
 const campaignSelectElementId = 'campaignSelection';
 
+let countrySelectElement = null;
+let countrySelectElementId = 'countrySelection';
+
 let mapYourLearners = null;
 let mapAllLearners = null;
 const mapYourLearnersParentElementId = 'map-display-your-learners';
@@ -63,6 +66,8 @@ function initializeMaps() {
     mapAllLearnersParentElementId);
   campaignSelectElement = document.getElementById(
     campaignSelectElementId);
+  countrySelectElement = document.getElementById(
+    countrySelectElementId);
 
   mapsSharedInfoWindow = new google.maps.InfoWindow();
 
