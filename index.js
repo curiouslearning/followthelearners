@@ -117,12 +117,12 @@ app.post('/donate', function (req, res){
         sourceDonor: donorID,
       };
       writeCampaignToFirestore(donationObject);
+      assignInitialLearners(donationObject.sourceDonor, donationObject.campaignID, donationObject.region);
       res.render('donate', {response:"Thank you for your donation!"});
       res.end();
     });
   }).catch(err=>{console.error(err)});
 });
-
 app.get('/getDonorCampaigns', function (req, res){
   let donations =[];
   let email = req.query.e;
@@ -217,9 +217,8 @@ function getLocDataForAllLearners(usersList, locations) {
       region: user.region, headingValue: 0, otherViews: [] };
     let regions = locations[user.country].regions;
     let userRegion = regions.find(reg => {
-      if (reg.region === null || reg.region === "" || 
-        reg.region === undefined || user.region === null || 
-        user.region === "" || user.region === undefined) {
+      if (reg.region === null || reg.region === "" ||reg.region === undefined || user.region === undefined || user.region === null ||
+      user.region === "") {
         return false;
       } else {
         return reg.region.toLowerCase() === user.region.toLowerCase();
@@ -277,7 +276,9 @@ function getAllLocations() {
 
 function getAllUsers() {
   let usersQuery = firestore.collectionGroup('users');
-  return usersQuery.get().then(snapshot => {
+  let poolRef = firestore.collection('user_pool');
+  let unassignedRef = firestore.collection('unassigned_users');
+  return usersQuery.get().then(snapshot => { //get all assigned learners
     if (snapshot.empty) {
       console.log('No users found...');
       return [];
@@ -286,7 +287,23 @@ function getAllUsers() {
     snapshot.forEach(doc => {
       users.push(doc.data());
     });
-    return users;
+    return poolRef.get().then(pool=>{ //get all learners in user_pool
+      if(!pool.empty)
+      {
+        pool.forEach(doc=>{
+          users.push(doc.data());
+        })
+      }
+      return unassignedRef.get().then(unassigned=>{ //get all unassigned learners
+        if(!unassigned.empty)
+        {
+          unassigned.forEach(doc=>{
+            users.push(doc.data());
+          });
+        }
+        return users;
+      });
+    });
   }).catch(err => { console.error(err); });
 }
 
@@ -477,6 +494,38 @@ function writeCampaignToFirestore(campaignObject)
     amount: Number(campaignObject.amount),
     region: campaignObject.region,
   }, {merge: true});
+}
+
+//Grab initial list of learners at donation time from user_pool
+//and assign to donor according to donation amount and campaigns cost/learner
+function assignInitialLearners(donorID, donationID, country)
+{
+  let donorRef = firestore.collection('donor_master').doc(donorID);
+  let donationRef = donorRef.collection('donations').doc(donationID);
+  let campaignRef = firestore.collection('campaigns').doc(donationID);
+  firestore.collection('user_pool').where('country', '==', country).get().then(snapshot=>{
+    if(snapshot.empty){return;}
+    campaignRef.get().then(doc=>{
+      let costPerLearner = doc.data().costPerLearner;
+      return donationRef.get().then(doc=>{return doc.data().amount/costPerLearner;});
+    }).then(userCount=>{
+      for(let i = 0; i < userCount; i++)
+      {
+        if(i >= snapshot.size)
+        {
+          break;
+        }
+        let poolRef = firestore.collection('user_pool').doc(snapshot.docs[i].id);
+        let usrRef = donationRef.collection('users').doc(snapshot.docs[i].id);
+        poolRef.get().then(doc=>{
+          doc.data().sourceDonor = donorID;
+          usrRef.set(doc.data(), {merge:true}).then(()=>{
+            poolRef.delete();
+          });
+        });
+      }
+    });
+  }).catch(err=>{console.error(err);});
 }
 
 function generateGooglePlayURL (appID, source, campaignID, donorID) {
