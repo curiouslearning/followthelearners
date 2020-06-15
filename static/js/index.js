@@ -24,6 +24,7 @@ let loadedMarkers = [];
 let markerClusterer = null;
 
 let allLearnersData = null;
+let loadingAllLearnersData = false;
 let yourLearnersData = null;
 
 $(document).ready(function() {
@@ -39,10 +40,15 @@ $(document).ready(function() {
       } else if (tabId === 'tab-your-learners' && yourLearnersData) {
         clearAllMarkers();
         displayClusteredData(mapYourLearners, yourLearnersData);
-      } else if (tabId === 'tab-all-learners' && allLearnersData === null) {
+      } else if (tabId === 'tab-all-learners' && allLearnersData === null
+        && !loadingAllLearnersData) {
+        loadingAllLearnersData = true;
         tabSelector.preventDefault();
         GetDataAndSwitchToAllLearners();
-      } else if (tabId === 'tab-all-learners' && allLearnersData) {
+      } else if (tabId === 'tab-all-learners' && allLearnersData === null
+        && loadingAllLearnersData) {
+        tabSelector.preventDefault();
+      } else if (tabId === 'tab-all-learners' && allLearnersData !== null) {
         clearAllMarkers();
         createCountUpTextInElement('all-learners-count', 
           allLearnersData.markerData.length);
