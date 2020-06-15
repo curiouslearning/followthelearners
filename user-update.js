@@ -19,6 +19,7 @@ function main() {
     const bigQueryClient = new BigQuery();
     let db = firestore.collection('donor_master');
     let tables =[
+      `tinkrplayer.analytics_175820453.events_*`,
       `ftm-brazilian-portuguese.analytics_161789655.events_*`,
       `ftm-hindi.analytics_174638281.events_*`,
       `ftm-zulu.analytics_155849122.events_*`,
@@ -62,13 +63,34 @@ function main() {
     try{
       const [rows] = await bigQueryClient.query(options);
       console.log("successful Query");
+      let batchMax = 490;
+      let batchCounter = 0;
+      let commitCounter = 0;
+      let batches = [];
+      let usedIDs = [];
+      let doubleCounter = 0;
+      batches[commitCounter] = firestore.batch();
       rows.forEach(row=>{
-        if(row.name != null && row.name != undefined && row.name != "" && row.name != '(direct)')
+        if(batchCounter >= batchMax)
         {
-          AddUserToPool(CreateUser(row));
+          batchCounter = 0;
+          commitCounter++;
+          batches[commitCounter] = firestore.batch();
+        }
+        if(!usedIDs.includes(row.user_pseudo_id))
+        {
+          usedIDs.push(row.user_pseudo_id);
+          AddUserToPool(CreateUser(row), batches[commitCounter]);
           InsertLocation(row);
+          batchCounter++;
+        }
+        else
+        {
+          doubleCounter++;
         }
       });
+      writeToDb(batches);
+      console.log("doubleCounter: " + doubleCounter);
     }catch(err){
       console.error('ERROR', err);
     }
@@ -94,9 +116,38 @@ function main() {
     }).catch(err=>{console.error(err);});
   }
 
+function waitForSecond() {
+  return new Promise(resolve =>{
+    setTimeout(()=>{
+      resolve('resolved');
+    }, 1010);
+  });
+}
+
+async function writeToDb (arr)
+{
+  console.log('beginning write');
+  for (let i = 0; i < arr.length; i++)
+  {
+    console.log("writing batch: " + i)
+    await waitForSecond();
+    arr[i].commit().then(function(){
+      console.log("wrote batch: " + i);
+    }).catch(err=>{
+      console.error(err);
+    });
+  }
+}
+
 function InsertLocation(row)
 {
   if(row.country != null && row.country != ""){
+    let locUpdate = {
+      "region": row.region,
+      "streetViews" : {
+        "headingValue": [],
+        "locations": []
+      }};
     let locationRef = firestore.collection("loc_ref").doc(row.country);
     locationRef.get().then(doc=>{
       if(doc.exists){
@@ -106,10 +157,17 @@ function InsertLocation(row)
       return [];
     }).then(regions=>{
       if(regions == undefined || regions.empty){
-        regions = [row.region];
+        regions = [locUpdate];
       }
-      else if(!regions.includes(row.region)){
-        regions.push(row.region);
+      else {
+        for(let i = 0; i< regions.length; i++)
+        {
+          if(regions[i].hasOwnProperty("region") && regions[i].region === locUpdate.region)
+          {
+            return; //we already have data for this region
+          }
+        }
+        regions.push(locUpdate);
       }
       locationRef.set({
         country: row.country,
@@ -127,6 +185,10 @@ function CreateUser (row)
   if(row.region === null || row.region === undefined || row.region === "")
   {
     row.region = "no-region";
+  }
+  if(row.name === undefined || row.name === null)
+  {
+    row.name = "no-source";
   }
 
   let user = {
@@ -152,10 +214,10 @@ function MakeTimestamp(date)
   return timestamp;
 }
 
-function AddUserToPool(user)
+function AddUserToPool(user, batch)
 {
   let dbRef = firestore.collection('user_pool').doc(user.userID);
-  dbRef.set({
+  batch.set(dbRef, {
     userID: user.userID,
     dateCreated: user.dateCreated,
     sourceDonor: "unassigned",
