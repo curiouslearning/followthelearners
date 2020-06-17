@@ -18,7 +18,7 @@ html
             button.button.is-medium.is-pulled-right.is-dark(onclick="tabSelector.ToggleTab('tab-campaigns')")
               span.icon.is-small
                 i.fas.fa-map-marker-alt(aria-hidden='true' style='pointer-events: none;')
-              span Campaigns
+              span Regions
 
             // Your Learners Button
             button.button.is-medium.is-pulled-right(onclick="tabSelector.ToggleTab('tab-your-learners')")
@@ -34,8 +34,8 @@ html
 
     .section#tabs-parent(style='z-index: 5')
       .section#tab-campaigns
-        h1.title.has-text-grey-dark(style='font-size: 4rem;') Follow The Learners
-        h3.subtitle.is-3.has-text-grey Pick a Campaign
+        a.title.has-text-grey-dark(href="/" style='font-size: 4rem;') Follow The Learners™
+        h3.subtitle.is-3.has-text-grey(style='margin-top: 0.5rem') Pick a Region
         .section(style='padding-top: 1rem')
           .columns.is-desktop
             each campaign in campaigns
@@ -61,6 +61,8 @@ html
       .section.is-hidden#tab-all-learners
         .section(style='margin-top: none; padding-top: 0.5rem; padding-bottom: 0.2rem; margin-bottom: none;')
           h1.title.has-text-grey-dark(style='font-size: 4rem;') All Learners
+          .select.is-large
+            select#countrySelection(onchange='onCountrySelectionChanged()' style='width: auto; -webkit-appearance: none; -moz-appearance: none; appearance:none;' name='campaignSelection')
           h3.subtitle.is-3.has-text-grey(style='margin-top: 1rem;') We've reached&nbsp;
             span#all-learners-count
             span &nbsp;Learners

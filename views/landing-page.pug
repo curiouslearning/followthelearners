@@ -12,7 +12,7 @@ html
         crossorigin="anonymous")
 
   body
-    .hero.is-large.is-info(style="background-image: url('/static/imgs/hero-cover.jpg'); background-position: center -200; background-size: cover; background-repeat:  no-repeat; background-attachment: fixed;")
+    .hero.is-large.is-info(style="background-image: url('/static/imgs/hero-cover.jpg'); background-position: center -100; background-size: cover; background-repeat:  no-repeat;")
       .hero-head
         .navbar
           .section
@@ -27,21 +27,19 @@ html
             .navbar-end(style='align-items: center; padding-right: 1.5rem; padding-left: 1.5rem')
               a.button.is-rounded.navbar-item.is-active.is-primary.is-large(href="/campaigns" style='color: white; background-color: #8CCDC9')
                 span Get Started
-      .hero-body(style='padding-top: 0; padding-bottom: 20rem; padding-left: 0; padding-right: 0')
-        .container.has-text-centered
-          h1.title(style='font-size: 5.5rem;') Follow The Learners
+      .hero-body(style='padding: 0')
+        .container.has-text-centered(style="margin-bottom: 18rem; margin-top: 4rem")
+          h1.title(style='font-size: 5.5rem;') Follow The Learners™
           h3.subtitle.is-size-3 Use our Follow the Learners™ tool to track the impact of your donation
-        .columns(style='margin-top: 8rem;')
-          .column.is-half(style="background-color: rgba(140, 205, 201, 0.7);") 
+
+        .columns.is-desktop#learners-parent(style="margin-bottom: 4rem; opacity: 0")
+          .column.is-half(style="background-color: rgba(140, 205, 201, 0.7);")
             .columns
               .column.is-two-thirds
-                h1.title.has-text-right(style='font-size: 4rem;') 60,975
+                h1.title.has-text-right#learners-count(style='font-size: 4rem;') &nbsp;
               .column(style='display: flex; align-items: flex-end')
                 h3.subtitle(style="font-size: 2rem") Learners
           .column
-    
-    br
-    br
 
     .section
       .container
@@ -64,10 +62,8 @@ html
               .column(style="margin-right: 10rem")
                 img(src="/static/imgs/streetview_phone.png")
       .column
-        h1.title(style='font-size: 3.2rem; margin-bottom: 4rem; padding-left: 2rem; padding-right: 2rem;')
-          span Follow the learners takes you on a virtual visit to our service locations and lets you watch literacy take root day by day.
-          br
-          span —changing lives forever.
+        h1.title(style='font-size: 2.8rem; margin-bottom: 4rem; padding-left: 2rem; padding-right: 2rem;')
+          span Follow the Learners™ takes you on a virtual visit to our service locations and lets you watch literacy take root day by day—changing lives forever.
         .rows
           .row(style="background-color: rgba(0, 0, 0, 0); font-size: 4rem;") &nbsp;
           .row(style="background-color: rgba(140, 205, 201, 0.7); font-size: 4rem;") &nbsp;
@@ -113,4 +109,5 @@ html
           .column
 
     script(src='/static/js/fbc.js')
+    script(src="/static/js/countUp.js")
     script(src='/static/js/landing-page.js')

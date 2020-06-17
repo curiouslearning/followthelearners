@@ -6,6 +6,9 @@ let currentDonorCampaignData = null;
 let campaignSelectElement = null;
 const campaignSelectElementId = 'campaignSelection';
 
+let countrySelectElement = null;
+let countrySelectElementId = 'countrySelection';
+
 let mapYourLearners = null;
 let mapAllLearners = null;
 const mapYourLearnersParentElementId = 'map-display-your-learners';
@@ -13,12 +16,15 @@ const mapAllLearnersParentElementId = 'map-display-all-learners';
 let mapsSharedInfoWindow = null;
 const staticMapZoomLevel = 3;
 
+const allLearnersCountElementId = 'all-learners-count';
+
 let newDonorInfoTextId = '#new-donor-info-text';
 
 let loadedMarkers = [];
 let markerClusterer = null;
 
 let allLearnersData = null;
+let loadingAllLearnersData = false;
 let yourLearnersData = null;
 
 $(document).ready(function() {
@@ -34,10 +40,15 @@ $(document).ready(function() {
       } else if (tabId === 'tab-your-learners' && yourLearnersData) {
         clearAllMarkers();
         displayClusteredData(mapYourLearners, yourLearnersData);
-      } else if (tabId === 'tab-all-learners' && allLearnersData === null) {
+      } else if (tabId === 'tab-all-learners' && allLearnersData === null
+        && !loadingAllLearnersData) {
+        loadingAllLearnersData = true;
         tabSelector.preventDefault();
         GetDataAndSwitchToAllLearners();
-      } else if (tabId === 'tab-all-learners' && allLearnersData) {
+      } else if (tabId === 'tab-all-learners' && allLearnersData === null
+        && loadingAllLearnersData) {
+        tabSelector.preventDefault();
+      } else if (tabId === 'tab-all-learners' && allLearnersData !== null) {
         clearAllMarkers();
         createCountUpTextInElement('all-learners-count', 
           allLearnersData.markerData.length);
@@ -61,6 +72,8 @@ function initializeMaps() {
     mapAllLearnersParentElementId);
   campaignSelectElement = document.getElementById(
     campaignSelectElementId);
+  countrySelectElement = document.getElementById(
+    countrySelectElementId);
 
   mapsSharedInfoWindow = new google.maps.InfoWindow();
 
@@ -94,11 +107,55 @@ function GetDataAndSwitchToAllLearners() {
       console.log("Couldn't get data for All Learners!");
       return;
     }
-    createCountUpTextInElement('all-learners-count', data.locData.markerData.length);
+    createCountUpTextInElement(allLearnersCountElementId, data.locData.markerData.length);
     allLearnersData = data.locData;
+    initializeCountrySelect(data.locData);
     displayClusteredData(mapAllLearners, data.locData);
     tabSelector.ToggleTab('tab-all-learners');
   });
+}
+
+/**
+ * Initialized the country select element with location data country values
+ * @param {Object} locationData array of location data
+ */
+function initializeCountrySelect(locationData) {
+  if (!countrySelectElement) {
+    console.error("Unable to find country select element.");
+    return;
+  }
+  countrySelectElement.options = [];
+  countrySelectElement.options[0] = new Option('All Learners', 'all-learners');
+  for (var keyCountry in locationData.facts) {
+    countrySelectElement.options.add(new Option(keyCountry, keyCountry));
+  }
+}
+
+/**
+ * Called when the country select element value changes
+ */
+function onCountrySelectionChanged() {
+  if (!countrySelectElement) {
+    console.error("Unable to find country select element.");
+    return;
+  }
+  let countrySelection = countrySelectElement.
+    options[countrySelectElement.selectedIndex].value;
+  
+  let learnersLocationData = {};
+  if (countrySelection === 'all-learners') {
+    learnersLocationData = allLearnersData;
+  } else {
+    learnersLocationData = { facts: allLearnersData.facts };
+    learnersLocationData['markerData'] = allLearnersData.markerData.
+      filter((marker) => { 
+        return marker.country === countrySelection 
+      });
+  }
+  clearAllMarkers();
+  createCountUpTextInElement(allLearnersCountElementId,
+    learnersLocationData.markerData.length);
+  displayClusteredData(mapAllLearners, learnersLocationData);
 }
 
 /**
@@ -168,10 +225,15 @@ function updateCampaignAndLocationData() {
   }
 }
 
+/**
+ * 
+ * @param {String} elementId Id of the element
+ * @param {Number} finalCountValue final value of the counter
+ */
 function createCountUpTextInElement(elementId, finalCountValue) {
   let userCounter = new CountUp(elementId, 
     finalCountValue, { 
-      useEasing: true, 
+      useEasing: true,
       useGrouping: true,
       duration: 5
   });
