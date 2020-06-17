@@ -231,11 +231,11 @@ function getLocDataForAllLearners(usersList, locations) {
     }
     let streetViews = userRegion.streetViews;
 
-    if (!streetViews && !streetViews.locations &&
-        !streetViews.headingValues && streetViews.locations.length !==
-        streetViews.headingValues.length) {
+    if (!streetViews || (streetViews.locations === undefined ||
+        streetViews.headingValues === undefined) || (streetViews.locations.length !==
+        streetViews.headingValues.length) || (streetViews.locations.length === 0|| streetViews.headingValues.length ===0)) {
       console.log("User region: ", user.region,
-        " doesn't have any street view data.");
+        " doesn't have proper street view data.");
       return;
     }
 
@@ -284,12 +284,14 @@ function getAllUsers() {
       return [];
     }
     let users = [];
+    console.log(snapshot.size + " assigned users")
     snapshot.forEach(doc => {
       users.push(doc.data());
     });
     return poolRef.get().then(pool=>{ //get all learners in user_pool
       if(!pool.empty)
       {
+        console.log(pool.size + " users in pool");
         pool.forEach(doc=>{
           users.push(doc.data());
         })
@@ -297,10 +299,12 @@ function getAllUsers() {
       return unassignedRef.get().then(unassigned=>{ //get all unassigned learners
         if(!unassigned.empty)
         {
+          console.log(unassigned.size + " unassigned users");
           unassigned.forEach(doc=>{
             users.push(doc.data());
           });
         }
+        console.log("found: " + users.length + " users");
         return users;
       });
     });
