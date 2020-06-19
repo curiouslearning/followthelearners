@@ -287,7 +287,8 @@ function displayClusteredData(mapRef, locationData) {
 
   loadedMarkers = locationData.markerData.map(function(location, i) {
     if (location.hasOwnProperty('lat') && !isNaN(location.lat)) {
-      const newMarker = new google.maps.Marker({position: location});
+      const newMarker = new google.maps.Marker({position: location, 
+        icon: {url: '/static/imgs/1.png', size: new google.maps.Size(52, 52), origin: new google.maps.Point(0, 0), anchor: new google.maps.Point(26, 26)}, label: { text: '1' }});
       bounds.extend(newMarker.position);
       newMarker['lat'] = location.lat;
       newMarker['lng'] = location.lng;
