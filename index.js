@@ -207,18 +207,14 @@ function getAggregateValue(aggregateKey) {
     return snapshot.data()[aggregateKey];
   });
 }
+
 function getLocDataForAllLearners(usersList, locations) {
   let locData = { facts: {}, markerData: [] };
-
-  for (let locKey in locations) {
-    if (locations[locKey].facts) {
-      locData.facts[locations[locKey].country] = locations[locKey].facts;
-    }
-  }
 
   usersList.forEach(user => {
     let markerData = { lat: 0, lng: 0, country: user.country,
       region: user.region, headingValue: 0, otherViews: [] };
+
     let regions = locations[user.country].regions;
     let userRegion = regions.find(reg => {
       if (reg.region === null || reg.region === "" ||reg.region === undefined || user.region === undefined || user.region === null ||
@@ -241,6 +237,10 @@ function getLocDataForAllLearners(usersList, locations) {
       console.log("User region: ", user.region,
         " doesn't have proper street view data.");
       return;
+    }
+
+    if (locations[user.country].facts) {
+      locData.facts[user.country] = locations[user.country].facts;
     }
 
     markerData.lat = streetViews.locations[0]._latitude;
