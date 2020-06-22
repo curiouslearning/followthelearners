@@ -192,17 +192,21 @@ app.get('/allLearners', function(req, res){
 
 app.get('/allLearnersCount', function(req, res) {
   console.log('Getting all learners count...');
-  getAllUsers().then(users => {
-    let userList = users.filter(user => user.country !== null &&
-      user.country !== undefined && user.country !== "");
-    if (userList) {
-      res.json({allLearnersCount: userList.length});
+  getAggregateValue('allLearnersCount').then((count) => {
+    if (count) {
+      res.json({allLearnersCount: count});
     } else {
       res.end();
     }
   }).catch(err => { console.error(err); res.end(); });
 });
 
+function getAggregateValue(aggregateKey) {
+  let aggregateDataQuery = firestore.collection('aggregate_data').doc('data');
+  return aggregateDataQuery.get().then(snapshot => {
+    return snapshot.data()[aggregateKey];
+  });
+}
 function getLocDataForAllLearners(usersList, locations) {
   let locData = { facts: {}, markerData: [] };
 
