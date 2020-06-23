@@ -111,7 +111,7 @@ temp/
 #local system files
 .DS_Store
 .htaccess
+/test_database
+/localBin
 
 # End of https://www.gitignore.io/api/node
-
-*.psd
