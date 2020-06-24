@@ -171,6 +171,17 @@ function onCountrySelectionChanged() {
   createCountUpTextInElement(allLearnersCountElementId,
     learnersLocationData.markerData.length);
   displayClusteredData(mapAllLearners, learnersLocationData);
+/**
+ * Event listener when user clicks on the country take me there button that's on
+ * info window
+ * @param {String} country country that is selected on the map
+ */
+function onAllLearnersCountryZoomInClick(country) {
+  if (!country || !countrySelectElement) {
+    return;
+  }
+  countrySelectElement.value = country;
+  onCountrySelectionChanged();
 }
 
 /**
