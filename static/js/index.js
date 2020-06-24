@@ -51,8 +51,9 @@ $(document).ready(function() {
       } else if (tabId === 'tab-all-learners' && allLearnersData !== null) {
         clearAllMarkers();
         createCountUpTextInElement('all-learners-count', 
-          allLearnersData.markerData.length);
-        displayClusteredData(mapAllLearners, allLearnersData);
+          getTotalCountForAllLearners(allLearnersData));
+        displayAllLearnersData(allLearnersData, true);
+        countrySelectElement.value = 'all-learners';
       }
     });
     tabSelector.addEventListener('tabToggle', (tabId) => {
