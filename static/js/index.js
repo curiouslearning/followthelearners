@@ -87,7 +87,8 @@ function initializeMaps() {
   if (mapAllLearnersParent) {
     mapAllLearners = new google.maps.Map(mapAllLearnersParent, {
       streetViewControl: false,
-      mapTypeControl: false
+      mapTypeControl: false,
+      maxZoom: 10
     });
   }
 
