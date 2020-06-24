@@ -109,10 +109,13 @@ function GetDataAndSwitchToAllLearners() {
       console.log("Couldn't get data for All Learners!");
       return;
     }
-    createCountUpTextInElement(allLearnersCountElementId, data.locData.markerData.length);
+    
     allLearnersData = data.locData;
-    initializeCountrySelect(data.locData);
-    displayClusteredData(mapAllLearners, data.locData);
+    createCountUpTextInElement(allLearnersCountElementId, 
+      getTotalCountForAllLearners(allLearnersData));
+    initializeCountrySelect(allLearnersData);
+    clearAllMarkers();
+    displayAllLearnersData(allLearnersData, true);
     tabSelector.ToggleTab('tab-all-learners');
   });
 }
