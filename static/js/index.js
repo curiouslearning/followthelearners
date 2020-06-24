@@ -118,6 +118,17 @@ function GetDataAndSwitchToAllLearners() {
 }
 
 /**
+ * Gets aggregate data for all learners from all countries
+ * @param {Object} countryLearnersData country learner data
+ */
+function getTotalCountForAllLearners(countryLearnersData) {
+  let totalCount = 0;
+  for (let key in countryLearnersData) {
+    totalCount += countryLearnersData[key].learnerCount;
+  }
+  return totalCount;
+}
+/**
  * Initialized the country select element with location data country values
  * @param {Object} locationData array of location data
  */
