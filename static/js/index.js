@@ -283,6 +283,39 @@ function clearAllMarkers() {
   }
 }
 
+
+/**
+ * Get matching png image and proper size of marker icon based on label count
+ * @param {Number} count count
+ */
+function getIconOptionsBasedOnCount(count) {
+  let iconOptions = { 
+    iconUrl: '/static/imgs/1.png', 
+    iconSize: new google.maps.Size(52, 52), 
+    iconAnchor: new google.maps.Point(26, 26)};
+  if (count > 10) {
+    iconOptions.iconUrl = '/static/imgs/2.png';
+    iconOptions.iconSize = new google.maps.Size(56, 55);
+    iconOptions.iconAnchor = new google.maps.Point(28, 28);
+  } 
+  if (count > 100) {
+    iconOptions.iconUrl = '/static/imgs/3.png';
+    iconOptions.iconSize = new google.maps.Size(66, 65);
+    iconOptions.iconAnchor = new google.maps.Point(33, 33);
+  } 
+  if (count > 1000) {
+    iconOptions.iconUrl = '/static/imgs/4.png';
+    iconOptions.iconSize = new google.maps.Size(78, 77);
+    iconOptions.iconAnchor = new google.maps.Point(39, 39);
+  } 
+  if (count > 10000) {
+    iconOptions.iconUrl = '/static/imgs/5.png';
+    iconOptions.iconSize = new google.maps.Size(90, 89);
+    iconOptions.iconAnchor = new google.maps.Point(45, 45);
+  }
+  return iconOptions;
+}
+
 /**
  * Displays the clustered location data on maps
  * @param {Array} locationData is an array of lat, lng objects
