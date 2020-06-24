@@ -174,14 +174,14 @@ app.get('/yourLearners', function(req, res){
 
 app.get('/allLearners', function(req, res){
   console.log('Getting location data for all learners...');
-  let usersList = [];
-  getAllUsers().then(users => {
-    // usersList = users;
-    usersList = users.filter(user => user.country !== null &&
-      user.country !== undefined && user.country !== "");
-    return getAllLocations();
-  }).then(locations => {
-    let locData = getLocDataForAllLearners(usersList, locations);
+  getAllLocations().then(locations => {
+    let locData = {};
+    for (let country in locations) {
+      if (!isNaN(locations[country].learnerCount) && 
+        locations[country].learnerCount > 0) {
+        locData[country] = locations[country];
+      }
+    }
     if (locData !== null && locData !== []) {
       res.json({locData: locData});
     } else {
