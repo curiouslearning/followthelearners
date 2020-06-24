@@ -160,20 +160,20 @@ function onCountrySelectionChanged() {
   let countrySelection = countrySelectElement.
     options[countrySelectElement.selectedIndex].value;
   
-  let learnersLocationData = {};
-  if (countrySelection === 'all-learners') {
-    learnersLocationData = allLearnersData;
-  } else {
-    learnersLocationData = { facts: allLearnersData.facts };
-    learnersLocationData['markerData'] = allLearnersData.markerData.
-      filter((marker) => { 
-        return marker.country === countrySelection 
-      });
-  }
+  
   clearAllMarkers();
-  createCountUpTextInElement(allLearnersCountElementId,
-    learnersLocationData.markerData.length);
-  displayClusteredData(mapAllLearners, learnersLocationData);
+
+  if (countrySelection === 'all-learners') {
+    displayAllLearnersData(allLearnersData, true);
+    createCountUpTextInElement(allLearnersCountElementId, 
+      getTotalCountForAllLearners(allLearnersData));
+  } else {
+    displayAllLearnersData(allLearnersData, false, countrySelection);
+    createCountUpTextInElement(allLearnersCountElementId, 
+      allLearnersData[countrySelection].learnerCount);
+  }
+}
+
 /**
  * Event listener when user clicks on the country take me there button that's on
  * info window
