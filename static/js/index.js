@@ -297,6 +297,139 @@ function clearAllMarkers() {
   }
 }
 
+/**
+ * Display all learners country level and region level data and switch smoothly
+ * @param {Object} locationData root location data with countries & regions
+ * @param {Boolean} isCountryLevelData bool that differs country & region data
+ * @param {String} country if the region data should be displayed the country
+ * should be passed
+ */
+async function displayAllLearnersData(locationData, isCountryLevelData, country) {
+  if (locationData === null) {
+    const center = new google.maps.LatLng(0, 0);
+    mapRef.setCenter(center);
+    mapRef.setZoom(staticMapZoomLevel);
+    return;
+  }
+
+  mapsSharedInfoWindow.close();
+  
+  if (isCountryLevelData) {
+    for (let key in locationData) {
+      let iconOptions = getIconOptionsBasedOnCount(locationData[key].learnerCount);
+      let newMarker = new google.maps.Marker({position: locationData[key].pin,
+          map: mapAllLearners, 
+          icon: {url: iconOptions.iconUrl, size: iconOptions.iconSize, 
+          origin: new google.maps.Point(0, 0), 
+          anchor: iconOptions.iconAnchor}, 
+          label: { text: locationData[key].learnerCount.toString() }});
+
+      newMarker['country'] = key;
+      newMarker['lat'] = locationData[key].pin.lat;
+      newMarker['lng'] = locationData[key].pin.lng;
+      newMarker['facts'] = locationData[key].facts;
+      
+      newMarker.addListener('click', function() {
+        console.log("Meow");
+        mapsSharedInfoWindow.setContent(constructCountryLevelInfoWindow(
+            newMarker.country,
+            getRandomFact(newMarker.facts)));
+        mapsSharedInfoWindow.open(mapAllLearners);
+        mapsSharedInfoWindow.setPosition(
+          {lat: newMarker.lat, lng: newMarker.lng});
+      }); 
+      
+      loadedMarkers.push(newMarker);
+    }
+
+    const center = new google.maps.LatLng(26.3351, 17.228331);
+    mapAllLearners.setCenter(center);
+    mapAllLearners.setZoom(staticMapZoomLevel);
+  } else {
+    let countryData = locationData[country];
+
+    let bounds = new google.maps.LatLngBounds();
+
+    console.log(countryData);
+    if (countryData.regions && countryData.regions.length !== 0) {
+      for (let i = 0; i < countryData.regions.length; i++) {
+        let region = countryData.regions[i];
+        if (region.hasOwnProperty("streetViews") &&
+          region.hasOwnProperty("learnerCount") &&
+          !isNaN(region.learnerCount) &&
+          region.learnerCount > 0 &&
+          region.streetViews.hasOwnProperty("headingValues") &&
+          region.streetViews.headingValues.length > 0 &&
+          region.streetViews.hasOwnProperty("locations") &&
+          region.streetViews.locations.length > 0) {
+
+          let iconOptions = getIconOptionsBasedOnCount(
+            region.learnerCount);
+          let firstStreetViewLoc = region.streetViews.locations[0];
+          let regionMarker = new google.maps.Marker({position: 
+            { lat: firstStreetViewLoc._latitude, 
+              lng: firstStreetViewLoc._longitude },
+              map: mapAllLearners, 
+              icon: {url: iconOptions.iconUrl, size: iconOptions.iconSize, 
+              origin: new google.maps.Point(0, 0), 
+              anchor: iconOptions.iconAnchor}, 
+              label: { text: region.learnerCount.toString() }});
+  
+          regionMarker['lat'] = firstStreetViewLoc._latitude;
+          regionMarker['lng'] = firstStreetViewLoc._longitude;
+          regionMarker['country'] = country;
+          regionMarker['facts'] = countryData.facts;
+          regionMarker['region'] = region.region;
+          regionMarker['heading'] = region.streetViews.headingValues[0];
+          regionMarker['otherViews'] = [];
+          
+          if (region.streetViews.locations.length > 1 &&
+              region.streetViews.locations.length === 
+              region.streetViews.headingValues.length) {
+            for (let l = 1; l < region.streetViews.locations.length; l++) {
+              let loc = region.streetViews.locations[l];
+              regionMarker['otherViews'].push({
+                lat: loc._latitude,
+                lng: loc._longitude, 
+                h: region.streetViews.headingValues[l]});
+            }
+          }
+
+          
+          regionMarker.addListener('click', function() {
+            let streetView = { lat: regionMarker.lat, lng: regionMarker.lng, 
+              h: regionMarker.heading };
+  
+            if (regionMarker.otherViews && 
+              regionMarker.otherViews.length !== 0) {
+              let randomValue = Math.floor((Math.random() * 
+                (regionMarker.otherViews.length - 0 + 1))) + 0;
+              if (randomValue !== 0)
+                streetView = regionMarker.otherViews[randomValue - 1];
+            }
+
+            mapsSharedInfoWindow.setContent(constructInfoWindowContent(
+              regionMarker.country,
+              regionMarker.region,
+              getRandomFact(regionMarker.facts),
+              streetView.lat,
+              streetView.lng,
+              streetView.h));
+            mapsSharedInfoWindow.open(mapAllLearners);
+            mapsSharedInfoWindow.setPosition(
+              {lat: regionMarker.lat, lng: regionMarker.lng});
+          });
+          
+          loadedMarkers.push(regionMarker);
+          bounds.extend(regionMarker.position);
+
+        }
+      }
+    }
+    mapAllLearners.fitBounds(bounds);
+    mapAllLearners.panToBounds(bounds);
+  }
+}
 
 /**
  * Get matching png image and proper size of marker icon based on label count
