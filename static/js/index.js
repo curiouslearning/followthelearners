@@ -128,6 +128,7 @@ function getTotalCountForAllLearners(countryLearnersData) {
   }
   return totalCount;
 }
+
 /**
  * Initialized the country select element with location data country values
  * @param {Object} locationData array of location data
@@ -139,8 +140,9 @@ function initializeCountrySelect(locationData) {
   }
   countrySelectElement.options = [];
   countrySelectElement.options[0] = new Option('All Learners', 'all-learners');
-  for (var keyCountry in locationData.facts) {
-    countrySelectElement.options.add(new Option(keyCountry, keyCountry));
+  for (var keyCountry in locationData) {
+    countrySelectElement.options.add(new Option(
+      keyCountry + " - " + locationData[keyCountry].learnerCount, keyCountry));
   }
 }
 
