@@ -24,7 +24,7 @@ exports.forceUpdateAggregates = functions.https.onRequest(async (req, res) =>{
       countries.push({
         country: country,
         learnerCount: countrySum,
-        regions: learnerCounts 
+        regions: learnerCounts
       });
     });
     return admin.firestore().collection('aggregate_data').doc('RegionSummary')
@@ -106,7 +106,7 @@ exports.updateSummary = functions.firestore.document('/loc_ref/{documentId}')
     const originalValue = change.after.data().regions;
     let summary = await admin.firestore().collection('aggregate_data').doc('RegionSummary').get().catch(err=>{console.error(err);});
     let sums = summary.data().countries;
-    let countryIndex = findCountryIndex(sums, country);
+    let countryIndex = findObjWithProperty(sums, "country", country);
     console.log('country index is ' + countryIndex);
     if(countryIndex === undefined){
       sums.push({country: country, learnerCount: 0, regions: []});
@@ -136,11 +136,37 @@ exports.updateSummary = functions.firestore.document('/loc_ref/{documentId}')
       return dbRef.collection('users').get().then(snapshot=>{
         if(snapshot.empty)
         {
-          return 0;
+          return {learnerCount: 0, countries: []};
         }
-        return snapshot.size;
-      }).then(sum=>{
-        return dbRef.update({learnerCount: sum},{merge: true});
+        let countries = [];
+        snapshot.forEach((doc)=>{
+          let data = doc.data();
+          let countryIndex = findObjWithProperty(countries, "country", data.country);
+          if(countryIndex === undefined)
+          {
+            countries.push({
+              country: data.country,
+              learnerCount: 1,
+              regions: [],
+            });
+            countryIndex = countries.length -1;
+          }
+          else{
+            countries[countryIndex].learnerCount++;
+          }
+          let regionIndex = findObjWithProperty(countries[countryIndex].regions, "region", data.region);
+          if(regionIndex === undefined) {
+            countries[countryIndex].regions.push({
+              region: data.region,
+              learnerCount: 1,
+            });
+          } else {
+            countries[countryIndex].regions[regionIndex].learnerCount++;
+          }
+        });
+        return {learnerCount: snapshot.size, countries: countries};
+      }).then(res=>{
+        return dbRef.update({learnerCount: res.learnerCount, countries: res.countries},{merge: true});
       }).catch(err=>{console.error(err);});
     });
 
@@ -260,13 +286,10 @@ exports.updateSummary = functions.firestore.document('/loc_ref/{documentId}')
       }).catch(err=>{console.error(err);});
   }
 
-  function findCountryIndex(arr, country)
-  {
-    for(let i=0; i < arr.length; i++)
-    {
-      if(arr[i].country === country)
-      {
-        return i
+  function findObjWithProperty(arr, prop, val) {
+    for(let i=0; i < arr.length; i++) {
+      if(arr[i].hasOwnProperty(prop) && arr[i][prop] === val) {
+        return i;
       }
     }
     return undefined;
