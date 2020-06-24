@@ -66,6 +66,7 @@ app.get('/campaigns', function(req, res) {
         country: data.country,
         imgRef: data.imgRef,
         body: data.summary,
+        learnerCount: data.learnerCount,
         amount: '5.00',
         campaignID: data.campaignID,
       });
@@ -133,7 +134,6 @@ app.post('/donate', function(req, res) {
   });
 });
 app.get('/getDonorCampaigns', function(req, res) {
-  const donations =[];
   const email = req.query.e;
   getDonorID(email).then((donorID)=>{
     if (donorID === '' || donorID === undefined || donorID === null) {
@@ -144,16 +144,12 @@ app.get('/getDonorCampaigns', function(req, res) {
     if (snapshot.empty) {
       res.render('summary');
     }
-    const promises = [];
-    snapshot.forEach((donation)=>{
-      promises.push(getUsersInDonation(donation.data.sourceDonor,
-          donation.name).then((list)=>{
-        donation.data.userCount = list.length;
-        donations.push(donation);
-      }));
+    const donations = [];
+    snapshot.forEach((doc) => {
+      donations.push(doc.data());
     });
-    return Promise.all(promises);
-  }).then((snapshot)=>{
+    return donations;
+  }).then((donations)=>{
     // res.render('summary', {campaigns: donations});
     res.json({campaigns: donations});
   }).catch((err)=>{
@@ -164,23 +160,26 @@ app.get('/getDonorCampaigns', function(req, res) {
 app.get('/yourLearners', function(req, res) {
   console.log('searching for learners for donor ',
       req.query.email, 'in region ', req.query.campaign);
-  let learnerList = [];
   let donorID = '';
   getDonorID(req.query.email).then((result)=>{
     donorID = result;
     console.log('found donorID: ', donorID);
     return getLearnersForRegion(donorID, req.query.campaign);
   }).then((learners)=>{
-    console.log('learners: ', learners);
-    if (learners.empty || learners.length == 0) {
-      return [];
-    } else {
-      learnerList = learners;
-      return getLocDataForRegion(donorID, req.query.campaign, learners);
-    }
-  }).then((locData)=>{
-    if (locData != []) {
-      res.json({learners: learnerList, locData: locData});
+    if (learners != undefined) {
+      const promises = [];
+      const locationData = [];
+      learners.countries.forEach((country)=>{
+        if (findObjectIndexWithProperty(
+            locationData, 'country', country.country,
+        )=== undefined) {
+          promises.push(compileLocationDataForCountry(country.country));
+        }
+      });
+      Promise.all(promises).then((values) => {
+        locationData = values.filter((value)=> value !== undefined);
+      });
+      res.json({campaignData: learners, locationData: locationData});
     } else {
       res.end();
     }
@@ -191,21 +190,32 @@ app.get('/yourLearners', function(req, res) {
 
 app.get('/allLearners', function(req, res) {
   console.log('Getting location data for all learners...');
-  let usersList = [];
-  getAllUsers().then((users) => {
-    // usersList = users;
-    usersList = users.filter((user) => user.country !== null &&
-      user.country !== undefined && user.country !== '');
-    return getAllLocations();
-  }).then((locations) => {
-    const locData = getLocDataForAllLearners(usersList, locations);
-    if (locData !== null && locData !== []) {
-      res.json({locData: locData});
-    } else {
+  const dbRef = firestore.collection('loc_ref');
+  dbRef.get().then((snapshot) => {
+    if (snapshot.empty) {
       res.end();
+      return;
     }
-  }).catch((err) => {
-    console.error(err); res.end();
+    const resData = {campaignData: [], locationData: []};
+    snapshot.forEach((doc)=>{
+      const data = doc.data();
+      if (findObjectIndexWithProperty(
+          resData.campaignData, 'country', doc.data().country) === undefined
+      ) {
+        resData.campaignData.push(extractLearnerDataForCountry(data));
+      }
+      if (findObjectIndexWithProperty(
+          resData.locationData, 'country', doc.data().country) === undefined
+      ) {
+        resData.locationData.push(extractLocationDataFromCountryDoc(data));
+      }
+    });
+    resData.campaignData.filter((country) => country != undefined);
+    resData.locationData.filter((country) => country != undefined);
+    res.json({data: resData});
+  }).catch((err)=>{
+    console.error(err);
+    res.end();
   });
 });
 
@@ -229,119 +239,6 @@ function getAggregateValue(aggregateKey) {
   });
 }
 
-function getLocDataForAllLearners(usersList, locations) {
-  const locData = {facts: {}, markerData: []};
-
-  usersList.forEach((user) => {
-    const markerData = {lat: 0, lng: 0, country: user.country,
-      region: user.region, headingValue: 0, otherViews: []};
-
-    const regions = locations[user.country].regions;
-    const userRegion = regions.find((reg) => {
-      if (reg.region === null || reg.region === '' ||reg.region === undefined ||
-       user.region === undefined || user.region === null ||
-      user.region === '') {
-        return false;
-      } else {
-        return reg.region.toLowerCase() === user.region.toLowerCase();
-      }
-    });
-    if (!userRegion) {
-      console.log('User region: ', user.region, ' not found in regions of',
-          user.country);
-      return;
-    }
-    const streetViews = userRegion.streetViews;
-
-    if (!streetViews || (streetViews.locations === undefined ||
-        streetViews.headingValues === undefined) ||
-        (streetViews.locations.length !== streetViews.headingValues.length) ||
-        (streetViews.locations.length === 0||
-          streetViews.headingValues.length ===0)) {
-      console.log('User region: ', user.region,
-          ' doesn\'t have proper street view data.');
-      return;
-    }
-
-    if (locations[user.country].facts) {
-      locData.facts[user.country] = locations[user.country].facts;
-    }
-
-    markerData.lat = streetViews.locations[0]._latitude;
-    markerData.lng = streetViews.locations[0]._longitude;
-    markerData.headingValue = streetViews.headingValues[0];
-
-    if (streetViews.locations.length > 1) {
-      for (let i = 1; i < streetViews.locations.length; i++) {
-        const m = {lat: 0, lng: 0, headingValue: 0};
-        m.lat = streetViews.locations[i]._latitude;
-        m.lng = streetViews.locations[i]._longitude;
-        m.headingValue = streetViews.headingValues[i];
-        markerData.otherViews.push(m);
-      }
-    }
-
-    locData.markerData.push(markerData);
-  });
-
-  return locData;
-}
-
-function getAllLocations() {
-  const locationsQuery = firestore.collection('loc_ref');
-  return locationsQuery.get().then((snapshot) => {
-    if (snapshot.empty) {
-      console.log('No locations found...');
-      return [];
-    }
-    const locations = [];
-    snapshot.forEach((doc) => {
-      locations[doc.data().country] = doc.data();
-    });
-    return locations;
-  }).catch((err) => {
-    console.log(err);
-  });
-}
-
-function getAllUsers() {
-  const usersQuery = firestore.collectionGroup('users');
-  const poolRef = firestore.collection('user_pool');
-  const unassignedRef = firestore.collection('unassigned_users');
-  return usersQuery.get().then((snapshot) => { // get all assigned learners
-    if (snapshot.empty) {
-      console.log('No users found...');
-      return [];
-    }
-    const users = [];
-    console.log(snapshot.size + ' assigned users');
-    snapshot.forEach((doc) => {
-      users.push(doc.data());
-    });
-    return poolRef.get().then((pool)=>{ // get all learners in user_pool
-      if (!pool.empty) {
-        console.log(pool.size + ' users in pool');
-        pool.forEach((doc)=>{
-          users.push(doc.data());
-        });
-      }
-      // get all unassigned learners
-      return unassignedRef.get().then((unassigned)=>{
-        if (!unassigned.empty) {
-          console.log(unassigned.size + ' unassigned users');
-          unassigned.forEach((doc)=>{
-            users.push(doc.data());
-          });
-        }
-        console.log('found: ' + users.length + ' users');
-        return users;
-      });
-    });
-  }).catch((err) => {
-    console.error(err);
-  });
-}
-
 app.get('*', function(req, res) {
   res.render('404');
 });
@@ -362,109 +259,88 @@ function getDonorID(email) {
   });
 }
 
-function getLocDataForRegion(donorID, region, learners) {
-  if (donorID === undefined || region === undefined) {
-    console.error('donor and region cannot be undefined!'); return [];
-  } else {
-    console.log('donor: ', donorID, ' , region: ', region);
-  }
-  const locRef = firestore.collection('loc_ref');
-  const dbRef = firestore.collection('donor_master').doc(donorID);
-  const donation = dbRef.collection('donations').doc(region);
-  return donation.get().then((doc) =>{
-    if (!doc.exists) {
-      return [];
-    }
-    const data = doc.data();
-    console.log('country is: ', data.region);
-    return locRef.doc(data.region).get().then((doc)=> {
-      console.log('loc data: ' + data.region);
-      if (!doc.exists) {
-        return [];
-      }
-      const regions = doc.data().regions;
-      const facts = doc.data().facts;
-      const locData = {facts: {}, markerData: []};
-      locData.facts[data.region] = facts;
-      learners.forEach((learner) => {
-        const markerData = {
-          lat: 0,
-          lng: 0,
-          country: data.region,
-          region: '',
-          headingValue: 0,
-          otherViews: [],
-        };
-        const learnerRegion = regions.find((reg) =>
-          reg.region.toLowerCase() === learner.region.toLowerCase());
-        const streetViews = learnerRegion.streetViews;
-
-        if (!streetViews && !streetViews.locations &&
-            !streetViews.headingValues && streetViews.locations.length !==
-            streetViews.headingValues.length) {
-          markerData.push(null);
-          return;
-        }
-        markerData.region = learner.region;
-        markerData.lat = streetViews.locations[0]._latitude;
-        markerData.lng = streetViews.locations[0]._longitude;
-        markerData.headingValue = streetViews.headingValues[0];
-
-        if (streetViews.locations.length > 1) {
-          for (let i = 1; i < streetViews.locations.length; i++) {
-            const m = {lat: 0, lng: 0, headingValue: 0};
-            m.lat = streetViews.locations[i]._latitude;
-            m.lng = streetViews.locations[i]._longitude;
-            m.headingValue = streetViews.headingValues[i];
-            markerData.otherViews.push(m);
-          }
-        }
-
-        locData.markerData.push(markerData);
-      });
-      return locData;
-    });
-  }).catch((err)=>{
-    console.error(err);
-  });
-}
-
-function getUsersInDonation(donorID, donationID) {
-  const dbRef = firestore.collection('donor_master').doc(donorID);
-  const users = dbRef.collection('donations').doc(donationID)
-      .collection('users');
-  return users.get().then((snapshot)=>{
-    if (snapshot.empty) {
-      console.log('no users in donation', donationID); return [];
-    }
-    const userList = [];
-    snapshot.forEach((doc)=>{
-      const data = doc.data();
-      userList.push(data);
-    });
-    return userList;
-  }).catch((err)=>{
-    console.error(err);
-  });
-}
-
 function getLearners(donorID) {
   if (donorID === null || donorID === '') {
     return [];
   }
-  const dbRef = firestore.collectionGroup('users');
-  return dbRef.where('sourceDonor', '==', donorID).get().then((snapshot)=>{
+  const donationsRef = firestore.collection('donor_master').doc(donorID)
+      .collection('donations');
+  donationsRef.get().then((snapshot) => {
     if (snapshot.empty) {
-      console.log('no users for donor ', donorID); return [];
+      console.log('no donations for donor with ID ', donorID);
+      return 0;
     }
-    const users =[];
-    snapshot.forEach((doc)=>{
-      users.push(doc.data());
+    let learnerSum = 0;
+    snapshot.forEach((doc) => {
+      learnerSum += doc.data().learnerCount;
     });
-    return users;
+    return learnerSum;
   }).catch((err)=>{
     console.error(err);
   });
+}
+
+function compileLearnerDataForCountry(country) {
+  const dbRef = firestore.collection('loc_ref').doc(country);
+  return dbRef.get().then((doc)=>{
+    if (!doc.exists) {
+      console.log('no country level document exists for ', country);
+      return undefined;
+    }
+    const data = doc.data();
+    return extractLearnerDataForCountry(data);
+  }).catch((err)=>{
+    console.error(err);
+  });
+}
+
+function extractLearnerDataForCountry(data) {
+  const filteredRegions =[];
+  data.forEach((region)=>{
+    if (region.hasOwnProperty('learnerCount') && region.learnerCount >=0) {
+      filteredRegions.push({
+        region: region.region,
+        learnerCount: region.learnerCount,
+      });
+    }
+  });
+  return {
+    country: data.country,
+    learnerCount: data.learnerCount,
+    regions: filteredRegions,
+  };
+}
+
+function compileLocationDataForCountry(country) {
+  const dbRef = firestore.collection('loc_ref').doc(country);
+  return dbRef.get().then((doc)=>{
+    if (!doc.exists) {
+      console.log('no country level document exists for ', country);
+      return undefined;
+    }
+    const data = doc.data();
+    return extractLocationDataFromCountryDoc(data);
+  }).catch((err)=>{
+    console.error(err);
+  });
+}
+
+function extractLocationDataFromCountryDoc(data) {
+  const filteredRegions = [];
+  data.regions.forEach((region)=>{
+    if (region.hasOwnProperty('streetViews')) {
+      filteredRegions.push({
+        region: region.region,
+        streetViews: region.streetViews,
+      });
+    }
+  });
+  return {
+    country: country,
+    pin: data.pin,
+    facts: data.facts,
+    regions: filteredRegions,
+  };
 }
 
 function sumDonors(region) {
@@ -483,16 +359,6 @@ function sumDonors(region) {
       }
     });
     return count;
-  }).catch((err)=>{
-    console.error(err);
-  });
-}
-
-function getDonation(donorID, donationID) {
-  const donation = firestore.collection('donor_master').doc(donorID)
-      .collection('donations').doc(donationID);
-  return donation.get().then((doc)=>{
-    return doc.data();
   }).catch((err)=>{
     console.error(err);
   });
@@ -526,21 +392,11 @@ function getLearnersForRegion(donorID, region) {
   }
   const donor = firestore.collection('donor_master').doc(donorID);
   const donation = donor.collection('donations').doc(region);
-  const users = donation.collection('users');
-  return users.get().then((snapshot)=>{
+  return donation.get().then((snapshot)=>{
     if (snapshot.empty) {
-      console.log('no users for region!', region); return [];
+      console.log('no donation document exists for ', region); return [];
     }
-    const users = [];
-    snapshot.forEach((doc)=>{
-      const data = doc.data();
-      users.push({
-        region: data.region,
-        sourceCampaign: data.sourceCampaign,
-        learnerLevel: data.learnerLevel,
-      });
-    });
-    return users;
+    return doc.data();
   }).catch((err)=>{
     console.error(err);
   });
@@ -608,6 +464,15 @@ function assignInitialLearners(donorID, donationID, country) {
       }).catch((err)=>{
         console.error(err);
       });
+}
+
+function findObjectIndexWithProperty (arr, prop, val) {
+  for (let i=0; i < arr.length; i++) {
+    if (arr[i].hasOwnProperty(prop) && arr[i][prop] === val) {
+      return i;
+    }
+  }
+  return undefined;
 }
 
 function generateGooglePlayURL(appID, source, campaignID, donorID) {
