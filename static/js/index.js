@@ -51,8 +51,9 @@ $(document).ready(function() {
       } else if (tabId === 'tab-all-learners' && allLearnersData !== null) {
         clearAllMarkers();
         createCountUpTextInElement('all-learners-count', 
-          allLearnersData.markerData.length);
-        displayClusteredData(mapAllLearners, allLearnersData);
+          getTotalCountForAllLearners(allLearnersData));
+        displayAllLearnersData(allLearnersData, true);
+        countrySelectElement.value = 'all-learners';
       }
     });
     tabSelector.addEventListener('tabToggle', (tabId) => {
@@ -87,7 +88,8 @@ function initializeMaps() {
   if (mapAllLearnersParent) {
     mapAllLearners = new google.maps.Map(mapAllLearnersParent, {
       streetViewControl: false,
-      mapTypeControl: false
+      mapTypeControl: false,
+      maxZoom: 10
     });
   }
 
@@ -107,12 +109,27 @@ function GetDataAndSwitchToAllLearners() {
       console.log("Couldn't get data for All Learners!");
       return;
     }
-    createCountUpTextInElement(allLearnersCountElementId, data.locData.markerData.length);
+    
     allLearnersData = data.locData;
-    initializeCountrySelect(data.locData);
-    displayClusteredData(mapAllLearners, data.locData);
+    createCountUpTextInElement(allLearnersCountElementId, 
+      getTotalCountForAllLearners(allLearnersData));
+    initializeCountrySelect(allLearnersData);
+    clearAllMarkers();
+    displayAllLearnersData(allLearnersData, true);
     tabSelector.ToggleTab('tab-all-learners');
   });
+}
+
+/**
+ * Gets aggregate data for all learners from all countries
+ * @param {Object} countryLearnersData country learner data
+ */
+function getTotalCountForAllLearners(countryLearnersData) {
+  let totalCount = 0;
+  for (let key in countryLearnersData) {
+    totalCount += countryLearnersData[key].learnerCount;
+  }
+  return totalCount;
 }
 
 /**
@@ -126,8 +143,9 @@ function initializeCountrySelect(locationData) {
   }
   countrySelectElement.options = [];
   countrySelectElement.options[0] = new Option('All Learners', 'all-learners');
-  for (var keyCountry in locationData.facts) {
-    countrySelectElement.options.add(new Option(keyCountry, keyCountry));
+  for (var keyCountry in locationData) {
+    countrySelectElement.options.add(new Option(
+      keyCountry + " - " + locationData[keyCountry].learnerCount, keyCountry));
   }
 }
 
@@ -142,20 +160,31 @@ function onCountrySelectionChanged() {
   let countrySelection = countrySelectElement.
     options[countrySelectElement.selectedIndex].value;
   
-  let learnersLocationData = {};
-  if (countrySelection === 'all-learners') {
-    learnersLocationData = allLearnersData;
-  } else {
-    learnersLocationData = { facts: allLearnersData.facts };
-    learnersLocationData['markerData'] = allLearnersData.markerData.
-      filter((marker) => { 
-        return marker.country === countrySelection 
-      });
-  }
+  
   clearAllMarkers();
-  createCountUpTextInElement(allLearnersCountElementId,
-    learnersLocationData.markerData.length);
-  displayClusteredData(mapAllLearners, learnersLocationData);
+
+  if (countrySelection === 'all-learners') {
+    displayAllLearnersData(allLearnersData, true);
+    createCountUpTextInElement(allLearnersCountElementId, 
+      getTotalCountForAllLearners(allLearnersData));
+  } else {
+    displayAllLearnersData(allLearnersData, false, countrySelection);
+    createCountUpTextInElement(allLearnersCountElementId, 
+      allLearnersData[countrySelection].learnerCount);
+  }
+}
+
+/**
+ * Event listener when user clicks on the country take me there button that's on
+ * info window
+ * @param {String} country country that is selected on the map
+ */
+function onAllLearnersCountryZoomInClick(country) {
+  if (!country || !countrySelectElement) {
+    return;
+  }
+  countrySelectElement.value = country;
+  onCountrySelectionChanged();
 }
 
 /**
@@ -269,6 +298,173 @@ function clearAllMarkers() {
 }
 
 /**
+ * Display all learners country level and region level data and switch smoothly
+ * @param {Object} locationData root location data with countries & regions
+ * @param {Boolean} isCountryLevelData bool that differs country & region data
+ * @param {String} country if the region data should be displayed the country
+ * should be passed
+ */
+async function displayAllLearnersData(locationData, isCountryLevelData, country) {
+  if (locationData === null) {
+    const center = new google.maps.LatLng(0, 0);
+    mapRef.setCenter(center);
+    mapRef.setZoom(staticMapZoomLevel);
+    return;
+  }
+
+  mapsSharedInfoWindow.close();
+  
+  if (isCountryLevelData) {
+    for (let key in locationData) {
+      let iconOptions = getIconOptionsBasedOnCount(locationData[key].learnerCount);
+      let newMarker = new google.maps.Marker({position: locationData[key].pin,
+          map: mapAllLearners, 
+          icon: {url: iconOptions.iconUrl, size: iconOptions.iconSize, 
+          origin: new google.maps.Point(0, 0), 
+          anchor: iconOptions.iconAnchor}, 
+          label: { text: locationData[key].learnerCount.toString() }});
+
+      newMarker['country'] = key;
+      newMarker['lat'] = locationData[key].pin.lat;
+      newMarker['lng'] = locationData[key].pin.lng;
+      newMarker['facts'] = locationData[key].facts;
+      
+      newMarker.addListener('click', function() {
+        console.log("Meow");
+        mapsSharedInfoWindow.setContent(constructCountryLevelInfoWindow(
+            newMarker.country,
+            getRandomFact(newMarker.facts)));
+        mapsSharedInfoWindow.open(mapAllLearners);
+        mapsSharedInfoWindow.setPosition(
+          {lat: newMarker.lat, lng: newMarker.lng});
+      }); 
+      
+      loadedMarkers.push(newMarker);
+    }
+
+    const center = new google.maps.LatLng(26.3351, 17.228331);
+    mapAllLearners.setCenter(center);
+    mapAllLearners.setZoom(staticMapZoomLevel);
+  } else {
+    let countryData = locationData[country];
+
+    let bounds = new google.maps.LatLngBounds();
+
+    console.log(countryData);
+    if (countryData.regions && countryData.regions.length !== 0) {
+      for (let i = 0; i < countryData.regions.length; i++) {
+        let region = countryData.regions[i];
+        if (region.hasOwnProperty("streetViews") &&
+          region.hasOwnProperty("learnerCount") &&
+          !isNaN(region.learnerCount) &&
+          region.learnerCount > 0 &&
+          region.streetViews.hasOwnProperty("headingValues") &&
+          region.streetViews.headingValues.length > 0 &&
+          region.streetViews.hasOwnProperty("locations") &&
+          region.streetViews.locations.length > 0) {
+
+          let iconOptions = getIconOptionsBasedOnCount(
+            region.learnerCount);
+          let firstStreetViewLoc = region.streetViews.locations[0];
+          let regionMarker = new google.maps.Marker({position: 
+            { lat: firstStreetViewLoc._latitude, 
+              lng: firstStreetViewLoc._longitude },
+              map: mapAllLearners, 
+              icon: {url: iconOptions.iconUrl, size: iconOptions.iconSize, 
+              origin: new google.maps.Point(0, 0), 
+              anchor: iconOptions.iconAnchor}, 
+              label: { text: region.learnerCount.toString() }});
+  
+          regionMarker['lat'] = firstStreetViewLoc._latitude;
+          regionMarker['lng'] = firstStreetViewLoc._longitude;
+          regionMarker['country'] = country;
+          regionMarker['facts'] = countryData.facts;
+          regionMarker['region'] = region.region;
+          regionMarker['heading'] = region.streetViews.headingValues[0];
+          regionMarker['otherViews'] = [];
+          
+          if (region.streetViews.locations.length > 1 &&
+              region.streetViews.locations.length === 
+              region.streetViews.headingValues.length) {
+            for (let l = 1; l < region.streetViews.locations.length; l++) {
+              let loc = region.streetViews.locations[l];
+              regionMarker['otherViews'].push({
+                lat: loc._latitude,
+                lng: loc._longitude, 
+                h: region.streetViews.headingValues[l]});
+            }
+          }
+
+          
+          regionMarker.addListener('click', function() {
+            let streetView = { lat: regionMarker.lat, lng: regionMarker.lng, 
+              h: regionMarker.heading };
+  
+            if (regionMarker.otherViews && 
+              regionMarker.otherViews.length !== 0) {
+              let randomValue = Math.floor((Math.random() * 
+                (regionMarker.otherViews.length - 0 + 1))) + 0;
+              if (randomValue !== 0)
+                streetView = regionMarker.otherViews[randomValue - 1];
+            }
+
+            mapsSharedInfoWindow.setContent(constructInfoWindowContent(
+              regionMarker.country,
+              regionMarker.region,
+              getRandomFact(regionMarker.facts),
+              streetView.lat,
+              streetView.lng,
+              streetView.h));
+            mapsSharedInfoWindow.open(mapAllLearners);
+            mapsSharedInfoWindow.setPosition(
+              {lat: regionMarker.lat, lng: regionMarker.lng});
+          });
+          
+          loadedMarkers.push(regionMarker);
+          bounds.extend(regionMarker.position);
+
+        }
+      }
+    }
+    mapAllLearners.fitBounds(bounds);
+    mapAllLearners.panToBounds(bounds);
+  }
+}
+
+/**
+ * Get matching png image and proper size of marker icon based on label count
+ * @param {Number} count count
+ */
+function getIconOptionsBasedOnCount(count) {
+  let iconOptions = { 
+    iconUrl: '/static/imgs/1.png', 
+    iconSize: new google.maps.Size(52, 52), 
+    iconAnchor: new google.maps.Point(26, 26)};
+  if (count > 10) {
+    iconOptions.iconUrl = '/static/imgs/2.png';
+    iconOptions.iconSize = new google.maps.Size(56, 55);
+    iconOptions.iconAnchor = new google.maps.Point(28, 28);
+  } 
+  if (count > 100) {
+    iconOptions.iconUrl = '/static/imgs/3.png';
+    iconOptions.iconSize = new google.maps.Size(66, 65);
+    iconOptions.iconAnchor = new google.maps.Point(33, 33);
+  } 
+  if (count > 1000) {
+    iconOptions.iconUrl = '/static/imgs/4.png';
+    iconOptions.iconSize = new google.maps.Size(78, 77);
+    iconOptions.iconAnchor = new google.maps.Point(39, 39);
+  } 
+  if (count > 10000) {
+    iconOptions.iconUrl = '/static/imgs/5.png';
+    iconOptions.iconSize = new google.maps.Size(90, 89);
+    iconOptions.iconAnchor = new google.maps.Point(45, 45);
+  }
+  return iconOptions;
+}
+
+
+/**
  * Displays the clustered location data on maps
  * @param {Array} locationData is an array of lat, lng objects
  * [{lat: -31.56, lng: 147.15}]
@@ -360,6 +556,24 @@ function displayClusteredData(mapRef, locationData) {
   if (mapRef === mapAllLearners) {
     mapRef.setZoom(staticMapZoomLevel);
   }
+}
+
+/**
+ * Constructs and returns info window html string content
+ * @param {String} country is the country value
+ * @param {String} randomFact is the randomFact value displayed on info window
+ * @return {String} content string for the info window
+ */
+function constructCountryLevelInfoWindow(country, randomFact) {
+  const contentString = '<div style=\'text-align: left;\'>' +
+    '<span style=\'font-size: 18px; color: #606060\'><b>' +
+    country + ' </b></span>' + 
+    '<br><br> <p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
+    randomFact + '<br><br><div style="text-align: center">' +
+    '<button onclick="onAllLearnersCountryZoomInClick(\''+ country + '\')" class=\'button is-link is-outlined \'>' +
+    ' <i class="fas fa-search-plus"></i>&nbsp;&nbsp;Take Me There ' +
+    '</button></div>';
+  return contentString;
 }
 
 /**
