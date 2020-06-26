@@ -1,0 +1,50 @@
+{
+  "campaignData":[
+    {
+      "campaignID": "id",
+      "learnerCount": 1000
+      "donors": [
+        {
+          "donorID": "unassigned",
+          "learnerCount": 800,
+          "donations": [
+            {
+              "donationID": "id",
+              "amount": 5.00
+              "learnerCount": 400,
+              "countries": [
+                {
+                  "country": "India",
+                  "learnerCount": 400,
+                  "regions": [
+                    {
+                      "region": "Uttar Pradesh",
+                      "learnerCount": 200,
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        }
+      ],
+    },
+  ], "locationData": [
+    {
+      "country": "India",
+      "facts": [],
+      "pin": {"lat": 36.00, "lng": 42.00},
+      "regions": [
+        "region": "Uttar Pradesh",
+        "streetViews": {
+          "headingValues": [
+            240,
+          ],
+          "locations": [
+            {"lat": 34.254, 40.8472},
+          ],
+        },
+      ],
+    },
+  ],
+}
