@@ -15,6 +15,6 @@
         "ecmaVersion": 2018
     },
     "rules": {
-      "require-jsdoc": "off"
+      "require-jsdoc": 0
     }
 }

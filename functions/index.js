@@ -24,7 +24,7 @@ exports.forceUpdateAggregates = functions.https.onRequest(async (req, res) =>{
       countries.push({
         country: country,
         learnerCount: countrySum,
-        regions: learnerCounts 
+        regions: learnerCounts
       });
     });
     return admin.firestore().collection('aggregate_data').doc('RegionSummary')
@@ -106,7 +106,7 @@ exports.updateSummary = functions.firestore.document('/loc_ref/{documentId}')
     const originalValue = change.after.data().regions;
     let summary = await admin.firestore().collection('aggregate_data').doc('RegionSummary').get().catch(err=>{console.error(err);});
     let sums = summary.data().countries;
-    let countryIndex = findCountryIndex(sums, country);
+    let countryIndex = findObjWithProperty(sums, "country", country);
     console.log('country index is ' + countryIndex);
     if(countryIndex === undefined){
       sums.push({country: country, learnerCount: 0, regions: []});
@@ -129,19 +129,26 @@ exports.updateSummary = functions.firestore.document('/loc_ref/{documentId}')
   exports.updateDonationLearnerCount = functions.firestore
     .document('donor_master/{donorId}/donations/{donationId}/users/{documentId}')
     .onCreate((snap, context)=>{
-      let dbRef = admin.firestore().collection('donor_master')
-        .doc(context.params.donorId).collection('donations')
-        .doc(context.params.donationId);
       console.log('found new user: ' + snap.id);
-      return dbRef.collection('users').get().then(snapshot=>{
-        if(snapshot.empty)
-        {
-          return 0;
+      updateLocationBreakdownForDonation(context);
+    });
+
+  exports.updateAggregateData = functions.firestore
+    .document('aggregate_data/RegionSummary').onUpdate((change, context)=>{
+      const sumRef = admin.firestore().collection('aggregate_data').doc('data');
+      const data = change.after.data();
+      let sum = 0;
+      let noCountry =0;
+      data.countries.forEach((country)=> {
+        sum += country.learnerCount;
+        if (country.country === 'no-country') {
+          noCountry = country.learnerCount;
         }
-        return snapshot.size;
-      }).then(sum=>{
-        return dbRef.update({learnerCount: sum},{merge: true});
-      }).catch(err=>{console.error(err);});
+      });
+      sumRef.update({
+        allLearnersCount: sum,
+        allLearnersWithDoNotTrack: noCountry
+      });
     });
 
     exports.registerDeletedLearner = functions.firestore
@@ -179,6 +186,50 @@ exports.updateSummary = functions.firestore.document('/loc_ref/{documentId}')
         let campaignID = snap.data().sourceCampaign;
         return updateCountForCampaign(campaignID);
       });
+
+
+
+  function updateLocationBreakdownForDonation (context) {
+    let dbRef = admin.firestore().collection('donor_master')
+      .doc(context.params.donorId).collection('donations')
+      .doc(context.params.donationId);
+    return dbRef.collection('users').get().then(snapshot=>{
+      if(snapshot.empty)
+      {
+        return {learnerCount: 0, countries: []};
+      }
+      let countries = [];
+      snapshot.forEach((doc)=>{
+        let data = doc.data();
+        let countryIndex = findObjWithProperty(countries, "country", data.country);
+        if(countryIndex === undefined)
+        {
+          countries.push({
+            country: data.country,
+            learnerCount: 1,
+            regions: [],
+          });
+          countryIndex = countries.length -1;
+        }
+        else{
+          countries[countryIndex].learnerCount++;
+        }
+        let regionIndex = findObjWithProperty(countries[countryIndex].regions, "region", data.region);
+        if(regionIndex === undefined) {
+          countries[countryIndex].regions.push({
+            region: data.region,
+            learnerCount: 1,
+          });
+        } else {
+          countries[countryIndex].regions[regionIndex].learnerCount++;
+        }
+      });
+      return {learnerCount: snapshot.size, countries: countries};
+    }).then(res=>{
+      return dbRef.update({learnerCount: res.learnerCount, countries: res.countries},{merge: true});
+    }).catch(err=>{console.error(err);});
+  }
+
 
   function updateCountForCampaign(campaignID)
   {
@@ -260,13 +311,10 @@ exports.updateSummary = functions.firestore.document('/loc_ref/{documentId}')
       }).catch(err=>{console.error(err);});
   }
 
-  function findCountryIndex(arr, country)
-  {
-    for(let i=0; i < arr.length; i++)
-    {
-      if(arr[i].country === country)
-      {
-        return i
+  function findObjWithProperty(arr, prop, val) {
+    for(let i=0; i < arr.length; i++) {
+      if(arr[i].hasOwnProperty(prop) && arr[i][prop] === val) {
+        return i;
       }
     }
     return undefined;
