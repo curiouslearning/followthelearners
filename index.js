@@ -146,7 +146,7 @@ app.get('/getDonorCampaigns', function(req, res) {
     }
     const donations = [];
     snapshot.forEach((doc) => {
-      donations.push(doc.data());
+      donations.push(doc.data);
     });
     return donations;
   }).then((donations)=>{
@@ -296,7 +296,7 @@ function compileLearnerDataForCountry(country) {
 
 function extractLearnerDataForCountry(data) {
   const filteredRegions =[];
-  data.forEach((region)=>{
+  data.regions.forEach((region)=>{
     if (region.hasOwnProperty('learnerCount') && region.learnerCount >=0) {
       filteredRegions.push({
         region: region.region,
@@ -336,7 +336,7 @@ function extractLocationDataFromCountryDoc(data) {
     }
   });
   return {
-    country: country,
+    country: data.country,
     pin: data.pin,
     facts: data.facts,
     regions: filteredRegions,
