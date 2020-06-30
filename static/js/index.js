@@ -110,7 +110,7 @@ function GetDataAndSwitchToAllLearners() {
       return;
     }
     
-    allLearnersData = data.locData;
+    allLearnersData = data.data;
     createCountUpTextInElement(allLearnersCountElementId, 
       getTotalCountForAllLearners(allLearnersData));
     initializeCountrySelect(allLearnersData);
@@ -126,8 +126,8 @@ function GetDataAndSwitchToAllLearners() {
  */
 function getTotalCountForAllLearners(countryLearnersData) {
   let totalCount = 0;
-  for (let key in countryLearnersData) {
-    totalCount += countryLearnersData[key].learnerCount;
+  for (let key in countryLearnersData.campaignData) {
+    totalCount += countryLearnersData.campaignData[key].learnerCount;
   }
   return totalCount;
 }
