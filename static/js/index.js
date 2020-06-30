@@ -115,7 +115,6 @@ function GetDataAndSwitchToAllLearners() {
       getTotalCountForAllLearners(allLearnersData));
     initializeCountrySelect(allLearnersData);
     clearAllMarkers();
-    displayAllLearnersData(allLearnersData, true);
     tabSelector.ToggleTab('tab-all-learners');
   });
 }
@@ -335,14 +334,12 @@ async function displayAllLearnersData(locData, isCountryLevelData, country) {
           anchor: iconOptions.iconAnchor}, 
           label: { text: learnerCount.toString() }});
       
-      console.log(key);
       newMarker['country'] = locationData[key].country;
       newMarker['lat'] = locationData[key].pin.lat;
       newMarker['lng'] = locationData[key].pin.lng;
       newMarker['facts'] = locationData[key].facts;
       
       newMarker.addListener('click', function() {
-        console.log("Meow");
         mapsSharedInfoWindow.setContent(constructCountryLevelInfoWindow(
             newMarker.country,
             getRandomFact(newMarker.facts)));
