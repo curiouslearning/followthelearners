@@ -173,8 +173,9 @@ function onCountrySelectionChanged() {
       getTotalCountForAllLearners(allLearnersData));
   } else {
     displayAllLearnersData(allLearnersData, false, countrySelection);
+    let c = allLearnersData.campaignData.find((loc) => { return loc.country === countrySelection; });
     createCountUpTextInElement(allLearnersCountElementId, 
-      allLearnersData[countrySelection].learnerCount);
+      c.learnerCount);
   }
 }
 
@@ -325,6 +326,7 @@ async function displayAllLearnersData(locData, isCountryLevelData, country) {
       if (locationData[key].country === "no-country") {
         continue;
       }
+      console.log(key);
       let learnerCount = locData.campaignData[key.toString()].learnerCount;
       let iconOptions = getIconOptionsBasedOnCount(learnerCount);
       let newMarker = new google.maps.Marker({position: locationData[key].pin,
@@ -355,7 +357,9 @@ async function displayAllLearnersData(locData, isCountryLevelData, country) {
     mapAllLearners.setCenter(center);
     mapAllLearners.setZoom(staticMapZoomLevel);
   } else {
-    let countryData = locationData[country];
+    let locationData = locData.locationData;
+    let countryData = locationData.find((loc) => { return loc.country === country; });
+    let campaignData = locData.campaignData.find((loc) => { return loc.country === country; });
 
     let bounds = new google.maps.LatLngBounds();
 
@@ -363,17 +367,15 @@ async function displayAllLearnersData(locData, isCountryLevelData, country) {
     if (countryData.regions && countryData.regions.length !== 0) {
       for (let i = 0; i < countryData.regions.length; i++) {
         let region = countryData.regions[i];
+        let learnerCount = campaignData.regions.find((reg) => { return reg.region === region.region; }).learnerCount;
         if (region.hasOwnProperty("streetViews") &&
-          region.hasOwnProperty("learnerCount") &&
-          !isNaN(region.learnerCount) &&
-          region.learnerCount > 0 &&
+          learnerCount > 0 &&
           region.streetViews.hasOwnProperty("headingValues") &&
           region.streetViews.headingValues.length > 0 &&
           region.streetViews.hasOwnProperty("locations") &&
           region.streetViews.locations.length > 0) {
 
-          let iconOptions = getIconOptionsBasedOnCount(
-            region.learnerCount);
+          let iconOptions = getIconOptionsBasedOnCount(learnerCount);
           let firstStreetViewLoc = region.streetViews.locations[0];
           let regionMarker = new google.maps.Marker({position: 
             { lat: firstStreetViewLoc._latitude, 
@@ -382,7 +384,7 @@ async function displayAllLearnersData(locData, isCountryLevelData, country) {
               icon: {url: iconOptions.iconUrl, size: iconOptions.iconSize, 
               origin: new google.maps.Point(0, 0), 
               anchor: iconOptions.iconAnchor}, 
-              label: { text: region.learnerCount.toString() }});
+              label: { text: learnerCount.toString() }});
   
           regionMarker['lat'] = firstStreetViewLoc._latitude;
           regionMarker['lng'] = firstStreetViewLoc._longitude;
