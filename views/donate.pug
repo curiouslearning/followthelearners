@@ -9,12 +9,11 @@ html
     .containers
       .container
         .response
-          p #{response}
+          p  Thank you for your interest in supporting our campaign! We've partnered with GiveLively for a secure donation process. Fill out the form below and we'll send you an e-mail when your learners are ready to view!
       .container
-        label Support a Campaign
         // Begin Give Lively Fundraising Widget
         script.
           gl=document.createElement('script');gl.src='https://secure.givelively.org/widgets/branded_donation/curious-learning-a-global-literacy-project-inc/follow-the-learners.js';document.getElementsByTagName('head')[0].appendChild(gl);
-        #give-lively-widget.gl-branded-donation-widget(data-widget-src='https://secure.givelively.org/donate/curious-learning-a-global-literacy-project-inc/follow-the-learners?ref=sd_widget')
+        #give-lively-widget.gl-branded-donation-widget(data-widget-src='https://secure.givelively.org/donate/curious-learning-a-global-literacy-project-inc/follow-the-learners?ref=sd_widget&utm_source=' + campaign)
         // End Give Lively Fundraising Widget
     script(src="/static/js/fbc.js")

@@ -4,14 +4,14 @@ include ./_link
 mixin campaign (title, imgRef, body, campaignID, amount)
   .card.column.is-shadowless(style='border: none; margin: 10px;')
     .card-image
-      a(href='/donate?campaign=' + campaignID + '&amount=' + amount)
+      a(href='/donate?campaign=' + campaignID)
         .box(style="border-radius: 0; box-shadow: 0px 2px 8px #808080; padding: 0")
           figure.image.is-5by3
             img(src=imgRef, alt='Campaign Image')
     br
     .card-header.is-shadowless
-      a.title.is-size-2.has-text-grey-dark(href='/donate?campaign=' + campaignID + '&amount=' + amount) #{title}
+      a.title.is-size-2.has-text-grey-dark(href='/donate?campaign=' + campaignID) #{title}
     .card-content
       .subtitle.is-size-6.has-text-grey #{body}
     .card-footer(style='border: none; justify-content: center;')
-       .button(type='button', id='giveNow'+campaignID+amount, onclick = "goToDonate(\""+campaignID +"\",\"" + amount + "\")") Give Now
+       .button(type='button', id='giveNow'+campaignID, onclick = "goToDonate(\""+campaignID +"\")") Give Now

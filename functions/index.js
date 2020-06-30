@@ -4,6 +4,70 @@ const admin = require('firebase-admin');
 
 admin.initializeApp();
 
+
+
+
+exports.logDonation = functions.https.onRequest(async (req, res) =>{
+  let params = {
+    firstName: req.body.firstName,
+    lastName: req.body.lastName,
+    email: req.body.email,
+    timestamp: req.body.timestamp,
+    amount: req.body.amount,
+    campaignID: req.body.campaignID,
+  };
+  writeDonation(params).then((result)=>{
+    res.status(200).send(result);
+    return;
+  }).catch(err=>{
+    console.error(err);
+    res.status(500).send(err);
+  });
+});
+function writeDonation (params)
+{
+  return getDonorID(params.email).then((donorID)=>{
+    if (donorID === '') {
+      firestore.collection('donor_master').add({
+        firstName: params.firstName,
+        lastName: params.lastName,
+        email: params.email,
+        dateCreated: params.timestamp,
+      });
+      return doc.id;
+    } else {
+      return donorID;
+    }
+  }).then((donorID)=>{
+    const dbRef = admin.firestore().collection('donor_master').doc(donorID);
+    dbRef.collection('donations').add({
+      campaignID: params.campaignID,
+      learnerCount: 0,
+      sourceDonor: donorID,
+      amount: params.amount,
+      countries: [],
+      startDate: params.timestamp,
+    });
+    return "success!";
+  }).catch((err) =>{
+    console.error(err);
+    return err;
+  });
+}
+
+function getDonorID(email) {
+  const dbRef = admin.firestore().collection('donor_master');
+  return dbRef.where('email', '==', email).get().then((snapshot)=>{
+    if (snapshot.empty) {
+      console.log('no donorID found for email ', email);
+      return '';
+    }
+    return snapshot.docs[0].data().donorID;
+  }).catch((err)=>{
+    console.error(err);
+  });
+}
+
 exports.forceUpdateAggregates = functions.https.onRequest(async (req, res) =>{
   let dbRef = admin.firestore().collection('loc_ref');
   dbRef.get().then(snapshot=>{
