@@ -12,19 +12,9 @@ html
           p #{response}
       .container
         label Support a Campaign
-        form(method="POST", action='/donate')
-          .help Support children learning to read around the world. Give now!
-          .control
-            label(for='[firstName]') First Name
-            input.input(name='[firstName]', type = 'text', title='firstName', placeholder='Sarah')
-            label(for='[lastName]') Last Name
-            input.input(name='[lastName]', type = 'text', title='lastName', placeholder='Jones')
-            label(for='[email]') E-mail
-            input.input(name='[email]', type = 'text', title='email', placeholder='yourName@example.com')
-            label(for='[campaign]') Campaign
-            input.input(name='[campaign]', type = 'text', title='email', placeholder='United States', value = campaign)
-            label(for='[amount]') Amount
-            input.input(name='[amount]', type = 'text', title='amount', placeholder = '$5.00', value = amount)
-          .control
-            button.button.is-primary Donate
+        // Begin Give Lively Fundraising Widget
+        script.
+          gl=document.createElement('script');gl.src='https://secure.givelively.org/widgets/branded_donation/curious-learning-a-global-literacy-project-inc/follow-the-learners.js';document.getElementsByTagName('head')[0].appendChild(gl);
+        #give-lively-widget.gl-branded-donation-widget(data-widget-src='https://secure.givelively.org/donate/curious-learning-a-global-literacy-project-inc/follow-the-learners?ref=sd_widget')
+        // End Give Lively Fundraising Widget
     script(src="/static/js/fbc.js")
