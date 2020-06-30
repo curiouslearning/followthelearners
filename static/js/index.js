@@ -145,9 +145,12 @@ function initializeCountrySelect(locationData) {
   }
   countrySelectElement.options = [];
   countrySelectElement.options[0] = new Option('All Learners', 'all-learners');
-  for (var keyCountry in locationData) {
-    countrySelectElement.options.add(new Option(
-      keyCountry + " - " + locationData[keyCountry].learnerCount, keyCountry));
+  for (var key in locationData.campaignData) {
+    let country = locationData.campaignData[key].country;
+    if (country !== "no-country") {
+      countrySelectElement.options.add(new Option(
+        country + " - " + locationData.campaignData[key].learnerCount, country));
+    }
   }
 }
 
