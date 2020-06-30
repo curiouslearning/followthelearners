@@ -309,27 +309,34 @@ function clearAllMarkers() {
  * @param {String} country if the region data should be displayed the country
  * should be passed
  */
-async function displayAllLearnersData(locationData, isCountryLevelData, country) {
-  if (locationData === null) {
+async function displayAllLearnersData(locData, isCountryLevelData, country) {
+  if (locData === null) {
     const center = new google.maps.LatLng(0, 0);
     mapRef.setCenter(center);
     mapRef.setZoom(staticMapZoomLevel);
     return;
   }
+  if (mapsSharedInfoWindow)
+    mapsSharedInfoWindow.close();
 
-  mapsSharedInfoWindow.close();
+  let locationData = locData.locationData;
   
   if (isCountryLevelData) {
-    for (let key in locationData) {
-      let iconOptions = getIconOptionsBasedOnCount(locationData[key].learnerCount);
+    for (let key = 0; key < locationData.length; key++) {
+      if (locationData[key].country === "no-country") {
+        continue;
+      }
+      let learnerCount = locData.campaignData[key.toString()].learnerCount;
+      let iconOptions = getIconOptionsBasedOnCount(learnerCount);
       let newMarker = new google.maps.Marker({position: locationData[key].pin,
           map: mapAllLearners, 
           icon: {url: iconOptions.iconUrl, size: iconOptions.iconSize, 
           origin: new google.maps.Point(0, 0), 
           anchor: iconOptions.iconAnchor}, 
-          label: { text: locationData[key].learnerCount.toString() }});
-
-      newMarker['country'] = key;
+          label: { text: learnerCount.toString() }});
+      
+      console.log(key);
+      newMarker['country'] = locationData[key].country;
       newMarker['lat'] = locationData[key].pin.lat;
       newMarker['lng'] = locationData[key].pin.lng;
       newMarker['facts'] = locationData[key].facts;
