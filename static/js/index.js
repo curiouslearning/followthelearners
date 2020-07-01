@@ -214,7 +214,7 @@ function GetDataAndSwitchToDonorLearners() {
       campaignSelectElement.options = [];
       for (let i = 0; i < data.campaigns.length; i++) {
         campaignSelectElement.options[i] = new Option(
-          data.campaigns[i].data.campaignID, data.campaigns[i].data.campaignID);
+          data.campaigns[i].campaignID, data.campaigns[i].campaignID);
       }
     }
     if (donorModal) {
@@ -234,19 +234,19 @@ function updateCampaignAndLocationData() {
       options[campaignSelectElement.selectedIndex].value;
     let campaignData = null;
     for (let i = 0; i < currentDonorCampaignData.length; i++) {
-      if (currentDonorCampaignData[i].data.campaignID === selectedCampaignID) {
+      if (currentDonorCampaignData[i].campaignID === selectedCampaignID) {
         campaignData = currentDonorCampaignData[i];
       }
     }
     document.getElementById('donation-amount').innerText = 
-      campaignData.data.amount;
+      campaignData.amount;
 
     document.getElementById('donation-date').innerText = 
-      campaignData.data.startDate;
+      campaignData.startDate;
 
     tabSelector.ToggleTab('tab-your-learners');
 
-    createCountUpTextInElement('learner-count', campaignData.data.userCount);
+    createCountUpTextInElement('learner-count', campaignData.learnerCount);
 
     clearAllMarkers();
 
