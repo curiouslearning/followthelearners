@@ -48,6 +48,7 @@ function writeDonation (params)
       countries: [],
       startDate: params.timestamp,
     });
+    assignInitialLearners(donorID,params.campaignID);
     return "success!";
   }).catch((err) =>{
     console.error(err);
@@ -63,6 +64,41 @@ function getDonorID(email) {
       return '';
     }
     return snapshot.docs[0].data().donorID;
+  }).catch((err)=>{
+    console.error(err);
+  });
+}
+// Grab initial list of learners at donation time from user_pool
+// and assign to donor according to donation amount and campaigns cost/learner
+function assignInitialLearners(donorID, donationID) {
+  const donorRef = firestore.collection('donor_master').doc(donorID);
+  const poolRef = firestore.collection('user_pool');
+
+  donorRef.collection('donations').where('campaignID', '==', donationID)
+    .get().then((snapshot)=>{
+      if (snapshot.empty) {
+        return undefined;
+      }
+      return snapshot.docs[0].id;
+  }).then((id) =>{
+    const donationRef = donorRef.collection('donations').doc(id);
+    return poolRef.where('sourceCampaign', '==', donationID)
+        .where('sourceDonor', '==', donorID).get().then((snapshot)=>{
+          if (snapshot.empty) {
+            return;
+          }
+          snapshot.forEach((doc)=>{
+            msgRef.set(doc.data()).then(()=>{
+              poolRef.doc(doc.id).delete();
+              return;
+            }).catch((err)=>{
+              console.error(err);
+            });
+          });
+          return;
+        }).catch((err)=>{
+          console.error(err);
+        });
   }).catch((err)=>{
     console.error(err);
   });
