@@ -171,8 +171,7 @@ app.get('/yourLearners', function(req, res) {
       const locationData = [];
       learners.countries.forEach((country)=>{
         if (findObjectIndexWithProperty(
-            locationData, 'country', country.country,
-        )=== undefined) {
+            locationData, 'country', country.country)=== undefined) {
           promises.push(compileLocationDataForCountry(country.country));
         }
       });
@@ -396,7 +395,7 @@ function getLearnersForRegion(donorID, region) {
     if (snapshot.empty) {
       console.log('no donation document exists for ', region); return [];
     }
-    return doc.data();
+    return snapshot.data();
   }).catch((err)=>{
     console.error(err);
   });
