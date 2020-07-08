@@ -81,7 +81,8 @@ function initializeMaps() {
   if (mapYourLearnersParent) {
     mapYourLearners = new google.maps.Map(mapYourLearnersParent, {
       streetViewControl: false,
-      mapTypeControl: false
+      mapTypeControl: false,
+      maxZoom: 10
     });
   }
 
@@ -110,12 +111,11 @@ function GetDataAndSwitchToAllLearners() {
       return;
     }
     
-    allLearnersData = data.locData;
+    allLearnersData = data.data;
     createCountUpTextInElement(allLearnersCountElementId, 
       getTotalCountForAllLearners(allLearnersData));
     initializeCountrySelect(allLearnersData);
     clearAllMarkers();
-    displayAllLearnersData(allLearnersData, true);
     tabSelector.ToggleTab('tab-all-learners');
   });
 }
@@ -126,8 +126,10 @@ function GetDataAndSwitchToAllLearners() {
  */
 function getTotalCountForAllLearners(countryLearnersData) {
   let totalCount = 0;
-  for (let key in countryLearnersData) {
-    totalCount += countryLearnersData[key].learnerCount;
+  for (let key in countryLearnersData.campaignData) {
+    if (countryLearnersData.campaignData[key].country !== "no-country") {
+      totalCount += countryLearnersData.campaignData[key].learnerCount;
+    }
   }
   return totalCount;
 }
@@ -143,9 +145,12 @@ function initializeCountrySelect(locationData) {
   }
   countrySelectElement.options = [];
   countrySelectElement.options[0] = new Option('All Learners', 'all-learners');
-  for (var keyCountry in locationData) {
-    countrySelectElement.options.add(new Option(
-      keyCountry + " - " + locationData[keyCountry].learnerCount, keyCountry));
+  for (var key in locationData.campaignData) {
+    let country = locationData.campaignData[key].country;
+    if (country !== "no-country") {
+      countrySelectElement.options.add(new Option(
+        country + " - " + locationData.campaignData[key].learnerCount, country));
+    }
   }
 }
 
@@ -169,8 +174,9 @@ function onCountrySelectionChanged() {
       getTotalCountForAllLearners(allLearnersData));
   } else {
     displayAllLearnersData(allLearnersData, false, countrySelection);
+    let c = allLearnersData.campaignData.find((loc) => { return loc.country === countrySelection; });
     createCountUpTextInElement(allLearnersCountElementId, 
-      allLearnersData[countrySelection].learnerCount);
+      c.learnerCount);
   }
 }
 
@@ -209,7 +215,7 @@ function GetDataAndSwitchToDonorLearners() {
       campaignSelectElement.options = [];
       for (let i = 0; i < data.campaigns.length; i++) {
         campaignSelectElement.options[i] = new Option(
-          data.campaigns[i].data.campaignID, data.campaigns[i].data.campaignID);
+          data.campaigns[i].campaignID, data.campaigns[i].campaignID);
       }
     }
     if (donorModal) {
@@ -229,27 +235,29 @@ function updateCampaignAndLocationData() {
       options[campaignSelectElement.selectedIndex].value;
     let campaignData = null;
     for (let i = 0; i < currentDonorCampaignData.length; i++) {
-      if (currentDonorCampaignData[i].data.campaignID === selectedCampaignID) {
+      if (currentDonorCampaignData[i].campaignID === selectedCampaignID) {
         campaignData = currentDonorCampaignData[i];
       }
     }
     document.getElementById('donation-amount').innerText = 
-      campaignData.data.amount;
+      campaignData.amount;
 
     document.getElementById('donation-date').innerText = 
-      campaignData.data.startDate;
+      campaignData.startDate;
 
     tabSelector.ToggleTab('tab-your-learners');
 
-    createCountUpTextInElement('learner-count', campaignData.data.userCount);
+    createCountUpTextInElement('learner-count', campaignData.learnerCount);
 
     clearAllMarkers();
 
     $.get('/yourLearners', 
       {email: currentDonorEmail, campaign: selectedCampaignID},
       function(locData, locDataStatus) {
-        yourLearnersData = locData.locData;
-        displayClusteredData(mapYourLearners, locData.locData);
+        yourLearnersData = locData;
+        if (yourLearnersData.locationData.length !== 0) {
+          displayYourLearnersData(yourLearnersData);
+        }
       });
   }
 }
@@ -304,33 +312,39 @@ function clearAllMarkers() {
  * @param {String} country if the region data should be displayed the country
  * should be passed
  */
-async function displayAllLearnersData(locationData, isCountryLevelData, country) {
-  if (locationData === null) {
+async function displayAllLearnersData(locData, isCountryLevelData, country) {
+  if (locData === null) {
     const center = new google.maps.LatLng(0, 0);
     mapRef.setCenter(center);
     mapRef.setZoom(staticMapZoomLevel);
     return;
   }
+  if (mapsSharedInfoWindow)
+    mapsSharedInfoWindow.close();
 
-  mapsSharedInfoWindow.close();
+  let locationData = locData.locationData;
   
   if (isCountryLevelData) {
-    for (let key in locationData) {
-      let iconOptions = getIconOptionsBasedOnCount(locationData[key].learnerCount);
+    for (let key = 0; key < locationData.length; key++) {
+      if (locationData[key].country === "no-country") {
+        continue;
+      }
+      console.log(key);
+      let learnerCount = locData.campaignData[key.toString()].learnerCount;
+      let iconOptions = getIconOptionsBasedOnCount(learnerCount);
       let newMarker = new google.maps.Marker({position: locationData[key].pin,
           map: mapAllLearners, 
           icon: {url: iconOptions.iconUrl, size: iconOptions.iconSize, 
           origin: new google.maps.Point(0, 0), 
           anchor: iconOptions.iconAnchor}, 
-          label: { text: locationData[key].learnerCount.toString() }});
-
-      newMarker['country'] = key;
+          label: { text: learnerCount.toString() }});
+      
+      newMarker['country'] = locationData[key].country;
       newMarker['lat'] = locationData[key].pin.lat;
       newMarker['lng'] = locationData[key].pin.lng;
       newMarker['facts'] = locationData[key].facts;
       
       newMarker.addListener('click', function() {
-        console.log("Meow");
         mapsSharedInfoWindow.setContent(constructCountryLevelInfoWindow(
             newMarker.country,
             getRandomFact(newMarker.facts)));
@@ -346,7 +360,9 @@ async function displayAllLearnersData(locationData, isCountryLevelData, country)
     mapAllLearners.setCenter(center);
     mapAllLearners.setZoom(staticMapZoomLevel);
   } else {
-    let countryData = locationData[country];
+    let locationData = locData.locationData;
+    let countryData = locationData.find((loc) => { return loc.country === country; });
+    let campaignData = locData.campaignData.find((loc) => { return loc.country === country; });
 
     let bounds = new google.maps.LatLngBounds();
 
@@ -354,17 +370,15 @@ async function displayAllLearnersData(locationData, isCountryLevelData, country)
     if (countryData.regions && countryData.regions.length !== 0) {
       for (let i = 0; i < countryData.regions.length; i++) {
         let region = countryData.regions[i];
+        let learnerCount = campaignData.regions.find((reg) => { return reg.region === region.region; }).learnerCount;
         if (region.hasOwnProperty("streetViews") &&
-          region.hasOwnProperty("learnerCount") &&
-          !isNaN(region.learnerCount) &&
-          region.learnerCount > 0 &&
+          learnerCount > 0 &&
           region.streetViews.hasOwnProperty("headingValues") &&
           region.streetViews.headingValues.length > 0 &&
           region.streetViews.hasOwnProperty("locations") &&
           region.streetViews.locations.length > 0) {
 
-          let iconOptions = getIconOptionsBasedOnCount(
-            region.learnerCount);
+          let iconOptions = getIconOptionsBasedOnCount(learnerCount);
           let firstStreetViewLoc = region.streetViews.locations[0];
           let regionMarker = new google.maps.Marker({position: 
             { lat: firstStreetViewLoc._latitude, 
@@ -373,7 +387,7 @@ async function displayAllLearnersData(locationData, isCountryLevelData, country)
               icon: {url: iconOptions.iconUrl, size: iconOptions.iconSize, 
               origin: new google.maps.Point(0, 0), 
               anchor: iconOptions.iconAnchor}, 
-              label: { text: region.learnerCount.toString() }});
+              label: { text: learnerCount.toString() }});
   
           regionMarker['lat'] = firstStreetViewLoc._latitude;
           regionMarker['lng'] = firstStreetViewLoc._longitude;
@@ -429,6 +443,104 @@ async function displayAllLearnersData(locationData, isCountryLevelData, country)
     mapAllLearners.fitBounds(bounds);
     mapAllLearners.panToBounds(bounds);
   }
+}
+
+function displayYourLearnersData(locData) {
+  if (locData === null) {
+    const center = new google.maps.LatLng(0, 0);
+    mapYourLearners.setCenter(center);
+    mapYourLearners.setZoom(staticMapZoomLevel);
+    return;
+  }
+  if (mapsSharedInfoWindow)
+    mapsSharedInfoWindow.close();
+
+  let locationData = locData.locationData;
+  let countryData = locationData[0];
+  let campaignData = locData.campaignData.countries.find((c) => { return c.country === countryData.country; });
+
+  let bounds = new google.maps.LatLngBounds();
+
+  console.log(countryData);
+  if (countryData.regions && countryData.regions.length !== 0) {
+    for (let i = 0; i < countryData.regions.length; i++) {
+      let region = countryData.regions[i];
+      let campaignRegion = campaignData.regions.find((reg) => { return reg.region === region.region});
+      if (!campaignRegion) {
+        continue;
+      }
+      let learnerCount = campaignRegion.learnerCount;
+      if (region.hasOwnProperty("streetViews") &&
+        learnerCount > 0 &&
+        region.streetViews.hasOwnProperty("headingValues") &&
+        region.streetViews.headingValues.length > 0 &&
+        region.streetViews.hasOwnProperty("locations") &&
+        region.streetViews.locations.length > 0) {
+
+        let iconOptions = getIconOptionsBasedOnCount(learnerCount);
+        let firstStreetViewLoc = region.streetViews.locations[0];
+        let regionMarker = new google.maps.Marker({position: 
+          { lat: firstStreetViewLoc._latitude, 
+            lng: firstStreetViewLoc._longitude },
+            map: mapYourLearners, 
+            icon: {url: iconOptions.iconUrl, size: iconOptions.iconSize, 
+            origin: new google.maps.Point(0, 0), 
+            anchor: iconOptions.iconAnchor}, 
+            label: { text: learnerCount.toString() }});
+
+        regionMarker['lat'] = firstStreetViewLoc._latitude;
+        regionMarker['lng'] = firstStreetViewLoc._longitude;
+        regionMarker['country'] = countryData.country;
+        regionMarker['facts'] = countryData.facts;
+        regionMarker['region'] = region.region;
+        regionMarker['heading'] = region.streetViews.headingValues[0];
+        regionMarker['otherViews'] = [];
+        
+        if (region.streetViews.locations.length > 1 &&
+            region.streetViews.locations.length === 
+            region.streetViews.headingValues.length) {
+          for (let l = 1; l < region.streetViews.locations.length; l++) {
+            let loc = region.streetViews.locations[l];
+            regionMarker['otherViews'].push({
+              lat: loc._latitude,
+              lng: loc._longitude, 
+              h: region.streetViews.headingValues[l]});
+          }
+        }
+
+        
+        regionMarker.addListener('click', function() {
+          let streetView = { lat: regionMarker.lat, lng: regionMarker.lng, 
+            h: regionMarker.heading };
+
+          if (regionMarker.otherViews && 
+            regionMarker.otherViews.length !== 0) {
+            let randomValue = Math.floor((Math.random() * 
+              (regionMarker.otherViews.length - 0 + 1))) + 0;
+            if (randomValue !== 0)
+              streetView = regionMarker.otherViews[randomValue - 1];
+          }
+
+          mapsSharedInfoWindow.setContent(constructInfoWindowContent(
+            regionMarker.country,
+            regionMarker.region,
+            getRandomFact(regionMarker.facts),
+            streetView.lat,
+            streetView.lng,
+            streetView.h));
+          mapsSharedInfoWindow.open(mapYourLearners);
+          mapsSharedInfoWindow.setPosition(
+            {lat: regionMarker.lat, lng: regionMarker.lng});
+        });
+        
+        loadedMarkers.push(regionMarker);
+        bounds.extend(regionMarker.position);
+
+      }
+    }
+  }
+  mapYourLearners.fitBounds(bounds);
+  mapYourLearners.panToBounds(bounds);
 }
 
 /**

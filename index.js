@@ -168,18 +168,17 @@ app.get('/yourLearners', function(req, res) {
   }).then((learners)=>{
     if (learners != undefined) {
       const promises = [];
-      const locationData = [];
+      let locationData = [];
       learners.countries.forEach((country)=>{
         if (findObjectIndexWithProperty(
-            locationData, 'country', country.country,
-        )=== undefined) {
+            locationData, 'country', country.country)=== undefined) {
           promises.push(compileLocationDataForCountry(country.country));
         }
       });
       Promise.all(promises).then((values) => {
         locationData = values.filter((value)=> value !== undefined);
+        res.json({campaignData: learners, locationData: locationData});
       });
-      res.json({campaignData: learners, locationData: locationData});
     } else {
       res.end();
     }
@@ -396,7 +395,7 @@ function getLearnersForRegion(donorID, region) {
     if (snapshot.empty) {
       console.log('no donation document exists for ', region); return [];
     }
-    return doc.data();
+    return snapshot.data();
   }).catch((err)=>{
     console.error(err);
   });
