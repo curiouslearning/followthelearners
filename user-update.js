@@ -69,7 +69,6 @@ function main() {
       query = query.concat(subquery);
     });
 
-    console.log('query is: ', query);
     const options = {
       query: query,
       location: 'US',
