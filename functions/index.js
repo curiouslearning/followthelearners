@@ -12,8 +12,8 @@ exports.logDonation = functions.https.onRequest(async (req, res) =>{
     firstName: req.body.firstName,
     lastName: req.body.lastName,
     email: req.body.email,
-    timestamp: req.body.timestamp,
-    amount: req.body.amount,
+    timestamp: admin.firestore.Firestore.Timestamp.now(),
+    amount: Number(req.body.amount) - Number(req.body.coveredbydonor),
     campaignID: req.body.campaignID,
   };
   writeDonation(params).then((result)=>{
@@ -26,15 +26,18 @@ exports.logDonation = functions.https.onRequest(async (req, res) =>{
 });
 function writeDonation (params)
 {
+  const dbRef =  admin.firestore().collection('donor_master');
   return getDonorID(params.email).then((donorID)=>{
     if (donorID === '') {
-      firestore.collection('donor_master').add({
+      return dbRef.add({
         firstName: params.firstName,
         lastName: params.lastName,
         email: params.email,
         dateCreated: params.timestamp,
+      }).then((docRef)=>{
+        dbRef.doc(docRef.id).set({donorID: docRef.id},{merge:true});
+        return docRef.id;
       });
-      return doc.id;
     } else {
       return donorID;
     }
@@ -71,8 +74,8 @@ function getDonorID(email) {
 // Grab initial list of learners at donation time from user_pool
 // and assign to donor according to donation amount and campaigns cost/learner
 function assignInitialLearners(donorID, donationID) {
-  const donorRef = firestore.collection('donor_master').doc(donorID);
-  const poolRef = firestore.collection('user_pool');
+  const donorRef = admin.firestore().collection('donor_master').doc(donorID);
+  const poolRef = admin.firestore().collection('user_pool');
 
   donorRef.collection('donations').where('campaignID', '==', donationID)
     .get().then((snapshot)=>{
