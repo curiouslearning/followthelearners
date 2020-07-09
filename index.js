@@ -141,7 +141,7 @@ app.get('/getDonorCampaigns', function(req, res) {
     }
     return getDonations(donorID);
   }).then((snapshot)=>{
-    if (snapshot.empty) {
+    if (snapshot === undefined || snapshot.empty) {
       res.render('summary');
     }
     const donations = [];
@@ -367,7 +367,7 @@ function getDonations(donorID) {
   const dbRef = firestore.collection('donor_master')
       .doc(donorID).collection('donations');
   return dbRef.get().then((snapshot)=>{
-    if (snapshot.empty) {
+    if (snapshot === undefined || snapshot.empty) {
       return [];
     }
     const donations =[];
