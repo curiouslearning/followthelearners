@@ -81,6 +81,7 @@ function assignInitialLearners(donorID, donationID) {
       }
       return snapshot.docs[0].id;
   }).then((id) =>{
+    if(id === undefined) {return 0;}
     const donationRef = donorRef.collection('donations').doc(id);
     return poolRef.where('sourceCampaign', '==', donationID)
         .where('sourceDonor', '==', donorID).get().then((snapshot)=>{
