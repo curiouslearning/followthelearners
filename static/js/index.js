@@ -741,6 +741,23 @@ function constructCountryLevelInfoWindow(country, randomFact) {
 }
 
 /**
+ * Get region Pin Window content
+ * @param {String} country country
+ * @param {String} region region
+ * @param {String} randomFact fact
+ */
+function constructRegionPinWindow(country, region, randomFact) {
+  const contentString = '<div style=\'text-align: left;\'>' +
+    '<span style=\'font-size: 18px; color: #606060\'><b>' +
+    region + ' </b></span>' + 
+    '<span style=\'font-size: 16px; color: #909090\'><b>(' +
+    country + ')</b></span>' + 
+    '<br><br> <p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
+    randomFact + '<br><br>';
+  return contentString;
+}
+
+/**
  * Constructs and returns info window html string content
  * @param {String} country is the country value
  * @param {String} region is the region value
