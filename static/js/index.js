@@ -17,6 +17,7 @@ let mapsSharedInfoWindow = null;
 const staticMapZoomLevel = 3;
 
 const allLearnersCountElementId = 'all-learners-count';
+const dntLearnersCountElementId = 'no-region-user-count';
 
 let newDonorInfoTextId = '#new-donor-info-text';
 
@@ -114,6 +115,14 @@ function GetDataAndSwitchToAllLearners() {
     allLearnersData = data.data;
     createCountUpTextInElement(allLearnersCountElementId, 
       getTotalCountForAllLearners(allLearnersData));
+    
+    for (var key in allLearnersData.campaignData) {
+      if (allLearnersData.campaignData[key].country == "no-country") {
+        createCountUpTextInElement(dntLearnersCountElementId, 
+          allLearnersData.campaignData[key].learnerCount);
+      }
+    }
+
     initializeCountrySelect(allLearnersData);
     clearAllMarkers();
     tabSelector.ToggleTab('tab-all-learners');
@@ -172,11 +181,22 @@ function onCountrySelectionChanged() {
     displayAllLearnersData(allLearnersData, true);
     createCountUpTextInElement(allLearnersCountElementId, 
       getTotalCountForAllLearners(allLearnersData));
+    for (var key in allLearnersData.campaignData) {
+      if (allLearnersData.campaignData[key].country == "no-country") {
+        createCountUpTextInElement(dntLearnersCountElementId, 
+          allLearnersData.campaignData[key].learnerCount);
+      }
+    }
   } else {
     displayAllLearnersData(allLearnersData, false, countrySelection);
     let c = allLearnersData.campaignData.find((loc) => { return loc.country === countrySelection; });
+    let noRegion = c.regions.find((r) => { return r.region === "no-region"; });
     createCountUpTextInElement(allLearnersCountElementId, 
       c.learnerCount);
+
+    if (noRegion && noRegion.hasOwnProperty('learnerCount')) {
+      createCountUpTextInElement(dntLearnersCountElementId, noRegion.learnerCount);
+    }
   }
 }
 
