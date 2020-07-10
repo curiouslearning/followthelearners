@@ -327,9 +327,12 @@ function compileLocationDataForCountry(country) {
 function extractLocationDataFromCountryDoc(data) {
   const filteredRegions = [];
   data.regions.forEach((region)=>{
-    if (region.hasOwnProperty('streetViews')) {
+    if (region.hasOwnProperty('pin') && 
+      region.hasOwnProperty('learnerCount') && 
+      region.hasOwnProperty('streetViews')) {
       filteredRegions.push({
         region: region.region,
+        pin: region.pin,
         streetViews: region.streetViews,
       });
     }
