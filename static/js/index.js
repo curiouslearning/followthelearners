@@ -22,6 +22,7 @@ const dntLearnersCountElementId = 'no-region-user-count';
 let newDonorInfoTextId = '#new-donor-info-text';
 
 let loadedMarkers = [];
+let loadedYourLearnersMarkers = [];
 let markerClusterer = null;
 
 let allLearnersData = null;
@@ -39,8 +40,8 @@ $(document).ready(function() {
         tabSelector.preventDefault();
         donorModal.classList.add('is-active');
       } else if (tabId === 'tab-your-learners' && yourLearnersData) {
-        clearAllMarkers();
-        displayClusteredData(mapYourLearners, yourLearnersData);
+        // clearYourLearnersMarkers();
+        // displayYourLearnersData(yourLearnersData);
       } else if (tabId === 'tab-all-learners' && allLearnersData === null
         && !loadingAllLearnersData) {
         loadingAllLearnersData = true;
@@ -269,7 +270,7 @@ function updateCampaignAndLocationData() {
 
     createCountUpTextInElement('learner-count', campaignData.learnerCount);
 
-    clearAllMarkers();
+    clearYourLearnersMarkers();
 
     $.get('/yourLearners', 
       {email: currentDonorEmail, campaign: selectedCampaignID},
@@ -306,6 +307,16 @@ function createCountUpTextInElement(elementId, finalCountValue) {
  */
 function onCampaignSelectionChanged() {
   updateCampaignAndLocationData();
+}
+
+function clearYourLearnersMarkers() {
+  if (loadedYourLearnersMarkers.length > 0) {
+    for (let i = 0; i < loadedYourLearnersMarkers.length; i++) {
+      loadedYourLearnersMarkers[i].setMap(null);
+      loadedYourLearnersMarkers[i]= null;
+    }
+  }
+  loadedYourLearnersMarkers = [];
 }
 
 /**
@@ -497,7 +508,7 @@ async function displayAllLearnersData(locData, isCountryLevelData, country) {
   }
 }
 
-function displayYourLearnersData(locData) {
+async function displayYourLearnersData(locData) {
   if (locData === null) {
     const center = new google.maps.LatLng(0, 0);
     mapYourLearners.setCenter(center);
@@ -559,7 +570,6 @@ function displayYourLearnersData(locData) {
               h: region.streetViews.headingValues[l]});
           }
         }
-
         
         regionMarker.addListener('click', function() {
           let streetView = { lat: regionMarker.lat, lng: regionMarker.lng, 
@@ -585,7 +595,7 @@ function displayYourLearnersData(locData) {
             {lat: regionMarker.lat, lng: regionMarker.lng});
         });
         
-        loadedMarkers.push(regionMarker);
+        loadedYourLearnersMarkers.push(regionMarker);
         bounds.extend(regionMarker.position);
 
       }
