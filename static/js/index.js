@@ -349,7 +349,7 @@ async function displayAllLearnersData(locData, isCountryLevelData, country) {
       if (locationData[key].country === "no-country") {
         continue;
       }
-      console.log(key);
+      // console.log(locationData[key].country);
       let learnerCount = locData.campaignData[key.toString()].learnerCount;
       let iconOptions = getIconOptionsBasedOnCount(learnerCount);
       let newMarker = new google.maps.Marker({position: locationData[key].pin,
@@ -386,10 +386,11 @@ async function displayAllLearnersData(locData, isCountryLevelData, country) {
 
     let bounds = new google.maps.LatLngBounds();
 
-    console.log(countryData);
+    // console.log(countryData);
     if (countryData.regions && countryData.regions.length !== 0) {
       for (let i = 0; i < countryData.regions.length; i++) {
         let region = countryData.regions[i];
+        if (region.region === 'no-region') continue;
         let learnerCount = campaignData.regions.find((reg) => { return reg.region === region.region; }).learnerCount;
         if (region.hasOwnProperty("streetViews") &&
           learnerCount > 0 &&
@@ -400,13 +401,13 @@ async function displayAllLearnersData(locData, isCountryLevelData, country) {
 
           let iconOptions = getIconOptionsBasedOnCount(learnerCount);
           let firstStreetViewLoc = region.streetViews.locations[0];
-          let regionMarker = new google.maps.Marker({position: 
-            { lat: firstStreetViewLoc._latitude, 
+          let regionMarker = new google.maps.Marker({position:
+            { lat: firstStreetViewLoc._latitude,
               lng: firstStreetViewLoc._longitude },
-              map: mapAllLearners, 
-              icon: {url: iconOptions.iconUrl, size: iconOptions.iconSize, 
-              origin: new google.maps.Point(0, 0), 
-              anchor: iconOptions.iconAnchor}, 
+              map: mapAllLearners,
+              icon: {url: iconOptions.iconUrl, size: iconOptions.iconSize,
+              origin: new google.maps.Point(0, 0),
+              anchor: iconOptions.iconAnchor},
               label: { text: learnerCount.toString() }});
   
           regionMarker['lat'] = firstStreetViewLoc._latitude;
@@ -428,7 +429,6 @@ async function displayAllLearnersData(locData, isCountryLevelData, country) {
                 h: region.streetViews.headingValues[l]});
             }
           }
-
           
           regionMarker.addListener('click', function() {
             let streetView = { lat: regionMarker.lat, lng: regionMarker.lng, 
@@ -456,7 +456,39 @@ async function displayAllLearnersData(locData, isCountryLevelData, country) {
           
           loadedMarkers.push(regionMarker);
           bounds.extend(regionMarker.position);
-
+        } else if (region.hasOwnProperty('streetViews') && 
+          learnerCount > 0 &&
+          region.hasOwnProperty('pin') &&
+          region.streetViews.locations.length === 0) {
+          
+          let iconOptions = getIconOptionsBasedOnCount(learnerCount);
+          let regionMarker = new google.maps.Marker({position:
+            { lat: region.pin.lat,
+              lng: region.pin.lng },
+              map: mapAllLearners,
+              icon: {url: iconOptions.iconUrl, size: iconOptions.iconSize,
+              origin: new google.maps.Point(0, 0),
+              anchor: iconOptions.iconAnchor},
+              label: { text: learnerCount.toString() }});
+  
+          regionMarker['lat'] = region.pin.lat;
+          regionMarker['lng'] = region.pin.lng;
+          regionMarker['country'] = country;
+          regionMarker['facts'] = countryData.facts;
+          regionMarker['region'] = region.region;
+          
+          regionMarker.addListener('click', function() {
+            mapsSharedInfoWindow.setContent(constructRegionPinWindow(
+              regionMarker.country,
+              regionMarker.region,
+              getRandomFact(regionMarker.facts)));
+            mapsSharedInfoWindow.open(mapAllLearners);
+            mapsSharedInfoWindow.setPosition(
+              {lat: regionMarker.lat, lng: regionMarker.lng});
+          });
+          
+          loadedMarkers.push(regionMarker);
+          bounds.extend(regionMarker.position);
         }
       }
     }
