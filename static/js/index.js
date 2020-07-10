@@ -598,6 +598,39 @@ async function displayYourLearnersData(locData) {
         loadedYourLearnersMarkers.push(regionMarker);
         bounds.extend(regionMarker.position);
 
+      } else if (region.hasOwnProperty('streetViews') && 
+        learnerCount > 0 &&
+        region.hasOwnProperty('pin') &&
+        region.streetViews.locations.length === 0) {
+        
+        let iconOptions = getIconOptionsBasedOnCount(learnerCount);
+        let regionMarker = new google.maps.Marker({position:
+          { lat: region.pin.lat,
+            lng: region.pin.lng },
+            map: mapAllLearners,
+            icon: {url: iconOptions.iconUrl, size: iconOptions.iconSize,
+            origin: new google.maps.Point(0, 0),
+            anchor: iconOptions.iconAnchor},
+            label: { text: learnerCount.toString() }});
+
+        regionMarker['lat'] = region.pin.lat;
+        regionMarker['lng'] = region.pin.lng;
+        regionMarker['country'] = country;
+        regionMarker['facts'] = countryData.facts;
+        regionMarker['region'] = region.region;
+        
+        regionMarker.addListener('click', function() {
+          mapsSharedInfoWindow.setContent(constructRegionPinWindow(
+            regionMarker.country,
+            regionMarker.region,
+            getRandomFact(regionMarker.facts)));
+          mapsSharedInfoWindow.open(mapAllLearners);
+          mapsSharedInfoWindow.setPosition(
+            {lat: regionMarker.lat, lng: regionMarker.lng});
+        });
+        
+        loadedYourLearnersMarkers.push(regionMarker);
+        bounds.extend(regionMarker.position);
       }
     }
   }
