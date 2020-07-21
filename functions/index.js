@@ -24,6 +24,7 @@ exports.logDonation = functions.https.onRequest(async (req, res) =>{
     res.status(500).send(err);
   });
 });
+
 function writeDonation (params)
 {
   const dbRef =  admin.firestore().collection('donor_master');
@@ -42,17 +43,18 @@ function writeDonation (params)
       return donorID;
     }
   }).then((donorID)=>{
+    console.log("new id is: " + donorID);
     const dbRef = admin.firestore().collection('donor_master').doc(donorID);
-    dbRef.collection('donations').add({
+    return dbRef.collection('donations').add({
       campaignID: params.campaignID,
       learnerCount: 0,
       sourceDonor: donorID,
       amount: params.amount,
       countries: [],
       startDate: params.timestamp,
-    });
-    assignInitialLearners(donorID,params.campaignID);
-    return "success!";
+    }).then(()=>{
+      return assignInitialLearners(donorID,params.campaignID);
+    }).catch((err)=>{console.error(err);});
   }).catch((err) =>{
     console.error(err);
     return err;
@@ -74,38 +76,109 @@ function getDonorID(email) {
 // Grab initial list of learners at donation time from user_pool
 // and assign to donor according to donation amount and campaigns cost/learner
 function assignInitialLearners(donorID, donationID) {
-  const donorRef = admin.firestore().collection('donor_master').doc(donorID);
-  const poolRef = admin.firestore().collection('user_pool');
-
-  donorRef.collection('donations').where('campaignID', '==', donationID)
-    .get().then((snapshot)=>{
-      if (snapshot.empty) {
-        return undefined;
-      }
-      return snapshot.docs[0].id;
-  }).then((id) =>{
-    if(id === undefined) {return 0;}
-    const donationRef = donorRef.collection('donations').doc(id);
-    return poolRef.where('sourceCampaign', '==', donationID)
-        .where('sourceDonor', '==', donorID).get().then((snapshot)=>{
-          if (snapshot.empty) {
-            return;
-          }
-          snapshot.forEach((doc)=>{
-            msgRef.set(doc.data()).then(()=>{
-              poolRef.doc(doc.id).delete();
-              return;
-            }).catch((err)=>{
-              console.error(err);
-            });
-          });
-          return;
-        }).catch((err)=>{
-          console.error(err);
-        });
+  //Grab the donation object we're migrating learners to
+  const donorRef = admin.firestore().collection('donor_master').doc(donorID)
+  .collection('donations').where('campaignID', '==', donationID).get()
+  .then((snapshot)=>{
+    if(snapshot.size === 0) {
+      throw new Error(donorID, " is missing Donation Document for: ", donationID);
+    }
+    const docID = snapshot.docs[0].id;
+    const data = snapshot.docs[0].data();
+    return {id: docID, data: data};
   }).catch((err)=>{
     console.error(err);
   });
+  //the user pool we'll be pulling learners from
+  const poolRef = admin.firestore().collection('user_pool')
+    .where('sourceCampaign', '==', donationID).get().then((snapshot)=>{
+      return snapshot;
+    }).catch((err)=>{
+      console.error(err);
+    });
+  //data from the base campaign object such as cost/learner
+  const campaignRef = admin.firestore().collection('campaigns')
+    .where('campaignID', '==', donationID).get().then((snapshot)=>{
+      if(snapshot.empty) {
+        throw new Error("Missing Campaign Document for ID: ", donationID);
+      }
+      let docData = snapshot.docs[0].data();
+      let docId = snapshot.docs[0].id;
+      return {id: docId, data: docData};
+    }).catch((err)=>{
+      console.error(err);
+    });
+
+    Promise.all([donorRef, poolRef, campaignRef]).then((vals)=>{
+      if(vals[1].empty) {
+        console.warn("No users available for campaign: ", vals[0].data.campaignID);
+        return 1;
+      }
+      const amount = vals[0].data.amount;
+      const poolSize = vals[1].size;
+      const costPerLearner = vals[2].data.costPerLearner;
+      const learnerCount = calculateUserCount(amount, poolSize, costPerLearner);
+      return batchWriteLearners(vals[1], vals[0], learnerCount);
+    }).catch((err)=>{console.error(err);});
+}
+
+//algorithm to calculate how many learners to assign to a donation
+function calculateUserCount (amount, poolSize, costPerLearner) {
+  const threshold = 0.05;
+  let count = 1;
+  if (costPerLearner >= amount) {
+    return count;
+  }
+  if(poolSize * threshold > 1) {
+    count = Math.round(poolSize * threshold);
+    if(count > Math.round(amount/costPerLearner)) { //upper bound determined by cost
+      count = Math.round(amount/costPerLearner);
+    }
+  }
+  return count;
+}
+// collect learner re-assign operations in batches
+// each batch is less than the size of the consecutive document edit limit
+function batchWriteLearners(snapshot, donation, learnerCount) {
+  const batchMax = 495;
+  let batchSize = 0;
+  let batchCount = 0;
+  let batches = [];
+  const donorID = donation.data.sourceDonor;
+  const donationRef = admin.firestore().collection('donor_master').doc(donorID)
+    .collection('donations').doc(donation.id);
+  const poolRef = admin.firestore().collection('user_pool');
+  batches[batchCount] = admin.firestore().batch();
+  for(let i=0; i < learnerCount; i++) {
+    if(i >= snapshot.size) {break;}
+    if(batchSize >= batchMax) { //time to start a new batch
+      batchSize = 0;
+      batchCount++;
+      batches[batchCount] = admin.firestore().batch();
+    }
+    let learnerID = snapshot.docs[i].id;
+    let data = snapshot.docs[i].data();
+    data.sourceDonor = donorID;
+    const newRef = donationRef.collection('users').doc();
+    batches[batchCount].set(newRef, data);
+    batches[batchCount].delete(poolRef.doc(learnerID)); //avoid multiple documents per learner
+  }
+  writeBatches(batches);
+}
+
+ // write an array of batches at a rate of 1 batch/second to prevent
+ // exceeding the write limit
+ function writeBatches(batches) {
+  for (let i=0; i < batches.length; i++)
+  {
+    delayOneSecond(()=>{
+      console.log("committing batch ", i);
+      batches[i].commit();
+    });
+  }
+}
+function delayOneSecond (callback) {
+  setTimeout(callback, 1050);
 }
 
 exports.forceUpdateAggregates = functions.https.onRequest(async (req, res) =>{
@@ -145,9 +218,9 @@ exports.forceUpdateAggregates = functions.https.onRequest(async (req, res) =>{
 });
 
 exports.updateRegion = functions.firestore.document('/user_pool/{documentId}')
-  .onWrite((change, context)=>{
-    const country = change.after.data().country;
-    const region = change.after.data().region;
+  .onCreate((snap, context)=>{
+    const country = snap.data().country;
+    const region = snap.data().region;
     console.log(country, region);
     return updateCountForRegion(country, region).then(sum=>{
       let docRef = admin.firestore().collection('loc_ref').doc(country);
