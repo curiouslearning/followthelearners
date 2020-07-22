@@ -7,13 +7,43 @@ admin.initializeApp();
 
 
 
+exports.clearLearnerPool = functions.https.onRequest(async (req, res)=>{
+  const poolRef = admin.firestore().collection('user_pool');
+  const batchMax = 495;
+  let batchSize = 0;
+  let batchCount = 0;
+  let batches = [];
+  batches[batchCount] = admin.firestore().batch();
+  await poolRef.get().then((snapshot)=>{
+    if (snapshot.empty) {return;}
+    snapshot.forEach((doc)=>{
+      if(batchSize >= batchMax) {
+        batchSize = 0;
+        batchCount++
+        batches[batchCount] = admin.firestore().batch();
+      }
+      let id = doc.id;
+      batches[batchCount].delete(poolRef.doc(id));
+      batchSize++;
+    });
+    for(let i=0; i < batches.length; i++) {
+      setTimeout((batch) =>{
+        batch.commit();
+      }, 1050, batches[i]);
+    }
+    return;
+  }).catch((err)=>{console.error(err);});
+  res.json({status: 200, message: 'cleared user pool'}).end();
+});
+
 exports.logDonation = functions.https.onRequest(async (req, res) =>{
   let params = {
     firstName: req.body.firstName,
     lastName: req.body.lastName,
     email: req.body.email,
     timestamp: admin.firestore.Firestore.Timestamp.now(),
-    amount: req.body.amount,
+    amount: Number(req.body.amount),
+    frequency: req.body.frequency,
     campaignID: req.body.campaignID,
   };
   writeDonation(params).then((result)=>{
@@ -28,8 +58,9 @@ exports.logDonation = functions.https.onRequest(async (req, res) =>{
 function writeDonation (params)
 {
   const dbRef =  admin.firestore().collection('donor_master');
-  return getDonorID(params.email).then((donorID)=>{
-    if (donorID === '') {
+  let donorID ="";
+  return getDonorID(params.email).then((foundID)=>{
+    if (foundID === '') {
       return dbRef.add({
         firstName: params.firstName,
         lastName: params.lastName,
@@ -40,25 +71,42 @@ function writeDonation (params)
         return docRef.id;
       });
     } else {
-      return donorID;
+      return foundID;
     }
-  }).then((donorID)=>{
+  }).then((foundID)=>{
+    donorID = foundID;
     console.log("new id is: " + donorID);
-    const dbRef = admin.firestore().collection('donor_master').doc(donorID);
-    return dbRef.collection('donations').add({
+    return getCostPerLearner(params.campaignID);
+  }).then((costPerLearner)=>{
+    const docRef = dbRef.doc(donorID);
+    return docRef.collection('donations').add({
       campaignID: params.campaignID,
       learnerCount: 0,
       sourceDonor: donorID,
       amount: params.amount,
+      costPerLearner: costPerLearner,
+      frequency: params.frequency,
       countries: [],
       startDate: params.timestamp,
-    }).then(()=>{
-      return assignInitialLearners(donorID,params.campaignID);
+    }).then((doc)=>{
+      return assignInitialLearners(donorID, params.campaignID);
     }).catch((err)=>{console.error(err);});
   }).catch((err) =>{
     console.error(err);
     return err;
   });
+}
+
+function getCostPerLearner(campaignID) {
+  return admin.firestore().collection('campaigns').where('campaignID', '==', campaignID)
+      .get().then((snap)=>{
+        if (snap.empty) {
+          throw new Error("can't find campaign with ID: ", campaignID);
+        }
+        return snap.docs[0].data().costPerLearner;
+      }).catch((err)=>{
+        console.error(err);
+      });
 }
 
 function getDonorID(email) {
@@ -78,7 +126,8 @@ function getDonorID(email) {
 function assignInitialLearners(donorID, donationID) {
   //Grab the donation object we're migrating learners to
   const donorRef = admin.firestore().collection('donor_master').doc(donorID)
-  .collection('donations').where('campaignID', '==', donationID).get()
+  .collection('donations').where('campaignID', '==', donationID)
+  .orderBy('startDate', 'desc').get()
   .then((snapshot)=>{
     if(snapshot.size === 0) {
       throw new Error(donorID, " is missing Donation Document for: ", donationID);
@@ -162,8 +211,9 @@ function batchWriteLearners(snapshot, donation, learnerCount) {
     const newRef = donationRef.collection('users').doc();
     batches[batchCount].set(newRef, data);
     batches[batchCount].delete(poolRef.doc(learnerID)); //avoid multiple documents per learner
+    batchSize += 2;
   }
-  writeBatches(batches);
+  return writeBatches(batches);
 }
 
  // write an array of batches at a rate of 1 batch/second to prevent
@@ -176,6 +226,7 @@ function batchWriteLearners(snapshot, donation, learnerCount) {
       batches[i].commit();
     });
   }
+  return "Success!";
 }
 function delayOneSecond (callback) {
   setTimeout(callback, 1050);
@@ -227,16 +278,34 @@ exports.updateRegion = functions.firestore.document('/user_pool/{documentId}')
       return docRef.get().then(doc=>{
         let regions = doc.data().regions;
         let countrySum = 0;
+        let foundRegion = false;
         for (let i=0; i < regions.length; i++){
-          if(!regions[i].hasOwnProperty('learnerCount') ||
+          if (!regions[i].hasOwnProperty('learnerCount') ||
             typeof regions[i].learnerCount !== 'number' ||
             regions[i].learnerCount < 0){
             continue; //only add positive numbers to learnerCount
           }
           if(regions[i].region === region){
             regions[i].learnerCount = sum;
+            foundRegion = true;
           }
           countrySum += regions[i].learnerCount;
+        }
+        if (!foundRegion) {
+          regions.push({
+            region: region,
+            pin: {
+              lat: 0,
+              lng: 0,
+            },
+            learnerCount: sum,
+            streetViews: {
+              headingValue: [0],
+              locations: [
+              ],
+            },
+          });
+          countrySum += sum;
         }
         return {regions: regions, countrySum: countrySum};
       }).then(values=>{
@@ -279,6 +348,7 @@ exports.addCountryToSummary = functions.firestore.document('loc_ref/{documentId}
 
 exports.updateSummary = functions.firestore.document('/loc_ref/{documentId}')
   .onUpdate(async (change, context)=>{
+    if (change.before.data().learnerCount === change.after.data().learnerCount) {return;}
     const country = change.after.id;
     const originalValue = change.after.data().regions;
     let summary = await admin.firestore().collection('aggregate_data').doc('RegionSummary').get().catch(err=>{console.error(err);});
@@ -299,7 +369,9 @@ exports.updateSummary = functions.firestore.document('/loc_ref/{documentId}')
     });
     sums[countryIndex].regions = regionCounts;
     sums[countryIndex]['learnerCount'] = countrySum;
-    admin.firestore().collection('loc_ref').doc(country).update({learnerCount: sums[countryIndex].learnerCount});
+    admin.firestore().collection('loc_ref').doc(country).update({
+      learnerCount: sums[countryIndex].learnerCount
+    });
     return admin.firestore().collection('aggregate_data').doc('RegionSummary').update({countries: sums}, {merge: true});
   });
 
@@ -328,7 +400,7 @@ exports.updateSummary = functions.firestore.document('/loc_ref/{documentId}')
       });
     });
 
-    exports.registerDeletedLearner = functions.firestore
+    /*exports.registerDeletedLearner = functions.firestore
       .document('donor_master/{donorId}/donations/{donationId}/users/{documentId}')
       .onDelete((snap, context)=>{
         let dbRef = admin.firestore().collection('donor_master')
@@ -344,16 +416,17 @@ exports.updateSummary = functions.firestore.document('/loc_ref/{documentId}')
         }).then(sum=>{
           return dbRef.update({learnerCount: sum},{merge: true});
         }).catch(err=>{console.error(err);});
-      });
+      });*/
 
     exports.updateCampaignLearnerCount = functions.firestore
       .document('donor_master/{donorId}/donations/{donationId}')
       .onUpdate((change, context)=>{
         if(change.before.data().learnerCount === change.after.data().learnerCount)
         {
-          return;
+          return 0;
         }
         const campaignId = change.after.data().campaignID;
+        updatePercentFilled(change.after, context);
         return updateCountForCampaign(campaignId);
     });
 
@@ -364,7 +437,27 @@ exports.updateSummary = functions.firestore.document('/loc_ref/{documentId}')
         return updateCountForCampaign(campaignID);
       });
 
-
+  function updatePercentFilled(snap, context) {
+    let data = snap.data();
+    const docRef = admin.firestore().collection('donor_master')
+        .doc(context.params.donorId)
+        .collection('donations').doc(context.params.donationId);
+    const campaignRef = admin.firestore().collection('campaigns')
+        .where('campaignID','==', data.campaignID).get().then((snap)=>{
+          if(snap.empty) {
+            throw new Error("missing campaign document for ", data.campaignID);
+          }
+          return snap.docs[0].data().costPerLearner;
+        }).then((costPerLearner)=>{
+          const amount = data.amount;
+          const learnerCount = data.learnerCount;
+          return (learnerCount/Math.round(amount / costPerLearner))*100;
+        }).then((percent)=>{
+            return docRef.set({percentFilled: percent},{merge: true});
+        }).catch((err)=>{
+          console.error(err);
+        });
+  }
 
   function updateLocationBreakdownForDonation (context) {
     let dbRef = admin.firestore().collection('donor_master')
@@ -408,55 +501,57 @@ exports.updateSummary = functions.firestore.document('/loc_ref/{documentId}')
   }
 
 
-  function updateCountForCampaign(campaignID)
+  async function updateCountForCampaign(campaignID)
   {
-    console.log('searching for campaign ', campaignID);
-    let id ='';
     let dbRef = admin.firestore().collection('campaigns');
-    return dbRef.where('campaignID', '==', campaignID).get().then(snapshot=>{
-      if(snapshot.empty){
-        return;
-      }
-      return snapshot.docs[0];
-    }).then(doc=>{
-      if(doc === undefined){
-        return;
-      }
-      id = doc.id;
-      console.log('found campaign with id ' + id);
-      return admin.firestore().collectionGroup('donations').where('campaignID','==', campaignID).get().then(snapshot=>{
-        let sum = 0
+    const id = dbRef.where('campaignID', '==', campaignID).get()
+      .then((snapshot)=> {
         if(snapshot.empty){
-          sum = 0;
+          return undefined;
         }
-        else{
-          snapshot.forEach(doc=>{
-            if(doc.data().learnerCount !== undefined){
-              sum += doc.data().learnerCount;
-            }
-          });
+        return snapshot.docs[0];
+      }).then((doc)=>{
+        if(doc === undefined){
+          return '';
         }
-        console.log('sum is: ' + sum);
-        return sum;
-      }).catch(err=>{console.error(err);});
-    }).then(sum=>{
-      let poolRef = admin.firestore().collection('user_pool');
-      return poolRef.where('sourceCampaign', '==', campaignID)
-        .get().then(snapshot=>{
-          sum += snapshot.size;
+        return doc.id;
+      }).catch((err)=>{console.error(err);});
+    const donationSums = admin.firestore().collectionGroup('donations')
+        .where('campaignID','==', campaignID).get().then(snapshot=>{
+          let sum = 0
+          if(snapshot.empty){
+            sum = 0;
+          }
+          else{
+            snapshot.forEach(doc=>{
+              if(doc.data().learnerCount !== undefined){
+                sum += doc.data().learnerCount;
+              }
+            });
+          }
           return sum;
         }).catch(err=>{console.error(err);});
-    }).then(sum=>{
-      let unassignedRef = admin.firestore().collection('unassigned_users');
-      return unassignedRef.where('sourceCampaign', '==', campaignID)
+    const poolSums = admin.firestore().collection('user_pool')
+        .where('sourceCampaign', '==', campaignID)
         .get().then(snapshot=>{
-          sum += snapshot.size;
-          return sum;
+          return snapshot.size;
         }).catch(err=>{console.error(err);});
-    }).then(sum=>{
-      if(id !== ''){
-        let msgRef = admin.firestore().collection('campaigns').doc(id);
-        msgRef.update({learnerCount: sum}, {merge: true});
+    const unassignedSums = admin.firestore().collection('unassigned_users')
+        .where('sourceCampaign', '==', campaignID)
+        .get().then(snapshot=>{
+          return snapshot.size
+        }).catch(err=>{console.error(err);});
+    Promise.all([id, donationSums, poolSums, unassignedSums]).then((vals)=>{
+      if(vals[0] !== ''){
+        let sum = 0;
+        for (let i=1; i < vals.length; i++) {
+          if(!isNaN(vals[i])) {
+            sum += vals[i];
+          }
+        }
+        admin.firestore().collection('campaigns').doc(vals[0]).update({
+          learnerCount: sum
+        }, {merge: true});
       }
       return;
     }).catch(err=>{console.error(err);});
@@ -465,27 +560,41 @@ exports.updateSummary = functions.firestore.document('/loc_ref/{documentId}')
   function updateCountForRegion(country, region)
   {
     console.log(country, region);
-    if(country === undefined) {return;}
+    if(country === undefined) {return 0;}
     if(region === undefined){region = 'no-region';}
     let dbRef = admin.firestore().collectionGroup('users');
-    return dbRef.where('country', '==', country).where('region','==',region)
-      .get().then(snapshot=>{
-        return snapshot.size;
-      }).then(subtotal=>{
-        let poolRef = admin.firestore().collection('user_pool');
-        return poolRef.where('country', '==', country).where('region', '==', region)
-          .get().then(snapshot=>{
-            subtotal += snapshot.size;
-            return subtotal;
-          }).catch(err => {console.error(err);});
-      }).then(subtotal=>{
-        let unassignedRef = admin.firestore().collection('unassigned_users');
-        return unassignedRef.where('country','==',country).where('region','==',region)
+    const assignedUsers = dbRef.where('country', '==', country)
+        .where('region','==',region)
         .get().then(snapshot=>{
-          subtotal += snapshot.size;
-          return subtotal;
-        }).catch(err=>{console.error(err);});
-      }).catch(err=>{console.error(err);});
+          return snapshot.size;
+        }).catch((error)=>{
+          console.error(err);
+        });
+    const poolRef = admin.firestore().collection('user_pool')
+        .where('country', '==', country).where('region', '==', region)
+        .get().then(snapshot=>{
+            return snapshot.size;
+        }).catch(err => {
+          console.error(err);
+        });
+    const unassignedRef = admin.firestore().collection('unassigned_users')
+        .where('country','==',country).where('region','==',region)
+        .get().then(snapshot=>{
+          return snapshot.size;
+        }).catch(err=>{
+          console.error(err);
+        });
+    return Promise.all([assignedUsers, poolRef, unassignedRef]).then((vals)=>{
+      let sum = 0;
+      vals.forEach((val)=>{
+        if(!isNaN(val)) {
+          sum += val;
+        }
+      });
+      return sum;
+    }).catch((err)=>{
+      console.error(err);
+    });
   }
 
   function findObjWithProperty(arr, prop, val) {

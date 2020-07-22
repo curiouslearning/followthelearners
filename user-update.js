@@ -104,34 +104,138 @@ function main() {
     } catch (err) {
       console.error('ERROR', err);
     }
-    removeOldLearnersFromPool();
+    assignExpiringLearners();
   }
   fetchUpdatesFromBigQuery();
 }
 
-/**
-* find all learners in user_pool and move them to unassigned_users
-*/
-function removeOldLearnersFromPool() {
-  const poolRef = firestore.collection('user_pool');
-  const oldUsers = firestore.collection('unassigned_users');
-  const date = new Date();
-  date.setMilliseconds(Date.now() - (DAYINMS * PRUNEDATE));
-  const timestamp = makeTimestamp(date.getFullYear().toString() +
-    date.getMonth().toString() + date.getDay().toString());
-  poolRef.where('dateCreated', '<=', timestamp).get().then((snapshot)=>{
-    if (snapshot.empty) {
-      return;
+
+async function assignExpiringLearners() {
+  let priorityQueue = await getPriorityQueue();
+  if (priorityQueue === undefined) {
+    console.log('failed to create priority queue');
+    return;
+  } // early return for no donations
+  const learnerSnap = await getLearnerQueue(priorityQueue.length, PRUNEDATE);
+  if (learnerSnap === undefined || learnerSnap.empty) {
+    console.log('no new learners to assign');
+    return;
+  }
+  let learnerQueue = learnerSnap.docs;
+  let fullDonations = 0;
+  while ((learnerQueue.length > 0) && (fullDonations < priorityQueue.length)) {
+    let foundDonor = false;
+    for (let i=0; i < priorityQueue.length; i++) {
+      let donation = [];
+      donation = priorityQueue[i];
+      let data = [];
+      data = learnerQueue[0].data();
+      if (donation.sourceCampaign != data.sourceCampaign) {
+        // only assign users to donations from matching campaigns
+        continue;
+      }
+      if (donation.percentFilled < 100) {
+        foundDonor = true;
+        if (!donation.hasOwnProperty('learners')) {
+          donation['learners'] = [];
+        }
+        data.sourceDonor = donation.sourceDonor;
+        donation.learners.push(data);
+        const newCount = donation.learnerCount + donation.learners.length;
+        const donationMax = Math.round(donation.amount/donation.costPerLearner);
+        donation.percentFilled = (newCount/donationMax)*100;
+        learnerQueue.splice(0, 1);
+      } else {
+        fullDonations++;
+      }
     }
-    snapshot.forEach((doc)=>{
-      const msgRef = oldUsers.doc(doc.id);
-      msgRef.set(doc.data(), {merge: true}).then(()=>{
-        poolRef.doc(doc.id).delete();
+    if (!foundDonor) {
+      // if there are no matching donors, kick this learner to avoid
+      // infinite loops
+      learnerQueue.splice(0, 1);
+    }
+  }
+  batchLearnerAssignment(priorityQueue);
+}
+
+function batchLearnerAssignment(priorityQueue) {
+  const batchMax= 495;
+  let batchSize = 0;
+  let batchCount = 0;
+  let batches = [];
+  batches[batchCount] = firestore.batch();
+  const poolRef = firestore.collection('user_pool');
+  priorityQueue.forEach((donation, i)=>{
+    const msgRef = firestore.collection('donor_master')
+        .doc(donation.sourceDonor)
+        .collection('donations').doc(donation.id).collection('users');
+    if (donation.hasOwnProperty('learners')) {
+      donation.learners.forEach((learner) =>{
+        if (batchSize >= batchMax) {
+          batchSize = 0;
+          batchCount++;
+          batches[batchCount] = firestore.batch();
+        }
+        const docRef = msgRef.doc(learner.userID);
+        batches[batchCount].set(docRef, learner);
+        const deleteRef = poolRef.doc(learner.userID);
+        batches[batchCount].delete(deleteRef);
+        batchSize += 2;
       });
-    });
-  }).catch((err)=>{
-    console.error(err);
+    }
   });
+  writeToDb(batches);
+}
+
+function getLearnerQueue(donationCount, interval) {
+  const pivotDate = new Date(Date.now()-(DAYINMS*interval));
+  return firestore.collection('user_pool').where('dateCreated', '<=', pivotDate)
+      .orderBy('dateCreated', 'asc').get().then((snap)=>{
+        if (snap.empty || snap.size < donationCount) {
+          if (interval > 0) {
+            const newInterval = interval -1;
+            return getLearnerQueue(donationCount, newInterval);
+          } else {
+            return snap;
+          }
+        }
+        return snap;
+      }).catch((err)=>{
+        console.error(err);
+      });
+}
+
+function getPriorityQueue() {
+  return firestore.collectionGroup('donations')
+      .where('percentFilled', '<', 100)
+      .orderBy('percentFilled', 'desc')
+      .orderBy('startDate', 'asc').get().then((snap)=>{
+        if (snap.empty) {
+          console.log('no un-filled donations');
+          return undefined;
+        }
+        let priorityQueue = [];
+        let monthlyQueue = [];
+        let oneTimeQueue = [];
+        snap.forEach((doc)=>{
+          let data = doc.data();
+          data['id'] = doc.id;
+          if (data.frequency === 'monthly') {
+            monthlyQueue.push(data);
+          } else {
+            oneTimeQueue.push(data);
+          }
+        });
+        monthlyQueue.forEach((elem)=>{
+          priorityQueue.push(elem);
+        });
+        oneTimeQueue.forEach((elem) => {
+          priorityQueue.push(elem);
+        });
+        return priorityQueue;
+      }).catch((err)=>{
+        console.error(err);
+      });
 }
 
 /**
@@ -169,50 +273,20 @@ async function writeToDb(arr) {
 */
 function insertLocation(row) {
   if (row.country != null && row.country != '') {
-    const locUpdate = {
-      region: row.region,
-      pin: {
-	lat: 0,
-	lng: 0,
-      },
-      learnerCount: 0,
-      pin: {
-        lat: 0,
-        lng: 0,
-      },
-      streetViews: {
-        headingValue: [],
-        locations: [],
-      }};
     const locationRef = firestore.collection('loc_ref').doc(row.country);
     locationRef.get().then((doc)=>{
-      if (doc.exists) {
-        const regions = doc.data().regions;
-        locUpdate.learnerCount = doc.data().learnerCount;
-        return regions;
+      if (!doc.exists) {
+        locationRef.set({
+          country: row.country,
+          continent: row.continent,
+          learnerCount: 0,
+          pin: {
+            lat: 0,
+            lng: 0,
+          },
+          regions: [],
+        }, {merge: true});
       }
-      return [];
-    }).then((regions)=>{
-      if (regions == undefined || regions.empty) {
-        regions = [locUpdate];
-      } else {
-        for (let i = 0; i< regions.length; i++) {
-          if (regions[i].hasOwnProperty('region') &&
-            regions[i].region === locUpdate.region) {
-            return; // we already have data for this region
-          }
-        }
-        regions.push(locUpdate);
-      }
-      locationRef.set({
-        country: row.country,
-        continent: row.continent,
-        pin: {
-          lat: 0,
-          lng: 0,
-        },
-        regions: regions,
-      }, {merge: true});
     }).catch((err)=>{
       console.log(err);
     });
