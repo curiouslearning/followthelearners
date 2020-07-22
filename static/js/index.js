@@ -424,13 +424,18 @@ async function displayAllLearnersData(locData, isCountryLevelData, country) {
               anchor: iconOptions.iconAnchor},
               label: { text: learnerCount.toString() }});
   
-          regionMarker['lat'] = firstStreetViewLoc._latitude;
-          regionMarker['lng'] = firstStreetViewLoc._longitude;
-          regionMarker['country'] = country;
-          regionMarker['facts'] = countryData.facts;
-          regionMarker['region'] = region.region;
-          regionMarker['heading'] = region.streetViews.headingValues[0];
-          regionMarker['otherViews'] = [];
+          try {
+		  regionMarker['lat'] = firstStreetViewLoc._latitude;
+		  regionMarker['lng'] = firstStreetViewLoc._longitude;
+		  regionMarker['country'] = country;
+		  regionMarker['facts'] = countryData.facts;
+		  regionMarker['region'] = region.region;
+		  regionMarker['heading'] = region.streetViews.headingValues[0];
+		  regionMarker['otherViews'] = [];
+	  } catch(e) {
+		  console.error("caught error: ",e," on region: ", region.region," in country: ", country);
+	  }
+
           
           if (region.streetViews.locations.length > 1 &&
               region.streetViews.locations.length === 
