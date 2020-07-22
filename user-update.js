@@ -171,6 +171,10 @@ function insertLocation(row) {
   if (row.country != null && row.country != '') {
     const locUpdate = {
       region: row.region,
+      pin: {
+	lat: 0,
+	lng: 0,
+      },
       learnerCount: 0,
       streetViews: {
         headingValue: [],
@@ -199,6 +203,10 @@ function insertLocation(row) {
       locationRef.set({
         country: row.country,
         continent: row.continent,
+	pin: {
+	  lat: 0,
+	  lng: 0,
+	},
         regions: regions,
       }, {merge: true});
     }).catch((err)=>{
