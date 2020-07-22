@@ -369,12 +369,15 @@ async function displayAllLearnersData(locData, isCountryLevelData, country) {
           origin: new google.maps.Point(0, 0), 
           anchor: iconOptions.iconAnchor}, 
           label: { text: learnerCount.toString() }});
-      
-      newMarker['country'] = locationData[key].country;
-      newMarker['lat'] = locationData[key].pin.lat;
-      newMarker['lng'] = locationData[key].pin.lng;
-      newMarker['facts'] = locationData[key].facts;
-      
+      try{
+	      newMarker['country'] = locationData[key].country;
+	      newMarker['lat'] = locationData[key].pin.lat;
+	      newMarker['lng'] = locationData[key].pin.lng;
+	      newMarker['facts'] = locationData[key].facts;
+      } catch (e) {
+	      console.error("caught error: ", e, " on country: ", locationData[key].country);
+      }
+
       newMarker.addListener('click', function() {
         mapsSharedInfoWindow.setContent(constructCountryLevelInfoWindow(
             newMarker.country,
