@@ -6,7 +6,52 @@ admin.initializeApp();
 
 
 
-
+exports.forceRegionRecalculation = functions.https.onRequest(async (req, res)=>{
+  const locRef = admin.firestore().collection('loc_ref');
+  const batchMax = 495;
+  let batchSize = 0;
+  let batchCount = 0;
+  let batches = [];
+  batches[batchCount] = admin.firestore().batch();
+  locRef.get().then((snap)=>{
+    snap.forEach((doc, i) => {
+      if (batchSize >= batchMax) {
+        batchSize = 0;
+        batchCount++;
+        batches[batchCount] = admin.firestore().batch();
+      }
+      let id = doc.id;
+      let data = doc.data();
+      let countrySum = 0;
+      data.regions.forEach((region, i)=>{
+        let index = i;
+        updateCountForRegion(data.country, region.region).then((sum)=>{
+          data.regions[index].learnerCount = sum;
+          countrySum += data.regions[index].learnerCount;
+          return;
+        }).catch((err)=>{console.error(err);});
+        i++;
+      });
+      data.learnerCount = countrySum;
+      batches[batchCount].set(locRef.doc(id), data, {merge:true});
+      batchSize++;
+    });
+    for (let i=0; i < batches.length; i++) {
+      setTimeout((batch, i) =>{
+        batch.commit().then(()=>{
+          console.log('committed batch ', i);
+          return;
+        }).catch((err)=>{console.error(err);
+        });
+      },1050, batches[i], i);
+    }
+    res.status(200).end();
+    return;
+  }).catch((err)=>{
+    console.error(err);
+    res.status(501).end();
+  });
+});
 exports.clearLearnerPool = functions.https.onRequest(async (req, res)=>{
   const poolRef = admin.firestore().collection('user_pool');
   const batchMax = 495;
@@ -560,7 +605,9 @@ exports.updateSummary = functions.firestore.document('/loc_ref/{documentId}')
   function updateCountForRegion(country, region)
   {
     console.log(country, region);
-    if(country === undefined) {return 0;}
+    if(country === undefined) {return new Promise((resolve)=>{
+      resolve('resolved');
+    });}
     if(region === undefined){region = 'no-region';}
     let dbRef = admin.firestore().collectionGroup('users');
     const assignedUsers = dbRef.where('country', '==', country)
