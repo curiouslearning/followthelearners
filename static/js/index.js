@@ -198,12 +198,14 @@ function onCountrySelectionChanged() {
   } else {
     displayAllLearnersData(allLearnersData, false, countrySelection);
     let c = allLearnersData.campaignData.find((loc) => { return loc.country === countrySelection; });
-    let noRegion = c.regions.find((r) => { return r.region === "no-region"; });
     createCountUpTextInElement(allLearnersCountElementId, 
       c.learnerCount);
+    let noRegion = c.regions.find((r) => { return r.region === "no-region"; });
 
     if (noRegion && noRegion.hasOwnProperty('learnerCount')) {
       createCountUpTextInElement(dntLearnersCountElementId, noRegion.learnerCount);
+    } else if (!noRegion) {
+      createCountUpTextInElement(dntLearnersCountElementId, 0);
     }
   }
 }
