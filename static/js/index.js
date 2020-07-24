@@ -369,12 +369,15 @@ async function displayAllLearnersData(locData, isCountryLevelData, country) {
           origin: new google.maps.Point(0, 0), 
           anchor: iconOptions.iconAnchor}, 
           label: { text: learnerCount.toString() }});
-      
-      newMarker['country'] = locationData[key].country;
-      newMarker['lat'] = locationData[key].pin.lat;
-      newMarker['lng'] = locationData[key].pin.lng;
-      newMarker['facts'] = locationData[key].facts;
-      
+      try{
+	      newMarker['country'] = locationData[key].country;
+	      newMarker['lat'] = locationData[key].pin.lat;
+	      newMarker['lng'] = locationData[key].pin.lng;
+	      newMarker['facts'] = locationData[key].facts;
+      } catch (e) {
+	      console.error("caught error: ", e, " on country: ", locationData[key].country);
+      }
+
       newMarker.addListener('click', function() {
         mapsSharedInfoWindow.setContent(constructCountryLevelInfoWindow(
             newMarker.country,
@@ -421,13 +424,18 @@ async function displayAllLearnersData(locData, isCountryLevelData, country) {
               anchor: iconOptions.iconAnchor},
               label: { text: learnerCount.toString() }});
   
-          regionMarker['lat'] = firstStreetViewLoc._latitude;
-          regionMarker['lng'] = firstStreetViewLoc._longitude;
-          regionMarker['country'] = country;
-          regionMarker['facts'] = countryData.facts;
-          regionMarker['region'] = region.region;
-          regionMarker['heading'] = region.streetViews.headingValues[0];
-          regionMarker['otherViews'] = [];
+          try {
+		  regionMarker['lat'] = firstStreetViewLoc._latitude;
+		  regionMarker['lng'] = firstStreetViewLoc._longitude;
+		  regionMarker['country'] = country;
+		  regionMarker['facts'] = countryData.facts;
+		  regionMarker['region'] = region.region;
+		  regionMarker['heading'] = region.streetViews.headingValues[0];
+		  regionMarker['otherViews'] = [];
+	  } catch(e) {
+		  console.error("caught error: ",e," on region: ", region.region," in country: ", country);
+	  }
+
           
           if (region.streetViews.locations.length > 1 &&
               region.streetViews.locations.length === 
