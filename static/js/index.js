@@ -192,7 +192,7 @@ function onAllLearnersCountryZoomInClick(country) {
 function GetDataAndSwitchToDonorLearners() {
   if (currentDonorEmail === null)
     currentDonorEmail = document.getElementById(donorEmailElementId).value;
-  $.get('/getDonorCampaigns', {e: currentDonorEmail}, function(data, status) {
+  $.get('/yourLearners', {email: currentDonorEmail}, function(data, status) {
     if (data === "" || data === null || data === undefined) {
       $(newDonorInfoTextId).removeClass('is-hidden');
       setTimeout(() => {
