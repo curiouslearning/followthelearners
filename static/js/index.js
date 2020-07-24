@@ -56,6 +56,12 @@ $(document).ready(function() {
         createCountUpTextInElement('all-learners-count', 
           getTotalCountForAllLearners(allLearnersData));
         displayAllLearnersData(allLearnersData, true);
+        for (var key in allLearnersData.campaignData) {
+          if (allLearnersData.campaignData[key].country == "no-country") {
+            createCountUpTextInElement(dntLearnersCountElementId, 
+              allLearnersData.campaignData[key].learnerCount);
+          }
+        }
         countrySelectElement.value = 'all-learners';
       }
     });
