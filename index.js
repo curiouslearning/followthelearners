@@ -164,20 +164,22 @@ app.get('/yourLearners', function(req, res) {
   getDonorID(req.query.email).then((result)=>{
     donorID = result;
     console.log('found donorID: ', donorID);
-    return getLearnersForRegion(donorID, req.query.campaign);
-  }).then((learners)=>{
-    if (learners != undefined) {
+    return getDonations(donorID);
+  }).then((donations)=>{
+    if (donations != undefined) {
       const promises = [];
       let locationData = [];
-      learners.countries.forEach((country)=>{
-        if (findObjectIndexWithProperty(
-            locationData, 'country', country.country)=== undefined) {
-          promises.push(compileLocationDataForCountry(country.country));
-        }
+      donations.forEach((donation) => {
+        donation.data.countries.forEach((country)=>{
+          if (findObjectIndexWithProperty(
+              locationData, 'country', country.country)=== undefined) {
+            promises.push(compileLocationDataForCountry(country.country));
+          }
+        });
       });
       Promise.all(promises).then((values) => {
         locationData = values.filter((value)=> value !== undefined);
-        res.json({campaignData: learners, locationData: locationData});
+        res.json({campaignData: donations, locationData: locationData});
       });
     } else {
       res.end();
@@ -403,6 +405,7 @@ function getLearnersForRegion(donorID, region) {
     console.error(err);
   });
 }
+
 function writeDonorToFirestore(donorObject) {
   console.log('Creating Donor with ID: ', donorObject.donorID);
   const dbRef = firestore.collection('donor_master');
