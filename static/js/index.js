@@ -413,6 +413,15 @@ async function displayAllLearnersData(locData, isCountryLevelData, country) {
     if (countryData.regions && countryData.regions.length !== 0) {
       for (let i = 0; i < countryData.regions.length; i++) {
         let region = countryData.regions[i];
+        if (region.region === 'no-region' && countryData.regions.length === 1) {
+          const center = countryData.pin === undefined ? 
+            new google.maps.LatLng(26.3351, 17.228331) :
+            new google.maps.LatLng(countryData.pin.lat, countryData.pin.lng);
+          mapAllLearners.setCenter(center);
+          mapAllLearners.setZoom(countryData.pin === undefined ? 
+            mapZoomFullView : mapZoomCountryView);
+          continue;
+        }
         if (region.region === 'no-region') continue;
         let learnerCount = campaignData.regions.find((reg) => { return reg.region === region.region; }).learnerCount;
         if (region.hasOwnProperty("streetViews") &&
