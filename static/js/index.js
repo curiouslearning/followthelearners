@@ -401,7 +401,7 @@ async function displayAllLearnersData(locData, isCountryLevelData, country) {
 
     const center = new google.maps.LatLng(26.3351, 17.228331);
     mapAllLearners.setCenter(center);
-    mapAllLearners.setZoom(staticMapZoomLevel);
+    mapAllLearners.setZoom(mapZoomFullView);
   } else {
     let locationData = locData.locationData;
     let countryData = locationData.find((loc) => { return loc.country === country; });
