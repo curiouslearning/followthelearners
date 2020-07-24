@@ -133,6 +133,7 @@ app.post('/donate', function(req, res) {
     console.error(err);
   });
 });
+
 app.get('/getDonorCampaigns', function(req, res) {
   const email = req.query.email;
   getDonorID(email).then((donorID)=>{
@@ -170,9 +171,11 @@ app.get('/yourLearners', function(req, res) {
       let locationData = [];
       donations.forEach((donation) => {
         donation.data.countries.forEach((country)=>{
-          if (findObjectIndexWithProperty(
-              locationData, 'country', country.country)=== undefined) {
+          let objIndex = findObjectIndexWithProperty(
+            locationData, 'country', country.country);
+          if (objIndex === undefined) {
             promises.push(compileLocationDataForCountry(country.country));
+            locationData.push({ country: country.country });
           }
         });
       });
