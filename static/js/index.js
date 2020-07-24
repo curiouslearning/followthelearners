@@ -527,8 +527,10 @@ async function displayAllLearnersData(locData, isCountryLevelData, country) {
         }
       }
     }
-    mapAllLearners.fitBounds(bounds);
-    mapAllLearners.panToBounds(bounds);
+    if (loadedMarkers.length !== 0) {
+      mapAllLearners.fitBounds(bounds);
+      mapAllLearners.panToBounds(bounds);
+    }
   }
 }
 
