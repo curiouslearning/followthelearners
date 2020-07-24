@@ -171,44 +171,7 @@ function initializeCountrySelect(locationData) {
   }
 }
 
-/**
- * Called when the country select element value changes
- */
-function onCountrySelectionChanged() {
-  if (!countrySelectElement) {
-    console.error("Unable to find country select element.");
-    return;
-  }
-  let countrySelection = countrySelectElement.
-    options[countrySelectElement.selectedIndex].value;
-  
-  
-  clearAllMarkers();
 
-  if (countrySelection === 'all-learners') {
-    displayAllLearnersData(allLearnersData, true);
-    createCountUpTextInElement(allLearnersCountElementId, 
-      getTotalCountForAllLearners(allLearnersData));
-    for (var key in allLearnersData.campaignData) {
-      if (allLearnersData.campaignData[key].country == "no-country") {
-        createCountUpTextInElement(dntLearnersCountElementId, 
-          allLearnersData.campaignData[key].learnerCount);
-      }
-    }
-  } else {
-    displayAllLearnersData(allLearnersData, false, countrySelection);
-    let c = allLearnersData.campaignData.find((loc) => { return loc.country === countrySelection; });
-    createCountUpTextInElement(allLearnersCountElementId, 
-      c.learnerCount);
-    let noRegion = c.regions.find((r) => { return r.region === "no-region"; });
-
-    if (noRegion && noRegion.hasOwnProperty('learnerCount')) {
-      createCountUpTextInElement(dntLearnersCountElementId, noRegion.learnerCount);
-    } else if (!noRegion) {
-      createCountUpTextInElement(dntLearnersCountElementId, 0);
-    }
-  }
-}
 
 /**
  * Event listener when user clicks on the country take me there button that's on
