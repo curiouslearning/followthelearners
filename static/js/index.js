@@ -275,10 +275,55 @@ function createCountUpTextInElement(elementId, finalCountValue) {
 }
 
 /**
- * Called from the UI when the campaign is changed for the user
+ * Called when the country select element value changes
  */
-function onCampaignSelectionChanged() {
-  updateCampaignAndLocationData();
+function onCountrySelectionChanged() {
+  if (!countrySelectElement) {
+    console.error("Unable to find country select element.");
+    return;
+  }
+  let countrySelection = countrySelectElement.
+    options[countrySelectElement.selectedIndex].value;
+  
+  clearAllMarkers();
+
+  if (countrySelection === 'all-learners') {
+    displayAllLearnersData(allLearnersData, true);
+    createCountUpTextInElement(allLearnersCountElementId, 
+      getTotalCountForAllLearners(allLearnersData));
+    for (var key in allLearnersData.campaignData) {
+      if (allLearnersData.campaignData[key].country == "no-country") {
+        createCountUpTextInElement(dntLearnersCountElementId, 
+          allLearnersData.campaignData[key].learnerCount);
+      }
+    }
+  } else {
+    displayAllLearnersData(allLearnersData, false, countrySelection);
+    let c = allLearnersData.campaignData.find((loc) => { return loc.country === countrySelection; });
+    createCountUpTextInElement(allLearnersCountElementId, 
+      c.learnerCount);
+    let noRegion = c.regions.find((r) => { return r.region === "no-region"; });
+
+    if (noRegion && noRegion.hasOwnProperty('learnerCount')) {
+      createCountUpTextInElement(dntLearnersCountElementId, noRegion.learnerCount);
+    } else if (!noRegion) {
+      createCountUpTextInElement(dntLearnersCountElementId, 0);
+    }
+  }
+}
+
+/**
+ * Called from the UI when the country is changed for the user
+ */
+function onYourLearnersCountrySelectionChanged() {
+  // TODO: 
+  // if (campaignSelectElement) {
+  //   let selectedCampaignID = campaignSelectElement.
+  //     options[campaignSelectElement.selectedIndex].value;
+  //   let campaignData = null;
+  //   for (let i = 0; i < currentDonorCampaignData.length; i++) {
+  //     if (currentDonorCampaignData[i].campaignID === selectedCampaignID) {
+  //       campaignData = currentDonorCampaignData[i];
 }
 
 function clearYourLearnersMarkers() {
