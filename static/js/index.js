@@ -355,8 +355,8 @@ function clearAllMarkers() {
 async function displayAllLearnersData(locData, isCountryLevelData, country) {
   if (locData === null) {
     const center = new google.maps.LatLng(0, 0);
-    mapRef.setCenter(center);
-    mapRef.setZoom(staticMapZoomLevel);
+    mapAllLearners.setCenter(center);
+    mapAllLearners.setZoom(mapZoomFullView);
     return;
   }
   if (mapsSharedInfoWindow)
