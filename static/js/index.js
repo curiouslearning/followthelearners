@@ -538,7 +538,7 @@ async function displayYourLearnersData(locData) {
   if (locData === null) {
     const center = new google.maps.LatLng(0, 0);
     mapYourLearners.setCenter(center);
-    mapYourLearners.setZoom(staticMapZoomLevel);
+    mapYourLearners.setZoom(mapZoomFullView);
     return;
   }
   if (mapsSharedInfoWindow)
