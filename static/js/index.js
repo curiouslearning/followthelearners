@@ -14,7 +14,8 @@ let mapAllLearners = null;
 const mapYourLearnersParentElementId = 'map-display-your-learners';
 const mapAllLearnersParentElementId = 'map-display-all-learners';
 let mapsSharedInfoWindow = null;
-const staticMapZoomLevel = 3;
+const mapZoomFullView = 3;
+const mapZoomCountryView = 7;
 
 const allLearnersCountElementId = 'all-learners-count';
 const dntLearnersCountElementId = 'no-region-user-count';
