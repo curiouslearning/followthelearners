@@ -216,6 +216,23 @@ function assignInitialLearners(donorID, donationID) {
     }).catch((err)=>{console.error(err);});
 }
 
+// add learners with country and region data to the front of the queue
+function prioritizeLearnerQueue (queue) {
+  if (queue.empty) {
+    return queue.docs;
+  }
+  let prioritizedQueue = [];
+  queue.forEach((doc)=>{
+    let data = doc.data();
+    if (data.region !== 'no-region') {
+      prioritizedQueue.unshift(doc);
+    } else {
+      prioritizedQueue.push(doc);
+    }
+  });
+  return prioritizedQueue;
+}
+
 //algorithm to calculate how many learners to assign to a donation
 function calculateUserCount (amount, poolSize, costPerLearner) {
   const threshold = 0.05;
@@ -243,6 +260,7 @@ function batchWriteLearners(snapshot, donation, learnerCount) {
     .collection('donations').doc(donation.id);
   const poolRef = admin.firestore().collection('user_pool');
   batches[batchCount] = admin.firestore().batch();
+  snapshot.docs = prioritizeLearnerQueue(snapshot);
   for(let i=0; i < learnerCount; i++) {
     if(i >= snapshot.size) {break;}
     if(batchSize >= batchMax) { //time to start a new batch

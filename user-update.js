@@ -121,7 +121,7 @@ async function assignExpiringLearners() {
     console.log('no new learners to assign');
     return;
   }
-  let learnerQueue = learnerSnap.docs;
+  let learnerQueue = prioritizeLearnerQueue(learnerSnap);
   let fullDonations = 0;
   while ((learnerQueue.length > 0) && (fullDonations < priorityQueue.length)) {
     let foundDonor = false;
@@ -203,6 +203,22 @@ function getLearnerQueue(donationCount, interval) {
       }).catch((err)=>{
         console.error(err);
       });
+}
+
+function prioritizeLearnerQueue(queue) {
+  if (queue.empty) {
+    return queue.docs;
+  }
+  let prioritizedQueue = [];
+  queue.forEach((doc)=>{
+    let data = doc.data();
+    if (data.region !== 'no-region') {
+      prioritizedQueue.unshift(doc);
+    } else {
+      prioritizedQueue.push(doc);
+    }
+  });
+  return prioritizedQueue;
 }
 
 function getPriorityQueue() {
