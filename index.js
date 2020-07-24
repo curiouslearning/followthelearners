@@ -134,7 +134,7 @@ app.post('/donate', function(req, res) {
   });
 });
 app.get('/getDonorCampaigns', function(req, res) {
-  const email = req.query.e;
+  const email = req.query.email;
   getDonorID(email).then((donorID)=>{
     if (donorID === '' || donorID === undefined || donorID === null) {
       res.end();
@@ -158,8 +158,7 @@ app.get('/getDonorCampaigns', function(req, res) {
 });
 
 app.get('/yourLearners', function(req, res) {
-  console.log('searching for learners for donor ',
-      req.query.email, 'in region ', req.query.campaign);
+  console.log('Getting learner data for donor: ', req.query.email);
   let donorID = '';
   getDonorID(req.query.email).then((result)=>{
     donorID = result;
