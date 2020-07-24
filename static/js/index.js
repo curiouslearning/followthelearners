@@ -202,57 +202,56 @@ function GetDataAndSwitchToDonorLearners() {
       currentDonorEmail = null;
       return;
     }
-    currentDonorCampaignData = data.campaigns;
-    let campaignSelectionOptions = [];
+
+    yourLearnersData = data;
+
     if (campaignSelectElement) {
       campaignSelectElement.options = [];
-      for (let i = 0; i < data.campaigns.length; i++) {
-        campaignSelectElement.options[i] = new Option(
-          data.campaigns[i].campaignID, data.campaigns[i].campaignID);
+      campaignSelectElement.options[0] = 
+        new Option('All Countries', 'all-countries');
+      for (let i = 0; i < data.locationData.length; i++) {
+        campaignSelectElement.options[i + 1] = 
+          new Option(data.locationData[i].country, 
+            data.locationData[i].country);
       }
     }
+
+    let allCountriesAggregateAmount = 0;
+    let tempDonationStartDate = null;
+    let allCountriesDonationStartDate = "";
+    let allCountriesLearnersCount = 0;
+    for (let i = 0; i < data.campaignData.length; i++) {
+      let donation = data.campaignData[i].data;
+      allCountriesAggregateAmount += typeof donation.amount === 'string' ?
+        parseFloat(donation.amount) : donation.amount;
+      if (tempDonationStartDate === null) {
+        tempDonationStartDate = new Date(donation.startDate);
+        allCountriesDonationStartDate = donation.startDate;
+      } else if (tempDonationStartDate > new Date(donation.startDate)) {
+        tempDonationStartDate = new Date(donation.startDate);
+        allCountriesDonationStartDate = donation.startDate;
+      }
+      allCountriesLearnersCount += donation.learnerCount;
+    }
+
+    document.getElementById('donation-amount').innerText = 
+      allCountriesAggregateAmount;
+
+    if (allCountriesAggregateAmount !== "") {
+      document.getElementById('donation-date').innerText = 
+        allCountriesDonationStartDate.toString();
+    }
+      
+    createCountUpTextInElement('learner-count', allCountriesLearnersCount);
+    
     if (donorModal) {
       donorModal.classList.remove('is-active');
     }
-    updateCampaignAndLocationData();
-  });
-}
-
-/**
- * Update the campaign and location data based on the dropdown campaign
- * selection
- */
-function updateCampaignAndLocationData() {
-  if (campaignSelectElement) {
-    let selectedCampaignID = campaignSelectElement.
-      options[campaignSelectElement.selectedIndex].value;
-    let campaignData = null;
-    for (let i = 0; i < currentDonorCampaignData.length; i++) {
-      if (currentDonorCampaignData[i].campaignID === selectedCampaignID) {
-        campaignData = currentDonorCampaignData[i];
-      }
-    }
-    document.getElementById('donation-amount').innerText = 
-      campaignData.amount;
-
-    document.getElementById('donation-date').innerText = 
-      campaignData.startDate;
 
     tabSelector.ToggleTab('tab-your-learners');
-
-    createCountUpTextInElement('learner-count', campaignData.learnerCount);
-
-    clearYourLearnersMarkers();
-
-    $.get('/yourLearners', 
-      {email: currentDonorEmail, campaign: selectedCampaignID},
-      function(locData, locDataStatus) {
-        yourLearnersData = locData;
-        if (yourLearnersData.locationData.length !== 0) {
-          displayYourLearnersData(yourLearnersData);
-        }
-      });
-  }
+    
+    // displayYourLearnersData(yourLearnersData);
+  });
 }
 
 /**
