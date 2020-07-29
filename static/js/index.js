@@ -674,7 +674,29 @@ function getTotalCountryLearnerCountFromDonations(donationData, country) {
   return learnerCount;
 }
 
-async function displayYourLearnersData(locData, isCountryLevelData) {
+/**
+ * Get aggregate learner count for country from given donation data
+ * @param {Array} donationData array of donor's donation data
+ * @param {String} country name of the country to aggregate the count for
+ */
+function getTotalRegionLearnerCountFromDonations(donationData, country, region) {
+  let learnerCount = 0;
+  for (let i = 0; i < donationData.length; i++) {
+    for (let c = 0; c < donationData[i].data.countries.length; c++) {
+      let countryData = donationData[i].data.countries[c];
+      if (countryData.country === country) {
+        let r = countryData.regions.find((reg) => { 
+          return reg.region === region; });
+        if (r && r.hasOwnProperty('learnerCount')) {
+          learnerCount += r.learnerCount;
+        }
+      }
+    }
+  }
+  return learnerCount;
+}
+
+async function displayYourLearnersData(locData, isCountryLevelData, countrySelection = null) {
   if (locData === null) {
     const center = new google.maps.LatLng(0, 0);
     mapYourLearners.setCenter(center);
