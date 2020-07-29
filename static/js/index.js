@@ -218,12 +218,12 @@ function GetDataAndSwitchToDonorLearners() {
 
     yourLearnersData = data;
 
-    if (campaignSelectElement) {
-      campaignSelectElement.options = [];
-      campaignSelectElement.options[0] = 
+    if (yourLearnersCountrySelectElement) {
+      yourLearnersCountrySelectElement.options = [];
+      yourLearnersCountrySelectElement.options[0] = 
         new Option('All Countries', 'all-countries');
       for (let i = 0; i < data.locationData.length; i++) {
-        campaignSelectElement.options[i + 1] = 
+        yourLearnersCountrySelectElement.options[i + 1] = 
           new Option(data.locationData[i].country + ' - ' + 
             getTotalCountryLearnerCountFromDonations(
               yourLearnersData.campaignData, 
@@ -260,7 +260,7 @@ function GetDataAndSwitchToDonorLearners() {
     document.getElementById('donation-amount').innerText = 
       allCountriesAggregateAmount;
 
-    if (allCountriesAggregateAmount !== "") {
+    if (allCountriesDonationStartDate !== "") {
       document.getElementById('donation-date').innerText = 
         allCountriesDonationStartDate.toString();
     }
