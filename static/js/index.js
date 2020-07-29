@@ -748,20 +748,26 @@ async function displayYourLearnersData(locData, isCountryLevelData, countrySelec
     mapYourLearners.setCenter(center);
     mapYourLearners.setZoom(mapZoomFullView);
   } else {
-    let countryData = locationData[0];
-    let campaignData = locData.campaignData.countries.find((c) => { return c.country === countryData.country; });
-  
+    let countryData = locationData.find((loc) => { 
+      return loc.country === countrySelection; });
     let bounds = new google.maps.LatLngBounds();
   
     console.log(countryData);
     if (countryData.regions && countryData.regions.length !== 0) {
       for (let i = 0; i < countryData.regions.length; i++) {
         let region = countryData.regions[i];
-        let campaignRegion = campaignData.regions.find((reg) => { return reg.region === region.region});
-        if (!campaignRegion) {
+        if (region.region === 'no-region' && countryData.regions.length === 1) {
+          const center = countryData.pin === undefined ? 
+            new google.maps.LatLng(26.3351, 17.228331) :
+            new google.maps.LatLng(countryData.pin.lat, countryData.pin.lng);
+          mapAllLearners.setCenter(center);
+          mapAllLearners.setZoom(countryData.pin === undefined ? 
+            mapZoomFullView : mapZoomCountryView);
           continue;
         }
-        let learnerCount = campaignRegion.learnerCount;
+        if (region.region === 'no-region') continue;
+        let learnerCount = getTotalRegionLearnerCountFromDonations(
+          locData.campaignData, countrySelection, region.region);
         if (region.hasOwnProperty("streetViews") &&
           learnerCount > 0 &&
           region.streetViews.hasOwnProperty("headingValues") &&
