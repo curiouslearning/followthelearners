@@ -82,8 +82,8 @@ function initializeMaps() {
     mapYourLearnersParentElementId);
   let mapAllLearnersParent = document.getElementById(
     mapAllLearnersParentElementId);
-  campaignSelectElement = document.getElementById(
-    campaignSelectElementId);
+  yourLearnersCountrySelectElement = document.getElementById(
+    yourLearnersCountrySelectElementId);
   countrySelectElement = document.getElementById(
     countrySelectElementId);
 
