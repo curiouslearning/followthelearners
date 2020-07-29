@@ -144,9 +144,26 @@ async function assignExpiringLearners() {
         const newCount = donation.learnerCount + donation.learners.length;
         const donationMax = Math.round(donation.amount/donation.costPerLearner);
         donation.percentFilled = (newCount/donationMax)*100;
+        // log the moment a donation is filled
+        if (donation.percentFilled >= 100) {
+          fullDonations++;
+          donation['isCounted'] = true;
+          firestore.collection('donor_master').doc(donation.sourceDonor)
+              .collection('donations').doc(donation.id).set({
+                endDate: fireStoreAdmin.firestore.Timestamp.now(),
+              }, {merge: true}).catch((err)=>{
+                console.error(err);
+              });
+        }
         learnerQueue.splice(0, 1);
       } else {
-        fullDonations++;
+        if (!donations.hasOwnProperty('isCounted')) {
+          donations['isCounted'] = false;
+        }
+        if (!donations.isCounted) {
+          donations.isCounted = true;
+          fullDonations++;
+        }
       }
     }
     if (!foundDonor) {
