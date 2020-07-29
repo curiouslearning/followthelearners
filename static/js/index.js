@@ -914,6 +914,24 @@ function getIconOptionsBasedOnCount(count) {
  * @param {String} randomFact is the randomFact value displayed on info window
  * @return {String} content string for the info window
  */
+function constructCountryLevelYourLearnersInfoWindow(country, randomFact) {
+  const contentString = '<div style=\'text-align: left;\'>' +
+    '<span style=\'font-size: 18px; color: #606060\'><b>' +
+    country + ' </b></span>' + 
+    '<br><br> <p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
+    randomFact + '<br><br><div style="text-align: center">' +
+    '<button onclick="onYourLearnersCountryZoomInClick(\''+ country + '\')" class=\'button is-link is-outlined \'>' +
+    ' <i class="fas fa-search-plus"></i>&nbsp;&nbsp;Take Me There ' +
+    '</button></div>';
+  return contentString;
+}
+
+/**
+ * Constructs and returns info window html string content
+ * @param {String} country is the country value
+ * @param {String} randomFact is the randomFact value displayed on info window
+ * @return {String} content string for the info window
+ */
 function constructCountryLevelInfoWindow(country, randomFact) {
   const contentString = '<div style=\'text-align: left;\'>' +
     '<span style=\'font-size: 18px; color: #606060\'><b>' +
