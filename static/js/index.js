@@ -173,7 +173,18 @@ function initializeCountrySelect(locationData) {
   }
 }
 
-
+/**
+ * Event listener when user clicks on the country take me there button that's on
+ * info window
+ * @param {String} country country that is selected on the map
+ */
+function onYourLearnersCountryZoomInClick(country) {
+  if (!country || !yourLearnersCountrySelectElement) {
+    return;
+  }
+  yourLearnersCountrySelectElement.value = country;
+  onYourLearnersCountrySelectionChanged();
+}
 
 /**
  * Event listener when user clicks on the country take me there button that's on
