@@ -732,14 +732,14 @@ async function displayYourLearnersData(locData, isCountryLevelData, countrySelec
 	      console.error("caught error: ", e, " on country: ", locationData[key].country);
       }
 
-      // newMarker.addListener('click', function() {
-      //   mapsSharedInfoWindow.setContent(constructCountryLevelInfoWindow(
-      //       newMarker.country,
-      //       getRandomFact(newMarker.facts)));
-      //   mapsSharedInfoWindow.open(mapAllLearners);
-      //   mapsSharedInfoWindow.setPosition(
-      //     {lat: newMarker.lat, lng: newMarker.lng});
-      // }); 
+      newMarker.addListener('click', function() {
+        mapsSharedInfoWindow.setContent(
+          constructCountryLevelYourLearnersInfoWindow(newMarker.country,
+            getRandomFact(newMarker.facts)));
+        mapsSharedInfoWindow.open(mapYourLearners);
+        mapsSharedInfoWindow.setPosition(
+          {lat: newMarker.lat, lng: newMarker.lng});
+      }); 
       
       loadedYourLearnersMarkers.push(newMarker);
     }
