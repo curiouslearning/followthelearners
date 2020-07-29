@@ -341,14 +341,104 @@ function onCountrySelectionChanged() {
  * Called from the UI when the country is changed for the user
  */
 function onYourLearnersCountrySelectionChanged() {
-  // TODO: 
-  // if (campaignSelectElement) {
-  //   let selectedCampaignID = campaignSelectElement.
-  //     options[campaignSelectElement.selectedIndex].value;
-  //   let campaignData = null;
-  //   for (let i = 0; i < currentDonorCampaignData.length; i++) {
-  //     if (currentDonorCampaignData[i].campaignID === selectedCampaignID) {
-  //       campaignData = currentDonorCampaignData[i];
+  if (!yourLearnersCountrySelectElement) {
+    console.error("Unable to find country select element for your learners")
+    return;
+  }
+
+  let countrySelection =  yourLearnersCountrySelectElement.
+    options[yourLearnersCountrySelectElement.selectedIndex].value;
+
+  clearYourLearnersMarkers();
+
+  if (countrySelection === 'all-countries') {
+    let allCountriesAggregateAmount = 0;
+    let tempDonationStartDate = null;
+    let allCountriesDonationStartDate = "";
+    let allCountriesLearnersCount = 0;
+    let allCountriesDNTUsersCount = 0;
+    for (let i = 0; i < yourLearnersData.campaignData.length; i++) {
+      let donation = yourLearnersData.campaignData[i].data;
+      allCountriesAggregateAmount += typeof donation.amount === 'string' ?
+        parseFloat(donation.amount) : donation.amount;
+      if (tempDonationStartDate === null) {
+        tempDonationStartDate = new Date(donation.startDate);
+        allCountriesDonationStartDate = donation.startDate;
+      } else if (tempDonationStartDate > new Date(donation.startDate)) {
+        tempDonationStartDate = new Date(donation.startDate);
+        allCountriesDonationStartDate = donation.startDate;
+      }
+      allCountriesLearnersCount += donation.learnerCount;
+      for (let c = 0; c < donation.countries.length; c++) {
+        let country = donation.countries[c];
+        if (country.country === 'no-country') {
+          allCountriesDNTUsersCount += country.learnerCount;
+        }
+      }
+    }
+
+    document.getElementById('donation-amount').innerText = 
+      allCountriesAggregateAmount;
+
+    if (allCountriesDonationStartDate !== "") {
+      document.getElementById('donation-date').innerText = 
+        allCountriesDonationStartDate.toString();
+    }
+      
+    createCountUpTextInElement('learner-count', allCountriesLearnersCount);
+
+    createCountUpTextInElement(dntYourLearnersCountElementId, 
+      allCountriesDNTUsersCount);
+    
+    displayYourLearnersData(yourLearnersData, true);
+  } else {
+    displayYourLearnersData(yourLearnersData, false, countrySelection);
+
+    let countryDonationAggregate = 0;
+    let countryLearnersAggregate = 0;
+    let countryDonationStartDate = "";
+    let dntRegionLearnersForCountry = 0;
+    let tempDonationStartDate = null;
+
+    for (let i = 0; i < yourLearnersData.campaignData.length; i++) {
+      let campaign = yourLearnersData.campaignData[i].data;
+      if (campaign.region === countrySelection) {
+        countryDonationAggregate += typeof campaign.amount === 'string' ?
+        parseFloat(campaign.amount) : campaign.amount;;
+        countryLearnersAggregate += campaign.learnerCount;
+        if (tempDonationStartDate === null) {
+          tempDonationStartDate = new Date(campaign.startDate);
+          countryDonationStartDate = campaign.startDate;
+        } else if (tempDonationStartDate > new Date(campaign.startDate)) {
+          tempDonationStartDate = new Date(campaign.startDate);
+          countryDonationStartDate = campaign.startDate;
+        }
+
+        let country = campaign.countries.find((c) => { return c.country === countrySelection});
+
+        let noRegion = country.regions.find((r) => { return r.region === "no-region"; });
+
+        if (noRegion && noRegion.hasOwnProperty('learnerCount')) {
+          dntRegionLearnersForCountry += noRegion.learnerCount;
+        }
+      }
+    }
+
+    createCountUpTextInElement('learner-count', countryLearnersAggregate);
+
+    document.getElementById('donation-amount').innerText = 
+      countryDonationAggregate;
+
+    if (countryDonationStartDate !== "") {
+      document.getElementById('donation-date').innerText = 
+        countryDonationStartDate.toString();
+    }
+
+    createCountUpTextInElement(dntYourLearnersCountElementId, 
+      dntRegionLearnersForCountry);
+  }
+
+  console.log(countrySelection);
 }
 
 function clearYourLearnersMarkers() {
