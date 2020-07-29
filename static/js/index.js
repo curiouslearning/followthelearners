@@ -3,14 +3,15 @@ const donorEmailElementId = 'donor-email';
 let currentDonorEmail = null;
 let currentDonorCampaignData = null;
 
-let campaignSelectElement = null;
-const campaignSelectElementId = 'campaignSelection';
+let yourLearnersCountrySelectElement = null;
+const yourLearnersCountrySelectElementId = 'yourLearnersCountrySelect';
 
 let countrySelectElement = null;
-let countrySelectElementId = 'countrySelection';
+const countrySelectElementId = 'countrySelection';
 
 let mapYourLearners = null;
 let mapAllLearners = null;
+
 const mapYourLearnersParentElementId = 'map-display-your-learners';
 const mapAllLearnersParentElementId = 'map-display-all-learners';
 let mapsSharedInfoWindow = null;
