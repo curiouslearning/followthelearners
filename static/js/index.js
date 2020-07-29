@@ -532,7 +532,6 @@ async function displayAllLearnersData(locData, isCountryLevelData, country) {
 
     let bounds = new google.maps.LatLngBounds();
 
-    // console.log(countryData);
     if (countryData.regions && countryData.regions.length !== 0) {
       for (let i = 0; i < countryData.regions.length; i++) {
         let region = countryData.regions[i];
@@ -760,8 +759,8 @@ async function displayYourLearnersData(locData, isCountryLevelData, countrySelec
           const center = countryData.pin === undefined ? 
             new google.maps.LatLng(26.3351, 17.228331) :
             new google.maps.LatLng(countryData.pin.lat, countryData.pin.lng);
-          mapAllLearners.setCenter(center);
-          mapAllLearners.setZoom(countryData.pin === undefined ? 
+          mapYourLearners.setCenter(center);
+          mapYourLearners.setZoom(countryData.pin === undefined ? 
             mapZoomFullView : mapZoomCountryView);
           continue;
         }
@@ -842,7 +841,7 @@ async function displayYourLearnersData(locData, isCountryLevelData, countrySelec
           let regionMarker = new google.maps.Marker({position:
             { lat: region.pin.lat,
               lng: region.pin.lng },
-              map: mapAllLearners,
+              map: mapYourLearners,
               icon: {url: iconOptions.iconUrl, size: iconOptions.iconSize,
               origin: new google.maps.Point(0, 0),
               anchor: iconOptions.iconAnchor},
@@ -859,7 +858,7 @@ async function displayYourLearnersData(locData, isCountryLevelData, countrySelec
               regionMarker.country,
               regionMarker.region,
               getRandomFact(regionMarker.facts)));
-            mapsSharedInfoWindow.open(mapAllLearners);
+            mapsSharedInfoWindow.open(mapYourLearners);
             mapsSharedInfoWindow.setPosition(
               {lat: regionMarker.lat, lng: regionMarker.lng});
           });
