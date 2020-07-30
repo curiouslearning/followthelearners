@@ -39,7 +39,7 @@ html
         .section(style='padding-top: 1rem')
           .columns.is-desktop
             each campaign in campaigns
-              +campaign(campaign.country, campaign.imgRef, campaign.body, campaign.campaignID, campaign.amount)
+              +campaign(campaign.country, campaign.imgRef, campaign.body, campaign.campaignID, campaign.amount, campaign.country)
             script.
               function goToDonate(campaign, amount) {
                 window.open ("/donate?campaign=" + campaign, '_blank');
