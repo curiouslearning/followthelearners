@@ -2,7 +2,7 @@ const {BigQuery} = require('@google-cloud/bigquery');
 const fireStoreAdmin = require('firebase-admin');
 // const firebase = require('firebase/app');
 const serviceAccount = require('./keys/firestore-key.json');
-const PRUNEDATE = 5;
+const PRUNEDATE = 7;
 const DAYINMS = 86400000;
 
 fireStoreAdmin.initializeApp({
