@@ -69,6 +69,7 @@ app.get('/campaigns', function(req, res) {
         learnerCount: data.learnerCount,
         amount: '5.00',
         campaignID: data.campaignID,
+        country: data.country,
       });
     });
     return campaigns;
@@ -331,7 +332,7 @@ function compileLocationDataForCountry(country) {
 function extractLocationDataFromCountryDoc(data) {
   const filteredRegions = [];
   data.regions.forEach((region)=>{
-    if (region.hasOwnProperty('learnerCount') && 
+    if (region.hasOwnProperty('learnerCount') &&
       region.hasOwnProperty('streetViews')) {
       filteredRegions.push({
         region: region.region,

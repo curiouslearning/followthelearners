@@ -82,6 +82,7 @@ exports.clearLearnerPool = functions.https.onRequest(async (req, res)=>{
 });
 
 exports.logDonation = functions.https.onRequest(async (req, res) =>{
+  let splitString = req.body.campaignID.split('|');
   let params = {
     firstName: req.body.firstName,
     lastName: req.body.lastName,
@@ -89,7 +90,8 @@ exports.logDonation = functions.https.onRequest(async (req, res) =>{
     timestamp: admin.firestore.Firestore.Timestamp.now(),
     amount: Number(req.body.amount),
     frequency: req.body.frequency,
-    campaignID: req.body.campaignID,
+    campaignID: splitString[0],
+    country: splitString[1],
   };
   writeDonation(params).then((result)=>{
     res.status(200).send(result);
@@ -133,8 +135,9 @@ function writeDonation (params)
       frequency: params.frequency,
       countries: [],
       startDate: params.timestamp,
+      country: params.country,
     }).then((doc)=>{
-      return assignInitialLearners(donorID, params.campaignID);
+      return assignInitialLearners(donorID, params.country);
     }).catch((err)=>{console.error(err);});
   }).catch((err) =>{
     console.error(err);
@@ -168,14 +171,14 @@ function getDonorID(email) {
 }
 // Grab initial list of learners at donation time from user_pool
 // and assign to donor according to donation amount and campaigns cost/learner
-function assignInitialLearners(donorID, donationID) {
+function assignInitialLearners(donorID, country) {
   //Grab the donation object we're migrating learners to
   const donorRef = admin.firestore().collection('donor_master').doc(donorID)
-  .collection('donations').where('campaignID', '==', donationID)
+  .collection('donations').where('country', '==', country)
   .orderBy('startDate', 'desc').get()
   .then((snapshot)=>{
     if(snapshot.size === 0) {
-      throw new Error(donorID, " is missing Donation Document for: ", donationID);
+      throw new Error(donorID, " is missing Donation Document for: ", country);
     }
     const docID = snapshot.docs[0].id;
     const data = snapshot.docs[0].data();
@@ -185,16 +188,16 @@ function assignInitialLearners(donorID, donationID) {
   });
   //the user pool we'll be pulling learners from
   const poolRef = admin.firestore().collection('user_pool')
-    .where('sourceCampaign', '==', donationID).get().then((snapshot)=>{
+    .where('country', '==', country).get().then((snapshot)=>{
       return snapshot;
     }).catch((err)=>{
       console.error(err);
     });
   //data from the base campaign object such as cost/learner
   const campaignRef = admin.firestore().collection('campaigns')
-    .where('campaignID', '==', donationID).get().then((snapshot)=>{
+    .where('country', '==', country).get().then((snapshot)=>{
       if(snapshot.empty) {
-        throw new Error("Missing Campaign Document for ID: ", donationID);
+        throw new Error("Missing Campaign Document for ID: ", country);
       }
       let docData = snapshot.docs[0].data();
       let docId = snapshot.docs[0].id;
