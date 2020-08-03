@@ -380,7 +380,7 @@ function getDonations(donorID) {
     const donations =[];
     snapshot.forEach((doc)=>{
       const data = doc.data();
-      data.startDate = dateFormat.asString('MM / dd / yyyy hh:mm',
+      data.startDate = dateFormat.asString('MM / dd / yyyy',
           data.startDate.toDate());
       donations.push({name: doc.id, data: data});
     });
