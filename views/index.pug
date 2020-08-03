@@ -46,6 +46,8 @@ html
                 window.open ("/donate?campaign=" + campaign, '_blank');
               }
       .section.is-hidden#tab-your-learners
+        .section(style='margin-top: -2rem; padding-top: 0.5rem; padding-bottom: 0.2rem; margin-bottom: none;')
+          h1.title.has-text-grey-dark(style='font-size: 4rem;') Your Learners
         .select.is-large(style='font-size: 2.4rem')
           select#yourLearnersCountrySelect(onchange='onYourLearnersCountrySelectionChanged()' style='border: none; width: auto; -webkit-appearance: none; -moz-appearance: none; appearance:none;' name='campaignSelection')
         .section(style='margin-top: none; padding-top: 0.5rem; padding-bottom: 0.2rem; margin-bottom: none;')
