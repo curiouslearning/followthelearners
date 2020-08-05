@@ -15,5 +15,3 @@ mixin campaign (title, imgRef, body, campaignID, amount, country)
       .subtitle.is-size-6.has-text-grey #{body}
     .card-footer(style='border: none; justify-content: center;')
        .button(type='button', id='giveNow'+campaignID, onclick = "goToDonate(\""+campaignID + '|' + country +"\")") Give Now
-    h3.subtitle.has-text-grey(style='font-size: 0.8rem; padding-left: 4rem; padding-right: 4rem; padding-top: 1rem')
-      span Follow The Learners is currently in beta testing. If you have not received a beta testing invitation, please e-mail info@curiouslearning.org to log your interest in becoming a tester before donating.
