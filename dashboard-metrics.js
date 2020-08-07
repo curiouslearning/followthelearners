@@ -36,12 +36,16 @@ function generateCountryReport(learners, donations) {
       if (report[country] === undefined) {
         report[country] = {
           learnerCount: 0,
+          donationCount: 0,
           donationsTotal: 0,
+          remainingValue: 0,
         };
       }
       report[country].learnerCount = learners[country];
       if (donations[country] !== undefined) {
-        report[country].donationsTotal = donations[country];
+        report[country].donationCount = donations[country].donationCount;
+        report[country].donationsTotal = donations[country].totalValue;
+        report[country].remainingValue = donations[country].remainingValue;
       }
     }
   }
@@ -50,7 +54,9 @@ function generateCountryReport(learners, donations) {
     if (report[country] !== undefined) {
       result += '\t'+country+':\n'+'\t\t'+
           'learners: '+report[country].learnerCount +
-          '\n\t\t'+'donation total: '+report[country].donationsTotal+'\n';
+          '\n\t\t'+'unfilled-donation-count: '+report[country].donationCount+
+          '\n\t\t'+'donation-total: '+report[country].donationsTotal+
+          '\n\t\t'+'dollars-remaining: '+report[country].remainingValue+'\n';
     }
   }
   return result;
@@ -91,9 +97,16 @@ function getDonationsByCountry() {
     snapshot.forEach((doc)=>{
       let data = doc.data();
       if (countries[data.country] === undefined) {
-        countries[data.country] = 0;
+        countries[data.country] = {
+          donationCount: 0,
+          remainingValue: 0,
+          totalValue: 0,
+        };
       }
-      countries[data.country] += data.amount;
+      countries[data.country].totalValue += data.amount;
+      countries[data.country].remainingValue +=
+        data.amount - (data.amount * (data.percentFilled/100));
+      countries[data.country].donationCount++;
     });
     return countries;
   }).catch((err) => {
