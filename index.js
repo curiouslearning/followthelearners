@@ -301,7 +301,7 @@ function compileLearnerDataForCountry(country) {
 function extractLearnerDataForCountry(data) {
   const filteredRegions =[];
   data.regions.forEach((region)=>{
-    if (region.hasOwnProperty('learnerCount') && region.learnerCount >=0) {
+    if (region.hasOwnProperty('learnerCount') && region.learnerCount > 0) {
       filteredRegions.push({
         region: region.region,
         learnerCount: region.learnerCount,
