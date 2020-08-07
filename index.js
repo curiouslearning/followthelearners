@@ -160,6 +160,11 @@ app.get('/getDonorCampaigns', function(req, res) {
 });
 
 app.get('/yourLearners', function(req, res) {
+  if (!validateEmail(req.query.email)) {
+    res.json({err: 'please enter a valid email address.'});
+    res.end();
+    return;
+  }
   console.log('Getting learner data for donor: ', req.query.email);
   let donorID = '';
   getDonorID(req.query.email).then((result)=>{
@@ -253,6 +258,15 @@ app.get('*', function(req, res) {
 
 app.listen(3000);
 
+
+function validateEmail(email) {
+  if (email === null || email === undefined) return false;
+  const result = email.match(/[[\w\d-\.]+\@]?[[\w\d-]*[\.]+[\w\d-\.]+]*/);
+  if (result !== null && result !== undefined && result !== ['']) {
+    return true;
+  }
+  return false;
+}
 
 function getDonorID(email) {
   const dbRef = firestore.collection('donor_master');
