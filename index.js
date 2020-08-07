@@ -165,9 +165,12 @@ app.get('/yourLearners', function(req, res) {
   getDonorID(req.query.email).then((result)=>{
     donorID = result;
     console.log('found donorID: ', donorID);
+    if (donorID === null || donorID === undefined || donorID === '') {
+      return undefined;
+    }
     return getDonations(donorID);
   }).then((donations)=>{
-    if (donations != undefined) {
+    if (donations !== undefined) {
       const promises = [];
       let locationData = [];
       donations.forEach((donation) => {
@@ -185,6 +188,7 @@ app.get('/yourLearners', function(req, res) {
         res.json({campaignData: donations, locationData: locationData});
       });
     } else {
+      res.json({err: 'Oops! We couldn\'t find that email in our database. If you\'d like to make an account with us, pick a region to support!\n If you\'ve already made an account and cannot access your learners, please email support@curiouslearning.org. '});
       res.end();
     }
   }).catch((err)=>{
