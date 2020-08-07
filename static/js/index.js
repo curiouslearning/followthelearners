@@ -545,7 +545,10 @@ async function displayAllLearnersData(locData, isCountryLevelData, country) {
           continue;
         }
         if (region.region === 'no-region') continue;
-        let learnerCount = campaignData.regions.find((reg) => { return reg.region === region.region; }).learnerCount;
+        let campaignRegion = campaignData.regions.find((reg) => { 
+          return reg.region === region.region; })
+        if (!campaignRegion) continue;
+        let learnerCount = campaignRegion.learnerCount;
         if (region.hasOwnProperty("streetViews") &&
           learnerCount > 0 &&
           region.streetViews.hasOwnProperty("headingValues") &&
