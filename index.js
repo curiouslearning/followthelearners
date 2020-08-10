@@ -181,10 +181,10 @@ app.get('/yourLearners', function(req, res) {
       donations.forEach((donation) => {
         donation.data.countries.forEach((country)=>{
           let objIndex = findObjectIndexWithProperty(
-            locationData, 'country', country.country);
+              locationData, 'country', country.country);
           if (objIndex === undefined) {
             promises.push(compileLocationDataForCountry(country.country));
-            locationData.push({ country: country.country });
+            locationData.push({country: country.country});
           }
         });
       });
@@ -353,6 +353,7 @@ function extractLocationDataFromCountryDoc(data) {
     if (region.hasOwnProperty('learnerCount') &&
       region.hasOwnProperty('streetViews')) {
       filteredRegions.push({
+        country: data.country,
         region: region.region,
         pin: region.pin === undefined ? { lat: 0, lng: 0 } : region.pin,
         streetViews: region.streetViews,

@@ -792,7 +792,6 @@ async function displayYourLearnersData(locData, isCountryLevelData, countrySelec
           region.streetViews.headingValues.length > 0 &&
           region.streetViews.hasOwnProperty("locations") &&
           region.streetViews.locations.length > 0) {
-
           let iconOptions = getIconOptionsBasedOnCount(learnerCount);
           let firstStreetViewLoc = region.streetViews.locations[0];
           let regionMarker = new google.maps.Marker({position:
@@ -868,7 +867,7 @@ async function displayYourLearnersData(locData, isCountryLevelData, countrySelec
 
           regionMarker['lat'] = region.pin.lat;
           regionMarker['lng'] = region.pin.lng;
-          regionMarker['country'] = country;
+          regionMarker['country'] = countryData.country;
           regionMarker['facts'] = countryData.facts;
           regionMarker['region'] = region.region;
 
