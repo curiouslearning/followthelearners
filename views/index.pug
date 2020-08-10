@@ -90,7 +90,7 @@ html
           p.has-text-info.is-hidden#new-donor-info-text
             span.icon.is-small.is-left
               i.fas.fa-info-circle
-            span &nbsp;Oops! Looks like you haven't made any contributions yet! Why not take a look at our campaigns and join us in bringing access to reading education to every child!
+            span#new-donor-info-content please enter a valid email address
             span
               br
               br
@@ -104,7 +104,21 @@ html
                 i.fas.fa-envelope
             br
             .control
-              input.button(type='button' onclick='GetDataAndSwitchToDonorLearners()' value='View Your Learners')
+              input.button#donor-email-submit(type='button' disabled=true onclick='GetDataAndSwitchToDonorLearners()' value='View Your Learners')
+          script.
+            $(function() {
+              $('#donor-email').change(function() {
+                let value = $('#donor-email').val();
+                if (validateEmail(value)) {
+                  $('#donor-email-submit').prop('disabled', false);
+                  $('#new-donor-info-text').addClass('is-hidden');
+                } else {
+                  $('#donor-email').val('');
+                  $('#donor-email-submit').prop('disabled', true);
+                  $('#new-donor-info-text').removeClass('is-hidden');
+                }
+              });
+            });
 
 
   script(src="/static/js/fbc.js")
