@@ -12,6 +12,6 @@ mixin campaign (title, imgRef, body, campaignID, amount, country)
     .card-header.is-shadowless
       a.title.is-size-2.has-text-grey-dark(href='/donate?campaign=' + campaignID + '|' + country) #{title}
     .card-content
-      .subtitle.is-size-6.has-text-grey #{body}
+      .subtitle.is-size-6.has-text-grey !{body}
     .card-footer(style='border: none; justify-content: center;')
        .button(type='button', id='giveNow'+campaignID, onclick = "goToDonate(\""+campaignID + '|' + country +"\")") Give Now
