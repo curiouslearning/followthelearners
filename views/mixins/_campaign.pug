@@ -1,7 +1,7 @@
 include ./_link
 //- renders a quick summary of a campaign, with an image and 
 //- a donation link
-mixin campaign (title, imgRef, body, campaignID, amount, country)
+mixin campaign (title, imgRef, body, campaignID, amount, country, donateRef)
   .card.column.is-shadowless(style='border: none; margin: 10px;')
     .card-image
       a(href='/donate?campaign=' + campaignID+'|'+country target='_blank')
@@ -14,4 +14,4 @@ mixin campaign (title, imgRef, body, campaignID, amount, country)
     .card-content
       .subtitle.is-size-6.has-text-grey !{body}
     .card-footer(style='border: none; justify-content: center;')
-       .button(type='button', id='giveNow'+campaignID, onclick = "goToDonate(\""+campaignID + '|' + country +"\")") Give Now
+       .button(type='button', id='giveNow'+campaignID, onclick = "goToDonate(\""+campaignID + '|' + country + '","' + amount + '","' + donateRef + "\")") Give Now
