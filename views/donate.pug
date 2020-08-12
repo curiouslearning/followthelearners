@@ -7,6 +7,9 @@ html
     link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css')
     script.
       let campaignUrl = "#{donateRef}";
+      let campaign = "#{campaign}";
+      let amount = "#{amount}";
+      campaignUrl += "?utm-source=" + campaign + "&override_amount=" + amount + "&payment_method=card";
       function redirectToCampaignPage() {
         setTimeout(function(){ window.location.href = campaignUrl; }, 5000);
       }

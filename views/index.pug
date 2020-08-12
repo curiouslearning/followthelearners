@@ -45,7 +45,7 @@ html
               +campaign(campaign.country, campaign.imgRef, campaign.body, campaign.campaignID, campaign.amount, campaign.country, campaign.donateRef)
             script.
               function goToDonate(campaign, amount, donateRef) {
-                window.open("/donate?campaign=" + campaign + "&donateRef=" + donateRef, '_blank');
+                window.open("/donate?campaign=" + campaign + "&amount=" + amount + "&donateRef=" + donateRef, '_blank');
               }
       .section.is-hidden#tab-your-learners
         .section(style='margin-top: -2rem; padding-top: 0.5rem; padding-bottom: 0.2rem; margin-bottom: none;')
