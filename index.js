@@ -69,6 +69,8 @@ app.get('/campaigns', function(req, res) {
         learnerCount: data.learnerCount,
         amount: '5.00',
         campaignID: data.campaignID,
+        country: data.country,
+        donateRef: data.donateRef
       });
     });
     return campaigns;
@@ -81,6 +83,7 @@ app.get('/donate', function(req, res) {
   const json = {
     campaign: req.query.campaign,
     amount: req.query.amount,
+    donateRef: req.query.donateRef
   };
   res.render('donate', json);
 });
@@ -133,8 +136,9 @@ app.post('/donate', function(req, res) {
     console.error(err);
   });
 });
+
 app.get('/getDonorCampaigns', function(req, res) {
-  const email = req.query.e;
+  const email = req.query.email;
   getDonorID(email).then((donorID)=>{
     if (donorID === '' || donorID === undefined || donorID === null) {
       res.end();
@@ -158,28 +162,40 @@ app.get('/getDonorCampaigns', function(req, res) {
 });
 
 app.get('/yourLearners', function(req, res) {
-  console.log('searching for learners for donor ',
-      req.query.email, 'in region ', req.query.campaign);
+  if (!validateEmail(req.query.email)) {
+    res.json({err: 'please enter a valid email address.'});
+    res.end();
+    return;
+  }
+  console.log('Getting learner data for donor: ', req.query.email);
   let donorID = '';
   getDonorID(req.query.email).then((result)=>{
     donorID = result;
     console.log('found donorID: ', donorID);
-    return getLearnersForRegion(donorID, req.query.campaign);
-  }).then((learners)=>{
-    if (learners != undefined) {
+    if (donorID === null || donorID === undefined || donorID === '') {
+      return undefined;
+    }
+    return getDonations(donorID);
+  }).then((donations)=>{
+    if (donations !== undefined) {
       const promises = [];
       let locationData = [];
-      learners.countries.forEach((country)=>{
-        if (findObjectIndexWithProperty(
-            locationData, 'country', country.country)=== undefined) {
-          promises.push(compileLocationDataForCountry(country.country));
-        }
+      donations.forEach((donation) => {
+        donation.data.countries.forEach((country)=>{
+          let objIndex = findObjectIndexWithProperty(
+              locationData, 'country', country.country);
+          if (objIndex === undefined) {
+            promises.push(compileLocationDataForCountry(country.country));
+            locationData.push({country: country.country});
+          }
+        });
       });
       Promise.all(promises).then((values) => {
         locationData = values.filter((value)=> value !== undefined);
-        res.json({campaignData: learners, locationData: locationData});
+        res.json({campaignData: donations, locationData: locationData});
       });
     } else {
+      res.json({err: 'Oops! We couldn\'t find that email in our database. If you\'d like to make an account with us, pick a region to support!\n If you\'ve already made an account and cannot access your learners, please email support@curiouslearning.org. '});
       res.end();
     }
   }).catch((err)=>{
@@ -201,12 +217,16 @@ app.get('/allLearners', function(req, res) {
       if (findObjectIndexWithProperty(
           resData.campaignData, 'country', doc.data().country) === undefined
       ) {
-        resData.campaignData.push(extractLearnerDataForCountry(data));
+        if (doc.data().learnerCount > 0) {
+          resData.campaignData.push(extractLearnerDataForCountry(data));
+        }
       }
       if (findObjectIndexWithProperty(
           resData.locationData, 'country', doc.data().country) === undefined
       ) {
-        resData.locationData.push(extractLocationDataFromCountryDoc(data));
+        if (doc.data().learnerCount > 0) {
+          resData.locationData.push(extractLocationDataFromCountryDoc(data));
+        }
       }
     });
     resData.campaignData.filter((country) => country != undefined);
@@ -244,6 +264,15 @@ app.get('*', function(req, res) {
 
 app.listen(3000);
 
+
+function validateEmail(email) {
+  if (email === null || email === undefined) return false;
+  const result = email.match(/[[\w\d-\.]+\@]?[[\w\d-]*[\.]+[\w\d-\.]+]*/);
+  if (result !== null && result !== undefined && result !== ['']) {
+    return true;
+  }
+  return false;
+}
 
 function getDonorID(email) {
   const dbRef = firestore.collection('donor_master');
@@ -285,6 +314,9 @@ function compileLearnerDataForCountry(country) {
     if (!doc.exists) {
       console.log('no country level document exists for ', country);
       return undefined;
+    } else if (doc.data().learnerCount === 0) {
+      console.log('country has no learners!');
+      return undefined;
     }
     const data = doc.data();
     return extractLearnerDataForCountry(data);
@@ -296,7 +328,7 @@ function compileLearnerDataForCountry(country) {
 function extractLearnerDataForCountry(data) {
   const filteredRegions =[];
   data.regions.forEach((region)=>{
-    if (region.hasOwnProperty('learnerCount') && region.learnerCount >=0) {
+    if (region.hasOwnProperty('learnerCount') && region.learnerCount > 0) {
       filteredRegions.push({
         region: region.region,
         learnerCount: region.learnerCount,
@@ -327,12 +359,12 @@ function compileLocationDataForCountry(country) {
 function extractLocationDataFromCountryDoc(data) {
   const filteredRegions = [];
   data.regions.forEach((region)=>{
-    if (region.hasOwnProperty('pin') && 
-      region.hasOwnProperty('learnerCount') && 
+    if (region.hasOwnProperty('learnerCount') &&
       region.hasOwnProperty('streetViews')) {
       filteredRegions.push({
+        country: data.country,
         region: region.region,
-        pin: region.pin,
+        pin: region.pin === undefined ? { lat: 0, lng: 0 } : region.pin,
         streetViews: region.streetViews,
       });
     }
@@ -376,7 +408,7 @@ function getDonations(donorID) {
     const donations =[];
     snapshot.forEach((doc)=>{
       const data = doc.data();
-      data.startDate = dateFormat.asString('MM / dd / yyyy hh:mm',
+      data.startDate = dateFormat.asString('MM / dd / yyyy',
           data.startDate.toDate());
       donations.push({name: doc.id, data: data});
     });
@@ -403,6 +435,7 @@ function getLearnersForRegion(donorID, region) {
     console.error(err);
   });
 }
+
 function writeDonorToFirestore(donorObject) {
   console.log('Creating Donor with ID: ', donorObject.donorID);
   const dbRef = firestore.collection('donor_master');

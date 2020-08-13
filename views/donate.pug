@@ -5,15 +5,42 @@ html
     script(src="https://www.gstatic.com/firebasejs/7.14.3/firebase-analytics.js")
     script(src="/static/js/hj.js")
     link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css')
-  body
+    script.
+      let campaignUrl = "#{donateRef}";
+      let campaign = "#{campaign}";
+      let amount = "#{amount}";
+      campaignUrl += "?utm-source=" + campaign + "&override_amount=" + amount + "&payment_method=card";
+      function redirectToCampaignPage() {
+        setTimeout(function(){ window.location.href = campaignUrl; }, 5000);
+      }
+  body(onload='redirectToCampaignPage()')
     .containers
       .container
         .response
-          p  Thank you for your interest in supporting our campaign! We've partnered with GiveLively for a secure donation process. Fill out the form below and we'll send you an e-mail when your learners are ready to view!
-      .container
-        // Begin Give Lively Fundraising Widget
-        script.
-          gl=document.createElement('script');gl.src='https://secure.givelively.org/widgets/branded_donation/curious-learning-a-global-literacy-project-inc/follow-the-learners.js';document.getElementsByTagName('head')[0].appendChild(gl);
-        #give-lively-widget.gl-branded-donation-widget(data-widget-src='https://secure.givelively.org/donate/curious-learning-a-global-literacy-project-inc/follow-the-learners?ref=sd_widget&utm_source=' + campaign)
-        // End Give Lively Fundraising Widget
+          p  Thank you for your interest in supporting our campaign! We've partnered with GiveLively for a secure donation process. You'll be redirected to their secure site shortly.
+      //Begin localhost only donation test form
+      //- .container
+        form(method='POST' action='http://localhost:5001/follow-the-learners/us-central1/logDonation')
+          .control
+            label(for='firstName') First Name:
+            input#firstName.form-control(type='text', placeholder='Sarah' name='firstName')
+          .form-group
+            label(for='lastName') Last Name:
+            input#lastName.form-control(type='text', placeholder='Jones' name='lastName')
+          .form-group
+            label(for='email') Email:
+            input#email.form-control(type='email', placeholder='sjones@example.com' name='email')
+          .form-group
+            label(for='amount') Amount:
+            input#amount.form-control(type='text', placeholder='$5.00' name='amount')
+          .form-group
+            label(for='frequency') Frequency:
+            select#frequency.form-control(name='frequency')
+              option(value='oneTime') One Time
+              option(value='monthly') Monthly
+          .form-group
+            label(for='campaignID') Region:
+            input#campaignID.form-control(type='text', placeholder='India' name='campaignID')
+          button.btn.tn-primary(type='submit') Confirm Donation
+      //end donation test form
     script(src="/static/js/fbc.js")
