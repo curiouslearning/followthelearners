@@ -42,10 +42,10 @@ html
             span Follow The Learners is currently in beta testing. If you have not received a beta testing invitation, please e-mail info@curiouslearning.org to log your interest in becoming a tester before donating.
           .columns.is-desktop
             each campaign in campaigns
-              +campaign(campaign.country, campaign.imgRef, campaign.body, campaign.campaignID, campaign.amount, campaign.country)
+              +campaign(campaign.country, campaign.imgRef, campaign.body, campaign.campaignID, campaign.amount, campaign.country, campaign.donateRef)
             script.
-              function goToDonate(campaign, amount) {
-                window.open ("/donate?campaign=" + campaign, '_blank');
+              function goToDonate(campaign, amount, donateRef) {
+                window.open("/donate?campaign=" + campaign + "&amount=" + amount + "&donateRef=" + donateRef, '_blank');
               }
       .section.is-hidden#tab-your-learners
         .section(style='margin-top: -2rem; padding-top: 0.5rem; padding-bottom: 0.2rem; margin-bottom: none;')
@@ -54,8 +54,8 @@ html
           select#yourLearnersCountrySelect(onchange='onYourLearnersCountrySelectionChanged()' style='border: none; width: auto; -webkit-appearance: none; -moz-appearance: none; appearance:none;' name='campaignSelection')
         .section(style='margin-top: none; padding-top: 0.5rem; padding-bottom: 0.2rem; margin-bottom: none;')
           h3.subtitle.is-3.has-text-grey Donation: 
-            span#donation-amount
             span $
+            span#donation-amount
           h3.subtitle.is-3.has-text-grey You've reached&nbsp;
             span#learner-count
             span &nbsp;Learners since&nbsp;

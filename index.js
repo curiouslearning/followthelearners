@@ -70,6 +70,7 @@ app.get('/campaigns', function(req, res) {
         amount: '5.00',
         campaignID: data.campaignID,
         country: data.country,
+        donateRef: data.donateRef
       });
     });
     return campaigns;
@@ -82,6 +83,7 @@ app.get('/donate', function(req, res) {
   const json = {
     campaign: req.query.campaign,
     amount: req.query.amount,
+    donateRef: req.query.donateRef
   };
   res.render('donate', json);
 });
