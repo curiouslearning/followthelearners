@@ -217,12 +217,16 @@ app.get('/allLearners', function(req, res) {
       if (findObjectIndexWithProperty(
           resData.campaignData, 'country', doc.data().country) === undefined
       ) {
-        resData.campaignData.push(extractLearnerDataForCountry(data));
+        if (doc.data().learnerCount > 0) {
+          resData.campaignData.push(extractLearnerDataForCountry(data));
+        }
       }
       if (findObjectIndexWithProperty(
           resData.locationData, 'country', doc.data().country) === undefined
       ) {
-        resData.locationData.push(extractLocationDataFromCountryDoc(data));
+        if (doc.data().learnerCount > 0) {
+          resData.locationData.push(extractLocationDataFromCountryDoc(data));
+        }
       }
     });
     resData.campaignData.filter((country) => country != undefined);
@@ -309,6 +313,9 @@ function compileLearnerDataForCountry(country) {
   return dbRef.get().then((doc)=>{
     if (!doc.exists) {
       console.log('no country level document exists for ', country);
+      return undefined;
+    } else if (doc.data().learnerCount === 0) {
+      console.log('country has no learners!');
       return undefined;
     }
     const data = doc.data();
