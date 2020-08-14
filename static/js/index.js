@@ -418,9 +418,10 @@ function onYourLearnersCountrySelectionChanged() {
 
     for (let i = 0; i < yourLearnersData.campaignData.length; i++) {
       let campaign = yourLearnersData.campaignData[i].data;
-      if (campaign.region === countrySelection) {
+      console.log("region is ", campaign.country, " and country is ", countrySelection);
+      if (campaign.country === countrySelection) {
         countryDonationAggregate += typeof campaign.amount === 'string' ?
-        parseFloat(campaign.amount) : campaign.amount;;
+        parseFloat(campaign.amount) : campaign.amount;
         countryLearnersAggregate += campaign.learnerCount;
         if (tempDonationStartDate === null) {
           tempDonationStartDate = new Date(campaign.startDate);
