@@ -418,7 +418,6 @@ function onYourLearnersCountrySelectionChanged() {
 
     for (let i = 0; i < yourLearnersData.campaignData.length; i++) {
       let campaign = yourLearnersData.campaignData[i].data;
-      console.log("region is ", campaign.country, " and country is ", countrySelection);
       if (campaign.country === countrySelection) {
         countryDonationAggregate += typeof campaign.amount === 'string' ?
         parseFloat(campaign.amount) : campaign.amount;
