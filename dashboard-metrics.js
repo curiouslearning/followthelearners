@@ -1,6 +1,6 @@
 const admin = require('firebase-admin');
 const fs = require('fs');
-// const firebase = require('firebase/app');
+const {BigQuery} = require('@google-cloud/bigquery');
 const serviceAccount = require('./keys/firestore-key.json');
 
 admin.initializeApp({
@@ -13,50 +13,73 @@ function main() {
   let donations = getUnfilledDonations();
   let amounts = getDonationsByCountry();
   Promise.all([learners, donations, amounts]).then((vals)=>{
-    let newBlock = '==========================================\n\n';
     let curDate = new Date(Date.now());
-    let dateString = curDate.getFullYear() + '-' + (curDate.getMonth()+1) + '-' + curDate.getDate() + '\n\n';
-    let donationCount = vals[1] + ' unfilled donations.\n\n';
-    let countryReport = generateCountryReport(vals[0], vals[2]);
-    let data = newBlock + dateString + donationCount + countryReport;
-    fs.appendFileSync('dashboard_metrics.txt', data, function(err) {
+    let dateString = curDate.getFullYear() + '-' + (curDate.getMonth()+1) + '-' + curDate.getDate();
+    let data = generateCountryReport(vals[0], vals[2], dateString);
+    fs.writeFileSync('dashboard_metrics.json', data, function(err) {
       if (err) throw err;
       console.log('Successfully wrote file');
     });
+  }).then(()=>{
+    return loadIntoBigQuery('dashboard_metrics.json');
   }).catch((err)=>{
     console.error(err);
   })
 }
 main();
 
-function generateCountryReport(learners, donations) {
+async function loadIntoBigQuery(filename) {
+  const bigQueryClient = new BigQuery();
+  const dataset = bigQueryClient.dataset('ftl_dataset')
+  const table = dataset.table('dashboard_metrics');
+  const metadata = {
+    encoding: 'UTF-8',
+    writeDisposition: 'WRITE_APPEND',
+    sourceFormat: 'NEWLINE_DELIMITED_JSON',
+    schemaUpdateOption: 'ALLOW_FIELD_ADDITION',
+    destinationTable: table,
+  };
+  await table.load('./'+filename, metadata, (err, apiResponse) =>{
+    if (err) throw err;
+    console.log('Successfully uploaded to BigQuery');
+  });
+}
+
+function generateCountryReport(learners, donations, dateString) {
   let report = {};
   for (let country in learners) {
     if (learners[country] !== undefined) {
       if (report[country] === undefined) {
         report[country] = {
-          learnerCount: 0,
+          country: country,
+          date: dateString,
+          unassignedLearners: 0,
           donationCount: 0,
           donationsTotal: 0,
+          learnersAssigned: 0,
           remainingValue: 0,
+          learnersToAssign: 0,
         };
       }
-      report[country].learnerCount = learners[country];
+      report[country].unassignedLearners= learners[country];
       if (donations[country] !== undefined) {
+        const costPerLearner =donations[country].costPerLearner;
         report[country].donationCount = donations[country].donationCount;
         report[country].donationsTotal = donations[country].totalValue;
+        const learnersAssigned =
+          Math.round(donations[country].totalValue/costPerLearner);
+        report[country].learnersAssigned = learnersAssigned
         report[country].remainingValue = donations[country].remainingValue;
+        const learnersToAssign =
+          Math.round(donations[country].remainingValue/costPerLearner);
+        report[country].learnersToAssign= learnersToAssign;
       }
     }
   }
-  let result = "Metrics By Country:\n";
+  result = '';
   for (let country in report) {
     if (report[country] !== undefined) {
-      result += '\t'+country+':\n'+'\t\t'+
-          'learners: '+report[country].learnerCount +
-          '\n\t\t'+'unfilled-donation-count: '+report[country].donationCount+
-          '\n\t\t'+'donation-total: '+report[country].donationsTotal+
-          '\n\t\t'+'dollars-remaining: '+report[country].remainingValue+'\n';
+      result += JSON.stringify(report[country]) + '\n';
     }
   }
   return result;
@@ -101,6 +124,7 @@ function getDonationsByCountry() {
           donationCount: 0,
           remainingValue: 0,
           totalValue: 0,
+          costPerLearner: data.costPerLearner,
         };
       }
       countries[data.country].totalValue += data.amount;
