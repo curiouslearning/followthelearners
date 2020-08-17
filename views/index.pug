@@ -51,12 +51,16 @@ html
       .section.is-hidden#tab-your-learners
         .section(style='margin-top: -2rem; padding-top: 0.5rem; padding-bottom: 0.2rem; margin-bottom: none;')
           h1.title.has-text-grey-dark(style='font-size: 4rem;') Your Learners
-        .select.is-large(style='font-size: 2.4rem')
-          select#yourLearnersCountrySelect(onchange='onYourLearnersCountrySelectionChanged()' style='border: none; width: auto; -webkit-appearance: none; -moz-appearance: none; appearance:none;' name='campaignSelection')
+        .columns.is-large(style='align-items: center; margin-left: 0.2rem; margin-top: 0.2rem')
+          .select.is-large(style='font-size: 2.4rem')
+            select#yourLearnersCountrySelect(onchange='onYourLearnersCountrySelectionChanged()' style='border: none; width: auto; -webkit-appearance: none; -moz-appearance: none; appearance:none;' name='campaignSelection')
+          p
+            h3.subtitle.is-3.has-text-grey(style='margin-top: 1.5rem') Donation: 
+              span $
+              span#donation-amount
+          button.button.is-large.is-pulled-left(onclick="onGiveNowButtonClick()" style='margin-left: 1rem; font-size: 1.5rem')
+            span Give Again
         .section(style='margin-top: none; padding-top: 0.5rem; padding-bottom: 0.2rem; margin-bottom: none;')
-          h3.subtitle.is-3.has-text-grey Donation: 
-            span $
-            span#donation-amount
           h3.subtitle.is-3.has-text-grey You've reached&nbsp;
             span#learner-count
             span &nbsp;Learners since&nbsp;
