@@ -136,7 +136,7 @@ async function assignExpiringLearners() {
       donation = priorityQueue[i];
       let data = [];
       data = learnerQueue[0].data();
-      if (donation.country !== data.country) {
+      if (donation.country !== 'any' && donation.country !== data.country) {
         // only assign users to donations from matching campaigns
         continue;
       }
