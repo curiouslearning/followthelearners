@@ -1,0 +1,315 @@
+/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47
+    throw new Error(`@grpc/grpc-js only works on Node ${supportedNodeVersions}`);
+    ^
+
+Error: @grpc/grpc-js only works on Node ^8.13.0 || >=10.10.0
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47:11)
+    at Module._compile (module.js:652:30)
+    at Object.Module._extensions..js (module.js:663:10)
+    at Module.load (module.js:565:32)
+    at tryModuleLoad (module.js:505:12)
+    at Function.Module._load (module.js:497:3)
+    at Module.require (module.js:596:17)
+    at require (internal/module.js:11:18)
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/google-gax/build/src/grpc.js:21:14)
+    at Module._compile (module.js:652:30)
+/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47
+    throw new Error(`@grpc/grpc-js only works on Node ${supportedNodeVersions}`);
+    ^
+
+Error: @grpc/grpc-js only works on Node ^8.13.0 || >=10.10.0
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47:11)
+    at Module._compile (module.js:652:30)
+    at Object.Module._extensions..js (module.js:663:10)
+    at Module.load (module.js:565:32)
+    at tryModuleLoad (module.js:505:12)
+    at Function.Module._load (module.js:497:3)
+    at Module.require (module.js:596:17)
+    at require (internal/module.js:11:18)
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/google-gax/build/src/grpc.js:21:14)
+    at Module._compile (module.js:652:30)
+/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47
+    throw new Error(`@grpc/grpc-js only works on Node ${supportedNodeVersions}`);
+    ^
+
+Error: @grpc/grpc-js only works on Node ^8.13.0 || >=10.10.0
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47:11)
+    at Module._compile (module.js:652:30)
+    at Object.Module._extensions..js (module.js:663:10)
+    at Module.load (module.js:565:32)
+    at tryModuleLoad (module.js:505:12)
+    at Function.Module._load (module.js:497:3)
+    at Module.require (module.js:596:17)
+    at require (internal/module.js:11:18)
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/google-gax/build/src/grpc.js:21:14)
+    at Module._compile (module.js:652:30)
+/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47
+    throw new Error(`@grpc/grpc-js only works on Node ${supportedNodeVersions}`);
+    ^
+
+Error: @grpc/grpc-js only works on Node ^8.13.0 || >=10.10.0
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47:11)
+    at Module._compile (module.js:652:30)
+    at Object.Module._extensions..js (module.js:663:10)
+    at Module.load (module.js:565:32)
+    at tryModuleLoad (module.js:505:12)
+    at Function.Module._load (module.js:497:3)
+    at Module.require (module.js:596:17)
+    at require (internal/module.js:11:18)
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/google-gax/build/src/grpc.js:21:14)
+    at Module._compile (module.js:652:30)
+/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47
+    throw new Error(`@grpc/grpc-js only works on Node ${supportedNodeVersions}`);
+    ^
+
+Error: @grpc/grpc-js only works on Node ^8.13.0 || >=10.10.0
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47:11)
+    at Module._compile (module.js:652:30)
+    at Object.Module._extensions..js (module.js:663:10)
+    at Module.load (module.js:565:32)
+    at tryModuleLoad (module.js:505:12)
+    at Function.Module._load (module.js:497:3)
+    at Module.require (module.js:596:17)
+    at require (internal/module.js:11:18)
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/google-gax/build/src/grpc.js:21:14)
+    at Module._compile (module.js:652:30)
+/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47
+    throw new Error(`@grpc/grpc-js only works on Node ${supportedNodeVersions}`);
+    ^
+
+Error: @grpc/grpc-js only works on Node ^8.13.0 || >=10.10.0
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47:11)
+    at Module._compile (module.js:652:30)
+    at Object.Module._extensions..js (module.js:663:10)
+    at Module.load (module.js:565:32)
+    at tryModuleLoad (module.js:505:12)
+    at Function.Module._load (module.js:497:3)
+    at Module.require (module.js:596:17)
+    at require (internal/module.js:11:18)
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/google-gax/build/src/grpc.js:21:14)
+    at Module._compile (module.js:652:30)
+/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47
+    throw new Error(`@grpc/grpc-js only works on Node ${supportedNodeVersions}`);
+    ^
+
+Error: @grpc/grpc-js only works on Node ^8.13.0 || >=10.10.0
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47:11)
+    at Module._compile (module.js:652:30)
+    at Object.Module._extensions..js (module.js:663:10)
+    at Module.load (module.js:565:32)
+    at tryModuleLoad (module.js:505:12)
+    at Function.Module._load (module.js:497:3)
+    at Module.require (module.js:596:17)
+    at require (internal/module.js:11:18)
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/google-gax/build/src/grpc.js:21:14)
+    at Module._compile (module.js:652:30)
+/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47
+    throw new Error(`@grpc/grpc-js only works on Node ${supportedNodeVersions}`);
+    ^
+
+Error: @grpc/grpc-js only works on Node ^8.13.0 || >=10.10.0
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47:11)
+    at Module._compile (module.js:652:30)
+    at Object.Module._extensions..js (module.js:663:10)
+    at Module.load (module.js:565:32)
+    at tryModuleLoad (module.js:505:12)
+    at Function.Module._load (module.js:497:3)
+    at Module.require (module.js:596:17)
+    at require (internal/module.js:11:18)
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/google-gax/build/src/grpc.js:21:14)
+    at Module._compile (module.js:652:30)
+/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47
+    throw new Error(`@grpc/grpc-js only works on Node ${supportedNodeVersions}`);
+    ^
+
+Error: @grpc/grpc-js only works on Node ^8.13.0 || >=10.10.0
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47:11)
+    at Module._compile (module.js:652:30)
+    at Object.Module._extensions..js (module.js:663:10)
+    at Module.load (module.js:565:32)
+    at tryModuleLoad (module.js:505:12)
+    at Function.Module._load (module.js:497:3)
+    at Module.require (module.js:596:17)
+    at require (internal/module.js:11:18)
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/google-gax/build/src/grpc.js:21:14)
+    at Module._compile (module.js:652:30)
+/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47
+    throw new Error(`@grpc/grpc-js only works on Node ${supportedNodeVersions}`);
+    ^
+
+Error: @grpc/grpc-js only works on Node ^8.13.0 || >=10.10.0
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47:11)
+    at Module._compile (module.js:652:30)
+    at Object.Module._extensions..js (module.js:663:10)
+    at Module.load (module.js:565:32)
+    at tryModuleLoad (module.js:505:12)
+    at Function.Module._load (module.js:497:3)
+    at Module.require (module.js:596:17)
+    at require (internal/module.js:11:18)
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/google-gax/build/src/grpc.js:21:14)
+    at Module._compile (module.js:652:30)
+/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47
+    throw new Error(`@grpc/grpc-js only works on Node ${supportedNodeVersions}`);
+    ^
+
+Error: @grpc/grpc-js only works on Node ^8.13.0 || >=10.10.0
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47:11)
+    at Module._compile (module.js:652:30)
+    at Object.Module._extensions..js (module.js:663:10)
+    at Module.load (module.js:565:32)
+    at tryModuleLoad (module.js:505:12)
+    at Function.Module._load (module.js:497:3)
+    at Module.require (module.js:596:17)
+    at require (internal/module.js:11:18)
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/google-gax/build/src/grpc.js:21:14)
+    at Module._compile (module.js:652:30)
+/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47
+    throw new Error(`@grpc/grpc-js only works on Node ${supportedNodeVersions}`);
+    ^
+
+Error: @grpc/grpc-js only works on Node ^8.13.0 || >=10.10.0
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47:11)
+    at Module._compile (module.js:652:30)
+    at Object.Module._extensions..js (module.js:663:10)
+    at Module.load (module.js:565:32)
+    at tryModuleLoad (module.js:505:12)
+    at Function.Module._load (module.js:497:3)
+    at Module.require (module.js:596:17)
+    at require (internal/module.js:11:18)
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/google-gax/build/src/grpc.js:21:14)
+    at Module._compile (module.js:652:30)
+/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47
+    throw new Error(`@grpc/grpc-js only works on Node ${supportedNodeVersions}`);
+    ^
+
+Error: @grpc/grpc-js only works on Node ^8.13.0 || >=10.10.0
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47:11)
+    at Module._compile (module.js:652:30)
+    at Object.Module._extensions..js (module.js:663:10)
+    at Module.load (module.js:565:32)
+    at tryModuleLoad (module.js:505:12)
+    at Function.Module._load (module.js:497:3)
+    at Module.require (module.js:596:17)
+    at require (internal/module.js:11:18)
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/google-gax/build/src/grpc.js:21:14)
+    at Module._compile (module.js:652:30)
+/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47
+    throw new Error(`@grpc/grpc-js only works on Node ${supportedNodeVersions}`);
+    ^
+
+Error: @grpc/grpc-js only works on Node ^8.13.0 || >=10.10.0
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47:11)
+    at Module._compile (module.js:652:30)
+    at Object.Module._extensions..js (module.js:663:10)
+    at Module.load (module.js:565:32)
+    at tryModuleLoad (module.js:505:12)
+    at Function.Module._load (module.js:497:3)
+    at Module.require (module.js:596:17)
+    at require (internal/module.js:11:18)
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/google-gax/build/src/grpc.js:21:14)
+    at Module._compile (module.js:652:30)
+/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47
+    throw new Error(`@grpc/grpc-js only works on Node ${supportedNodeVersions}`);
+    ^
+
+Error: @grpc/grpc-js only works on Node ^8.13.0 || >=10.10.0
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47:11)
+    at Module._compile (module.js:652:30)
+    at Object.Module._extensions..js (module.js:663:10)
+    at Module.load (module.js:565:32)
+    at tryModuleLoad (module.js:505:12)
+    at Function.Module._load (module.js:497:3)
+    at Module.require (module.js:596:17)
+    at require (internal/module.js:11:18)
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/google-gax/build/src/grpc.js:21:14)
+    at Module._compile (module.js:652:30)
+/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47
+    throw new Error(`@grpc/grpc-js only works on Node ${supportedNodeVersions}`);
+    ^
+
+Error: @grpc/grpc-js only works on Node ^8.13.0 || >=10.10.0
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47:11)
+    at Module._compile (module.js:652:30)
+    at Object.Module._extensions..js (module.js:663:10)
+    at Module.load (module.js:565:32)
+    at tryModuleLoad (module.js:505:12)
+    at Function.Module._load (module.js:497:3)
+    at Module.require (module.js:596:17)
+    at require (internal/module.js:11:18)
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/google-gax/build/src/grpc.js:21:14)
+    at Module._compile (module.js:652:30)
+/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47
+    throw new Error(`@grpc/grpc-js only works on Node ${supportedNodeVersions}`);
+    ^
+
+Error: @grpc/grpc-js only works on Node ^8.13.0 || >=10.10.0
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47:11)
+    at Module._compile (module.js:652:30)
+    at Object.Module._extensions..js (module.js:663:10)
+    at Module.load (module.js:565:32)
+    at tryModuleLoad (module.js:505:12)
+    at Function.Module._load (module.js:497:3)
+    at Module.require (module.js:596:17)
+    at require (internal/module.js:11:18)
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/google-gax/build/src/grpc.js:21:14)
+    at Module._compile (module.js:652:30)
+/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47
+    throw new Error(`@grpc/grpc-js only works on Node ${supportedNodeVersions}`);
+    ^
+
+Error: @grpc/grpc-js only works on Node ^8.13.0 || >=10.10.0
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47:11)
+    at Module._compile (module.js:652:30)
+    at Object.Module._extensions..js (module.js:663:10)
+    at Module.load (module.js:565:32)
+    at tryModuleLoad (module.js:505:12)
+    at Function.Module._load (module.js:497:3)
+    at Module.require (module.js:596:17)
+    at require (internal/module.js:11:18)
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/google-gax/build/src/grpc.js:21:14)
+    at Module._compile (module.js:652:30)
+/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47
+    throw new Error(`@grpc/grpc-js only works on Node ${supportedNodeVersions}`);
+    ^
+
+Error: @grpc/grpc-js only works on Node ^8.13.0 || >=10.10.0
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47:11)
+    at Module._compile (module.js:652:30)
+    at Object.Module._extensions..js (module.js:663:10)
+    at Module.load (module.js:565:32)
+    at tryModuleLoad (module.js:505:12)
+    at Function.Module._load (module.js:497:3)
+    at Module.require (module.js:596:17)
+    at require (internal/module.js:11:18)
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/google-gax/build/src/grpc.js:21:14)
+    at Module._compile (module.js:652:30)
+/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47
+    throw new Error(`@grpc/grpc-js only works on Node ${supportedNodeVersions}`);
+    ^
+
+Error: @grpc/grpc-js only works on Node ^8.13.0 || >=10.10.0
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47:11)
+    at Module._compile (module.js:652:30)
+    at Object.Module._extensions..js (module.js:663:10)
+    at Module.load (module.js:565:32)
+    at tryModuleLoad (module.js:505:12)
+    at Function.Module._load (module.js:497:3)
+    at Module.require (module.js:596:17)
+    at require (internal/module.js:11:18)
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/google-gax/build/src/grpc.js:21:14)
+    at Module._compile (module.js:652:30)
+/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47
+    throw new Error(`@grpc/grpc-js only works on Node ${supportedNodeVersions}`);
+    ^
+
+Error: @grpc/grpc-js only works on Node ^8.13.0 || >=10.10.0
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/@grpc/grpc-js/build/src/index.js:47:11)
+    at Module._compile (module.js:652:30)
+    at Object.Module._extensions..js (module.js:663:10)
+    at Module.load (module.js:565:32)
+    at tryModuleLoad (module.js:505:12)
+    at Function.Module._load (module.js:497:3)
+    at Module.require (module.js:596:17)
+    at require (internal/module.js:11:18)
+    at Object.<anonymous> (/home/ubuntu/followTheLearners/followthelearners/node_modules/google-gax/build/src/grpc.js:21:14)
+    at Module._compile (module.js:652:30)

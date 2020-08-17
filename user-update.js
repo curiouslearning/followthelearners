@@ -18,6 +18,8 @@ function main() {
   *
   */
   async function fetchUpdatesFromBigQuery() {
+    console.log("updates for ", new Date(Date.now()));
+    console.log('============================================================');
     const bigQueryClient = new BigQuery();
     const tables =[
       `tinkrplayer.analytics_175820453.events_*`,
@@ -123,7 +125,11 @@ async function assignExpiringLearners() {
   }
   let learnerQueue = prioritizeLearnerQueue(learnerSnap);
   let fullDonations = 0;
-  while ((learnerQueue.length > 0) && (fullDonations < priorityQueue.length)) {
+  while ((learnerQueue !== undefined)&&(learnerQueue.length > 1) && (fullDonations < priorityQueue.length)) {
+    if (learnerQueue[0] === undefined) {
+      learnerQueue.splice(0, 1);
+      continue;
+    }
     let foundDonor = false;
     for (let i=0; i < priorityQueue.length; i++) {
       let donation = [];
