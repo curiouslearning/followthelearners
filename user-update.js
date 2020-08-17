@@ -175,10 +175,21 @@ async function assignExpiringLearners() {
     if (!foundDonor) {
       // if there are no matching donors, kick this learner to avoid
       // infinite loops
+      checkUserExpirationDate(learnerQueue[0]);
       learnerQueue.splice(0, 1);
     }
   }
   batchLearnerAssignment(priorityQueue);
+}
+
+function checkUserExpirationDate(user) {
+  let data = user.data();
+  if (data.dateCreated <= new Date(Date.now()-(DAYINMS*PRUNEDATE))) {
+    setTimeout((user)=>{
+      firestore.collection('unassigned_users').doc(user.id).set(user.data());
+      firestore.collection('user_pool').doc(user.id).delete();
+    }, 1010, user);
+  }
 }
 
 function batchLearnerAssignment(priorityQueue) {

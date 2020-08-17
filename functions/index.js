@@ -350,6 +350,65 @@ exports.checkForDonationEndDate = functions.firestore
       }
     });
 
+// If a user is added to a country with a disabled campaign, re-enable it
+exports.enableCampaign = functions.firestore.document('/user_pool/{docID}').
+    onCreate((snap, context)=>{
+      let data = snap.data();
+      return admin.firestore().collection('campaigns')
+          .where('country', '==', data.country).where('isActive', '==', false)
+          .limit(1).get().then((snap)=>{
+            if (snap.empty) {
+              return new Promise((resolve)=>{
+                resolve('no disabled campaigns');
+              });
+            } else {
+              let id = snap.docs[0].id;
+              return admin.firestore().collection('campaigns').doc(id).update({
+                isActive: true
+              });
+            }
+          }).catch((err)=>{
+            console.error(err);
+          });
+    });
+
+// if the last user for a country is removed from the pool, disable that
+// country in the database
+exports.disableCampaign = functions.firestore.document('/user_pool/{docID}')
+    .onDelete((snap, context)=>{
+      let data = snap.data();
+      let pool = admin.firestore().collection('user_pool')
+          .where('country', '==', data.country).get().then((snapshot)=>{
+            return snapshot;
+          }).catch((err)=>{
+            console.error(err);
+          });
+      let campaigns = admin.firestore().collection('campaigns')
+          .where('country', '==', data.country).limit(1).get().then((snap)=>{
+            return snap;
+          }).catch((err)=>{
+            console.error(err);
+          });
+      return Promise.all([pool, campaigns]).then((vals)=>{
+        if (vals[1].empty) { // return early if no matching campaigns exist
+          return new Promise((resolve) =>{
+            resolve('no associated campaign');
+          });
+        }
+        if (vals[0].empty) { // if no learners, disable the campaign
+          let doc = vals[1].docs[0];
+          return admin.firestore().collection('campaigns').doc(doc.id)
+              .update({isActive: false});
+        } else {
+          return new Promise((resolve)=>{ // no change if learners present
+            resolve('found learners');
+          });
+        }
+      }).catch((err)=>{
+        console.error(err);
+      });
+    });
+
 exports.updateRegion = functions.firestore.document('/user_pool/{documentId}')
   .onCreate((snap, context)=>{
     const country = snap.data().country;
