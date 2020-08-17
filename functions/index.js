@@ -5,6 +5,14 @@ const admin = require('firebase-admin');
 admin.initializeApp();
 
 const DEFAULTCPL = 0.25;
+const CONTINENTS = [
+  'Africa',
+  'Americas',
+  'Antarctica',
+  'Asia',
+  'Europe',
+  'Oceania',
+];
 
 exports.forceRegionRecalculation = functions.https.onRequest(async (req, res)=>{
   const locRef = admin.firestore().collection('loc_ref');
@@ -143,6 +151,9 @@ function writeDonation (params)
       if (params.country === 'any') {
         return assignAnyLearner(donorID);
       }
+      if (CONTINENTS.includes(params.country)) {
+        return assignLearnersByContinent(donorID, params.country);
+      }
       return assignInitialLearners(donorID, params.country);
     }).catch((err)=>{
       console.error(err);
@@ -177,7 +188,6 @@ function getDonorID(email) {
     console.error(err);
   });
 }
-
 
 // Grab initial list of learners at donation time from user_pool
 // and assign to donor according to donation amount and campaigns cost/learner
@@ -283,6 +293,44 @@ function assignAnyLearner(donorID) {
   }).catch((err)=>{
     console.error(err);
   });
+}
+
+async function assignLearnersByContinent(donorID, continent) {
+  const donorRef = admin.firestore().collection('donor_master').doc(donorID)
+      .collection('donations').where('country', '==', continent)
+      .orderBy('startDate', 'desc').limit(1).get().then((snapshot)=>{
+        if (snapshot.empty) {
+          throw new Error('no donation for continent ', continent);
+        }
+        return {id: snapshot.docs[0].id, data: snapshot.docs[0].data()};
+      }).catch((err)=>{
+        console.error(err);
+      });
+  const poolRef = admin.firestore().collection('user_pool')
+      .where('continent', '==', continent).get().then((snapshot)=>{
+        return snapshot;
+      }).catch((err)=>{
+        console.error(err);
+      });
+  const campaignRef = admin.firestore().collection('campaigns')
+      .where('country', '==', continent).limit(1).get().then((snapshot)=>{
+        if(snapshot.empty) throw new Error('No campaign found for ', continent);
+        return snapshot.docs[0];
+      }).catch((err)=>{
+        console.error(err);
+      });
+  return Promise.all([donorRef, poolRef, campaignRef]).then((vals)=>{
+    if (vals[1].empty) {
+      return new Promise((resolve)=>{
+        resolve('no users to assign');
+      });
+    }
+    const amount = vals[0].data.amount;
+    const poolSize = vals[1].size;
+    const costPerLearner = vals[2].data.costPerLearner;
+    const learnerCount = calculateUserCount(amount, poolSize, costPerLearner);
+    return batchWriteLearners(vals[1], vals[0], learnerCount);
+  })
 }
 
 // add learners with country and region data to the front of the queue
