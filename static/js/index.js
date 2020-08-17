@@ -199,6 +199,36 @@ function onAllLearnersCountryZoomInClick(country) {
   onCountrySelectionChanged();
 }
 
+/**
+ * Called when user interacts with the give now button
+ */
+function onGiveNowButtonClick() {
+  if (!yourLearnersCountrySelectElement) {
+    console.error("Unable to find country select element for your learners")
+    return;
+  }
+
+  let countrySelection = yourLearnersCountrySelectElement.
+    options[yourLearnersCountrySelectElement.selectedIndex].value;
+  
+  let donorCountries = [];
+  if (yourLearnersCountrySelectElement.options.length > 0 && 
+    countrySelection === 'all-countries') {
+    for (let i = 1; i < yourLearnersCountrySelectElement.options.length; i++) {
+      donorCountries.push(yourLearnersCountrySelectElement.options[i].value);
+    }
+  }
+  
+  $.post('/giveAgain', {
+    email: currentDonorEmail, 
+    countrySelection: countrySelection,
+    donorCountries: donorCountries},
+    function(data, status) {
+      
+    }
+  );
+  
+}
 
 function validateEmail(email) {
   if (email === null || email === undefined) return false;
