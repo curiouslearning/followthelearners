@@ -4,6 +4,14 @@ const fireStoreAdmin = require('firebase-admin');
 const serviceAccount = require('./keys/firestore-key.json');
 const PRUNEDATE = 7;
 const DAYINMS = 86400000;
+const CONTINENTS = [
+  'Africa',
+  'Americas',
+  'Antarctica',
+  'Asia',
+  'Europe',
+  'Oceania',
+];
 
 fireStoreAdmin.initializeApp({
   credential: fireStoreAdmin.credential.cert(serviceAccount),
@@ -136,7 +144,9 @@ async function assignExpiringLearners() {
       donation = priorityQueue[i];
       let data = [];
       data = learnerQueue[0].data();
-      if (donation.country !== 'any' && donation.country !== data.country) {
+      if (donation.country !== 'any' && (donation.country !== data.country ||
+        (CONTINENTS.includes(donation.country) &&
+        donation.country !== data.continent))) {
         // only assign users to donations from matching campaigns
         continue;
       }
@@ -358,6 +368,9 @@ function createUser(row) {
   if (row.country === undefined || row.country === null || row.country === '') {
     row.country = 'no-country';
   }
+  if (row.continent === undefined|| row.country === null || row.country ==='') {
+    row.country = 'not-set';
+  }
 
   const user = {
     userID: row.user_pseudo_id,
@@ -365,6 +378,7 @@ function createUser(row) {
     sourceCampaign: row.name,
     region: row.region,
     country: row.country,
+    continent: row.continent,
     learnerLevel: row.event_name,
   };
   console.log('created user: ' + user.userID);
