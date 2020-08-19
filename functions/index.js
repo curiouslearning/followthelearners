@@ -637,21 +637,37 @@ exports.updateSummary = functions.firestore.document('/loc_ref/{documentId}')
       updateLocationBreakdownForDonation(context);
     });
 
-  exports.updateAggregateData = functions.firestore
-    .document('aggregate_data/RegionSummary').onUpdate((change, context)=>{
-      const sumRef = admin.firestore().collection('aggregate_data').doc('data');
-      const data = change.after.data();
-      let sum = 0;
-      let noCountry =0;
-      data.countries.forEach((country)=> {
-        sum += country.learnerCount;
-        if (country.country === 'no-country') {
-          noCountry = country.learnerCount;
-        }
-      });
-      sumRef.update({
-        allLearnersCount: sum,
-        allLearnersWithDoNotTrack: noCountry
+exports.updateAggregateData = functions.firestore
+    .document('/loc_ref/{documentID}').onUpdate((change, context)=>{
+      const before = change.before.data();
+      const after = change.after.data();
+      console.log('country is: ', context.params.documentID);
+      console.log('before is: ', before.learnerCount);
+      console.log('after is: ', after.learnerCount);
+      if (change.after.learnerCount !== before.learnerCount) {
+        const sumRef = admin.firestore()
+            .collection('aggregate_data').doc('data');
+        return admin.firestore().collection('loc_ref').get().then((snap)=>{
+          let sum = 0;
+          let dntSum = 0;
+          snap.forEach((doc)=>{
+            sum += doc.data().learnerCount;
+            if (doc.data().country === 'no-country') {
+              dntSum += doc.data().learnerCount;
+            }
+          });
+          return {sum: sum, noCountry: dntSum};
+        }).then((data)=>{
+          return sumRef.set({
+            allLearnersCount: data.sum,
+            allLearnersWithDoNotTrack: data.noCountry,
+          });
+        }).catch((err)=>{
+          console.error(err);
+        });
+      }
+      return new Promise((resolve)=>{
+        resolve('no change in learner count');
       });
     });
 
