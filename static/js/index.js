@@ -146,7 +146,7 @@ function GetDataAndSwitchToAllLearners() {
 function getTotalCountForAllLearners(countryLearnersData) {
   let totalCount = 0;
   for (let key in countryLearnersData.campaignData) {
-    if (countryLearnersData.campaignData[key].country !== "no-country") {
+    if ( countryLearnersData.campaignData[key] !== undefined) {
       totalCount += countryLearnersData.campaignData[key].learnerCount;
     }
   }
