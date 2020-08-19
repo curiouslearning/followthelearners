@@ -1,8 +1,11 @@
 const functions = require('firebase-functions');
-
 const admin = require('firebase-admin');
+const nodemailer = require('nodemailer');
+const cors = require('cors')({origin: true});
+const mailConfig = require('../keys/nodemailerConfig.json');
 
 admin.initializeApp();
+const transporter = nodemailer.createTransport(mailConfig);
 
 const DEFAULTCPL = 0.25;
 const CONTINENTS = [
@@ -110,10 +113,9 @@ exports.logDonation = functions.https.onRequest(async (req, res) =>{
   });
 });
 
-function writeDonation (params)
-{
-  const dbRef =  admin.firestore().collection('donor_master');
-  let donorID ="";
+function writeDonation(params) {
+  const dbRef = admin.firestore().collection('donor_master');
+  let donorID ='';
   return getDonorID(params.email).then((foundID)=>{
     if (foundID === '') {
       return dbRef.add({
@@ -155,6 +157,24 @@ function writeDonation (params)
         return assignLearnersByContinent(donorID, params.country);
       }
       return assignInitialLearners(donorID, params.country);
+    }).then((promise)=>{
+      const capitalized = params.firstName.charAt(0).toUpperCase();
+      const name = capitalized + params.firstName.slice(1);
+      const mailOptions = {
+        from: 'notifications@curiouslearning.org',
+        to: params.email,
+        subject: 'Follow The Learners -- Your Learners are Ready!',
+        text: 'Hi '+name+', thank you for helping support Follow the Learners! Click the link below, navigate to the "Your Learners" section, and enter your email to view how we\'re using your donation to bring reading into the lives of children!\n\nhttps://followthelearners.curiouslearning.org/campaigns\n\nFollow the Learners is currently in beta, and we\'re still ironing out some of the wrinkles! If you don\'t see your learners appear after about 5 minutes, please contact support@curiouslearning.org and we will be happy to assist you. ',
+      };
+      return transporter.sendMail(mailOptions, (error, info)=>{
+        if (error) {
+          console.error(error);
+          promise.reject(error);
+        } else {
+          console.log('email sent: ' + info.response);
+          return;
+        }
+      });
     }).catch((err)=>{
       console.error(err);
     });
