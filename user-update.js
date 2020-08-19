@@ -163,11 +163,11 @@ async function assignExpiringLearners() {
         }
         learnerQueue.splice(0, 1);
       } else {
-        if (!donations.hasOwnProperty('isCounted')) {
-          donations['isCounted'] = false;
+        if (!donation.hasOwnProperty('isCounted')) {
+          donation['isCounted'] = false;
         }
-        if (!donations.isCounted) {
-          donations.isCounted = true;
+        if (!donation.isCounted) {
+          donation.isCounted = true;
           fullDonations++;
         }
       }
