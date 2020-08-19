@@ -33,6 +33,8 @@ let allLearnersData = null;
 let loadingAllLearnersData = false;
 let yourLearnersData = null;
 
+const COSTPERLEARNER = 0.25;
+
 $(document).ready(function() {
   donorModal = document.getElementById('donor-email-modal');
   if (tabSelector) {
@@ -247,12 +249,13 @@ function GetDataAndSwitchToDonorLearners() {
             data.locationData[i].country);
       }
     }
-
+    // TODO: expand this  to cover campaigns with varying cost/learner
     let allCountriesAggregateAmount = 0;
     let tempDonationStartDate = null;
     let allCountriesDonationStartDate = "";
     let allCountriesLearnersCount = 0;
     let allCountriesDNTUsersCount = 0;
+    let percentFilled = 0;
     for (let i = 0; i < data.campaignData.length; i++) {
       let donation = data.campaignData[i].data;
       allCountriesAggregateAmount += typeof donation.amount === 'string' ?
@@ -272,7 +275,11 @@ function GetDataAndSwitchToDonorLearners() {
         }
       }
     }
-
+    setDonationPercentage(
+        allCountriesAggregateAmount,
+        allCountriesLearnersCount,
+        COSTPERLEARNER
+    );
     document.getElementById('donation-amount').innerText =
       allCountriesAggregateAmount;
 
@@ -393,6 +400,11 @@ function onYourLearnersCountrySelectionChanged() {
       }
     }
 
+    setDonationPercentage(
+        allCountriesAggregateAmount,
+        allCountriesLearnersCount,
+        COSTPERLEARNER
+    );
     document.getElementById('donation-amount').innerText =
       allCountriesAggregateAmount;
 
@@ -440,6 +452,11 @@ function onYourLearnersCountrySelectionChanged() {
       }
     }
 
+    setDonationPercentage(
+        countryDonationAggregate,
+        countryLearnersAggregate,
+        COSTPERLEARNER
+    );
     createCountUpTextInElement('learner-count', countryLearnersAggregate);
 
     document.getElementById('donation-amount').innerText =
@@ -457,6 +474,19 @@ function onYourLearnersCountrySelectionChanged() {
   console.log(countrySelection);
 }
 
+function setDonationPercentage(fullAmount, learnerCount, costPerLearner) {
+  let learnerMax = fullAmount/costPerLearner;
+  if (isNaN(learnerMax)) {
+    learnerMax = 0;
+  }
+  let decimal = learnerCount/learnerMax;
+  if (isNaN(decimal)) {
+    decimal = 0;
+  }
+  const percentFilled = decimal * 100;
+  $('#percent-filled')
+      .text('You have filled '+ percentFilled+ '% of your donations');
+}
 function clearYourLearnersMarkers() {
   if (loadedYourLearnersMarkers.length > 0) {
     for (let i = 0; i < loadedYourLearnersMarkers.length; i++) {
