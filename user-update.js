@@ -134,52 +134,53 @@ async function assignExpiringLearners() {
   let learnerQueue = prioritizeLearnerQueue(learnerSnap);
   let fullDonations = 0;
   while ((learnerQueue !== undefined)&&(learnerQueue.length > 1) && (fullDonations < priorityQueue.length)) {
-    if (learnerQueue[0] === undefined) {
-      learnerQueue.splice(0, 1);
-      continue;
-    }
     let foundDonor = false;
     for (let i=0; i < priorityQueue.length; i++) {
       let donation = [];
       donation = priorityQueue[i];
       let data = [];
-      data = learnerQueue[0].data();
-      if (donation.country !== 'any' && (donation.country !== data.country ||
-        (CONTINENTS.includes(donation.country) &&
-        donation.country !== data.continent))) {
-        // only assign users to donations from matching campaigns
-        continue;
-      }
-      if (donation.percentFilled < 100) {
-        foundDonor = true;
-        if (!donation.hasOwnProperty('learners')) {
-          donation['learners'] = [];
+      try {
+        data = learnerQueue[0].data();
+        if (donation.country !== 'any' && (donation.country !== data.country ||
+          (CONTINENTS.includes(donation.country) &&
+          donation.country !== data.continent))) {
+          // only assign users to donations from matching campaigns
+          continue;
         }
-        data.sourceDonor = donation.sourceDonor;
-        donation.learners.push(data);
-        const newCount = donation.learnerCount + donation.learners.length;
-        const donationMax = Math.round(donation.amount/donation.costPerLearner);
-        donation.percentFilled = (newCount/donationMax)*100;
-        // log the moment a donation is filled
-        if (donation.percentFilled >= 100) {
-          fullDonations++;
-          donation['isCounted'] = true;
-          firestore.collection('donor_master').doc(donation.sourceDonor)
-              .collection('donations').doc(donation.id).set({
-                endDate: fireStoreAdmin.firestore.Timestamp.now(),
-              }, {merge: true}).catch((err)=>{
-                console.error(err);
-              });
+        if (donation.percentFilled < 100) {
+          foundDonor = true;
+          if (!donation.hasOwnProperty('learners')) {
+            donation['learners'] = [];
+          }
+          data.sourceDonor = donation.sourceDonor;
+          donation.learners.push(data);
+          const newCount = donation.learnerCount + donation.learners.length;
+          const donationMax=Math.round(donation.amount/donation.costPerLearner);
+          donation.percentFilled = (newCount/donationMax)*100;
+          // log the moment a donation is filled
+          if (donation.percentFilled >= 100) {
+            fullDonations++;
+            donation['isCounted'] = true;
+            firestore.collection('donor_master').doc(donation.sourceDonor)
+                .collection('donations').doc(donation.id).set({
+                  endDate: fireStoreAdmin.firestore.Timestamp.now(),
+                }, {merge: true}).catch((err)=>{
+                  console.error(err);
+                });
+          }
+          learnerQueue.splice(0, 1);
+        } else {
+          if (!donation.hasOwnProperty('isCounted')) {
+            donation['isCounted'] = false;
+          }
+          if (!donation.isCounted) {
+            donation.isCounted = true;
+            fullDonations++;
+          }
         }
+      } catch (e) {
         learnerQueue.splice(0, 1);
-      } else {
-        if (!donation.hasOwnProperty('isCounted')) {
-          donation['isCounted'] = false;
-        }
-        if (!donation.isCounted) {
-          donation.isCounted = true;
-          fullDonations++;
-        }
+        continue;
       }
     }
     if (!foundDonor) {
