@@ -206,8 +206,9 @@ function checkForMatch(learner, donation) {
   if (CONTINENTS.includes(donation.country)) {
     if (donation.country === data.continent) {
       return true;
+    }
+    return false;
   }
-  return false;
 }
 
 /**
@@ -223,7 +224,7 @@ function markDonationFilled(donation, count) {
     donation.isCounted = true;
     count++;
   }
-  return count
+  return count;
 }
 
 /**
