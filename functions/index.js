@@ -489,7 +489,9 @@ exports.enableCampaign = functions.firestore.document('/user_pool/{docID}').
     onCreate((snap, context)=>{
       let data = snap.data();
       return admin.firestore().collection('campaigns')
-          .where('country', '==', data.country).where('isActive', '==', false)
+          .where('country', '==', data.country)
+          .where('isActive', '==', true)
+          .where('isVisible', '==', false)
           .limit(1).get().then((snap)=>{
             if (snap.empty) {
               return new Promise((resolve)=>{
@@ -498,7 +500,7 @@ exports.enableCampaign = functions.firestore.document('/user_pool/{docID}').
             } else {
               let id = snap.docs[0].id;
               return admin.firestore().collection('campaigns').doc(id).update({
-                isActive: true
+                isVisible: true
               });
             }
           }).catch((err)=>{
@@ -532,7 +534,7 @@ exports.disableCampaign = functions.firestore.document('/user_pool/{docID}')
         if (vals[0].empty) { // if no learners, disable the campaign
           let doc = vals[1].docs[0];
           return admin.firestore().collection('campaigns').doc(doc.id)
-              .update({isActive: false});
+              .update({isVisible: false});
         } else {
           return new Promise((resolve)=>{ // no change if learners present
             resolve('found learners');
