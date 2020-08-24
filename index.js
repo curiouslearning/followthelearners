@@ -72,6 +72,7 @@ app.get('/campaigns', function(req, res) {
             campaignID: data.campaignID,
             country: data.country,
             donateRef: data.donateRef,
+        	isFeatured: data.isFeatured
           });
         });
         return campaigns;
