@@ -22,8 +22,10 @@ const allLearnersCountElementId = 'all-learners-count';
 const dntLearnersCountElementId = 'no-region-user-count';
 const dntYourLearnersCountElementId = 'your-learners-no-region-user-count';
 
-let newDonorInfoTextId = '#new-donor-info-text';
-let newDonorInfoContentId = '#new-donor-info-content';
+const newDonorInfoTextId = '#new-donor-info-text';
+const newDonorInfoContentId = '#new-donor-info-content';
+const donorEmailModal = '#donor-email-modal';
+const donorEmailSubmit = '#donor-email-submit'
 
 let loadedMarkers = [];
 let loadedYourLearnersMarkers = [];
@@ -215,6 +217,9 @@ function validateEmail(email) {
  * Called from the donor email form
  */
 function GetDataAndSwitchToDonorLearners() {
+  if ($(donorEmailSubmit).prop('disabled') === true) {
+    return;
+  }
   if (currentDonorEmail === null) {
     currentDonorEmail = document.getElementById(donorEmailElementId).value;
   }

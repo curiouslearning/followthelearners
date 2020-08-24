@@ -202,9 +202,9 @@ function getPriorityQueue() {
 */
 function checkForMatch(learner, donation) {
   if (donation.country === 'any') return true;
-  if (donation.country === data.country) return true;
+  if (donation.country === learner.country) return true;
   if (CONTINENTS.includes(donation.country)) {
-    if (donation.country === data.continent) {
+    if (donation.country === learner.continent) {
       return true;
     }
     return false;
