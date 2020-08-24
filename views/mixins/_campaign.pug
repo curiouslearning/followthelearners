@@ -3,7 +3,7 @@ include ./_link
 //- a donation link
 mixin campaign (title, imgRef, body, campaignID, amount, country, donateRef, isFeatured)
   - var featured = isFeatured
-  .card.column.is-shadowless(style='border: none; margin: 10px;')
+  .card.column.is-shadowless.is-one-third(style='border: none; margin: 10px;')
     .card-image
       a(href='/donate?campaign=' + campaignID+'|'+country +'&amount='+amount+'&donateRef='+donateRef target='_blank')
         .box(style="border-radius: 0; box-shadow: 0px 2px 8px #808080; padding: 0")
