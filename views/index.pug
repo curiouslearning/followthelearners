@@ -43,7 +43,7 @@ html
             p If you have not received a beta testing invitation, please e-mail info@curiouslearning.org to log your interest in becoming a tester before donating.
           .columns.is-desktop
             each campaign in campaigns
-              +campaign(campaign.country, campaign.imgRef, campaign.body, campaign.campaignID, campaign.amount, campaign.country, campaign.donateRef)
+              +campaign(campaign.country, campaign.imgRef, campaign.body, campaign.campaignID, campaign.amount, campaign.country, campaign.donateRef, campaign.isFeatured)
             script.
               function goToDonate(campaign, amount, donateRef) {
                 window.open("/donate?campaign=" + campaign + "&amount=" + amount + "&donateRef=" + donateRef, '_blank');
