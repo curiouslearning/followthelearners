@@ -39,6 +39,7 @@ async function assignExpiringLearners() {
       }
       let learnerQueue = prioritizeLearnerQueue(learnerSnap);
       console.log('learnerQueue length: ', learnerQueue.length);
+      console.log('priority queue length:', priorityQueue.length);
       matchLearnersToDonors(learnerQueue, priorityQueue);
       batchLearnerAssignment(priorityQueue);
     }).catch((err)=>{
@@ -71,7 +72,9 @@ function matchLearnersToDonors(learners, donations) {
       donation = donations[i];
       let data = [];
       data = learners[0].data();
+      console.log('learner has country: ', data.country);
       if (!checkForMatch(data, donation)) {
+        console.log('no match for donation to country ', donation.country);
         // only assign users to donations from matching campaigns
         continue;
       }
@@ -80,6 +83,8 @@ function matchLearnersToDonors(learners, donations) {
         if (!donation.hasOwnProperty('learners')) {
           donation['learners'] = [];
         }
+        donation['learners'].push(data);
+        learners.splice(0, 1);
         donation.percentFilled = calculatePercentFilled(donation);
         // log the moment a donation is filled
         if (donation.percentFilled >= 100) {
@@ -91,8 +96,8 @@ function matchLearnersToDonors(learners, donations) {
       }
     }
     if (!foundDonor) {
-      // if there are no matching donors, kick this learner to avoid
-      // infinite loops
+      // if there are no matching donors, check to see if this learner has
+      // expired
       checkUserExpirationDate(learners[0]);
       learners.splice(0, 1);
     }
