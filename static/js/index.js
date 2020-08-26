@@ -228,7 +228,13 @@ function onGiveNowButtonClick() {
     countrySelection: countrySelection,
     donorCountries: donorCountries},
     function(data, status) {
-      
+      if (data) {
+        if (data.hasOwnProperty('action')) {
+          if (data.action === 'switch-to-regions') {
+            tabSelector.ToggleTab('tab-campaigns');
+          }
+        }
+      } 
     }
   );
   
