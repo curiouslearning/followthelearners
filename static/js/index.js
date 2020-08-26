@@ -525,9 +525,15 @@ function setDonationPercentage(fullAmount, learnerCount, costPerLearner) {
     decimal = 0;
   }
   const percentFilled = decimal * 100;
-  $('#percent-filled')
-      .text('You have filled '+ percentFilled+ '% of your donations');
+  if (percentFilled < 100) {
+    $('#percent-filled').text('Check back in a few days to see more learners!');
+    $('#give-again').css('display', 'none');
+  } else {
+    $('#congrats').text('Congrats 🎉! ');
+    $('#give-again').css('display', 'block');
+  }
 }
+
 function clearYourLearnersMarkers() {
   if (loadedYourLearnersMarkers.length > 0) {
     for (let i = 0; i < loadedYourLearnersMarkers.length; i++) {
