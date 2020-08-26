@@ -54,29 +54,31 @@ app.get('/', function(req, res) {
 app.get('/campaigns', function(req, res) {
   const dbRef = firestore.collection('campaigns');
   const campaigns =[];
-  dbRef.where('isActive', '==', true).get().then((snapshot)=>{
-    if (snapshot.empty) {
-      console.log('no active campaigns');
-      return;
-    }
-    snapshot.forEach((doc)=>{
-      const data = doc.data();
-      console.log('data: ', data);
-      campaigns.push({
-        country: data.country,
-        imgRef: data.imgRef,
-        body: data.summary,
-        learnerCount: data.learnerCount,
-        amount: '5.00',
-        campaignID: data.campaignID,
-        country: data.country,
-        donateRef: data.donateRef
-      });
-    });
-    return campaigns;
-  }).then((snapshot)=>{
-    res.render('index', {campaigns: campaigns});
-  }).catch((err)=> console.error(err));
+  dbRef.where('isActive', '==', true).where('isVisible', '==', true)
+      .get().then((snapshot)=>{
+        if (snapshot.empty) {
+          console.log('no active campaigns');
+          return;
+        }
+        snapshot.forEach((doc)=>{
+          const data = doc.data();
+          console.log('data: ', data);
+          campaigns.push({
+            country: data.country,
+            imgRef: data.imgRef,
+            body: data.summary,
+            learnerCount: data.learnerCount,
+            amount: '5.00',
+            campaignID: data.campaignID,
+            country: data.country,
+            donateRef: data.donateRef,
+            isFeatured: data.isFeatured,
+          });
+        });
+        return campaigns;
+      }).then((snapshot)=>{
+        res.render('index', {campaigns: campaigns});
+      }).catch((err)=> console.error(err));
 });
 
 app.get('/donate', function(req, res) {
