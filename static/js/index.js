@@ -72,7 +72,7 @@ $(document).ready(function() {
       }
     });
     tabSelector.addEventListener('tabToggle', (tabId) => {
-      console.log(tabId);
+      // console.log(tabId);
     });
   }
 
