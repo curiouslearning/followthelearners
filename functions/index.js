@@ -1,10 +1,21 @@
 const functions = require('firebase-functions');
-
 const admin = require('firebase-admin');
+const nodemailer = require('nodemailer');
+const cors = require('cors')({origin: true});
+const mailConfig = require('../keys/nodemailerConfig.json');
 
 admin.initializeApp();
+const transporter = nodemailer.createTransport(mailConfig);
 
-
+const DEFAULTCPL = 0.25;
+const CONTINENTS = [
+  'Africa',
+  'Americas',
+  'Antarctica',
+  'Asia',
+  'Europe',
+  'Oceania',
+];
 
 exports.forceRegionRecalculation = functions.https.onRequest(async (req, res)=>{
   const locRef = admin.firestore().collection('loc_ref');
@@ -102,10 +113,9 @@ exports.logDonation = functions.https.onRequest(async (req, res) =>{
   });
 });
 
-function writeDonation (params)
-{
-  const dbRef =  admin.firestore().collection('donor_master');
-  let donorID ="";
+function writeDonation(params) {
+  const dbRef = admin.firestore().collection('donor_master');
+  let donorID ='';
   return getDonorID(params.email).then((foundID)=>{
     if (foundID === '') {
       return dbRef.add({
@@ -122,7 +132,10 @@ function writeDonation (params)
     }
   }).then((foundID)=>{
     donorID = foundID;
-    console.log("new id is: " + donorID);
+    console.log('id is: ' + donorID);
+    if (params.country === 'any') {
+      return DEFAULTCPL;
+    }
     return getCostPerLearner(params.campaignID);
   }).then((costPerLearner)=>{
     const docRef = dbRef.doc(donorID);
@@ -137,8 +150,34 @@ function writeDonation (params)
       startDate: params.timestamp,
       country: params.country,
     }).then((doc)=>{
+      if (params.country === 'any') {
+        return assignAnyLearner(donorID);
+      }
+      if (CONTINENTS.includes(params.country)) {
+        return assignLearnersByContinent(donorID, params.country);
+      }
       return assignInitialLearners(donorID, params.country);
-    }).catch((err)=>{console.error(err);});
+    }).then((promise)=>{
+      const capitalized = params.firstName.charAt(0).toUpperCase();
+      const name = capitalized + params.firstName.slice(1);
+      const mailOptions = {
+        from: 'notifications@curiouslearning.org',
+        to: params.email,
+        subject: 'Follow The Learners -- Your Learners are Ready!',
+        text: 'Hi '+name+', thank you for helping support Follow the Learners! Click the link below, navigate to the "Your Learners" section, and enter your email to view how we\'re using your donation to bring reading into the lives of children!\n\nhttps://followthelearners.curiouslearning.org/campaigns\n\nFollow the Learners is currently in beta, and we\'re still ironing out some of the wrinkles! If you don\'t see your learners appear after about 5 minutes, please contact support@curiouslearning.org and we will be happy to assist you. ',
+      };
+      return transporter.sendMail(mailOptions, (error, info)=>{
+        if (error) {
+          console.error(error);
+          promise.reject(error);
+        } else {
+          console.log('email sent: ' + info.response);
+          return;
+        }
+      });
+    }).catch((err)=>{
+      console.error(err);
+    });
   }).catch((err) =>{
     console.error(err);
     return err;
@@ -169,58 +208,153 @@ function getDonorID(email) {
     console.error(err);
   });
 }
+
 // Grab initial list of learners at donation time from user_pool
 // and assign to donor according to donation amount and campaigns cost/learner
 function assignInitialLearners(donorID, country) {
-  //Grab the donation object we're migrating learners to
+  // Grab the donation object we're migrating learners to
   const donorRef = admin.firestore().collection('donor_master').doc(donorID)
-  .collection('donations').where('country', '==', country)
-  .orderBy('startDate', 'desc').get()
-  .then((snapshot)=>{
-    if(snapshot.size === 0) {
-      throw new Error(donorID, " is missing Donation Document for: ", country);
+      .collection('donations').where('country', '==', country)
+      .orderBy('startDate', 'desc').get()
+      .then((snapshot)=>{
+        if (snapshot.size === 0) {
+          throw new Error(donorID, ' is missing Donation Document for: ', country);
+        }
+        const docID = snapshot.docs[0].id;
+        const data = snapshot.docs[0].data();
+        return {id: docID, data: data};
+      }).catch((err)=>{
+        console.error(err);
+      });
+  // the user pool we'll be pulling learners from
+  const poolRef = admin.firestore().collection('user_pool')
+      .where('country', '==', country).get().then((snapshot)=>{
+        return snapshot;
+      }).catch((err)=>{
+        console.error(err);
+      });
+  // data from the base campaign object such as cost/learner
+  const campaignRef = admin.firestore().collection('campaigns')
+      .where('country', '==', country).get().then((snapshot)=>{
+        if (snapshot.empty) {
+          throw new Error('Missing Campaign Document for ID: ', country);
+        }
+        let docData = snapshot.docs[0].data();
+        let docId = snapshot.docs[0].id;
+        return {id: docId, data: docData};
+      }).catch((err)=>{
+        console.error(err);
+      });
+
+  return Promise.all([donorRef, poolRef, campaignRef]).then((vals)=>{
+    if (vals[1].empty) {
+      console.warn('No free users for campaign: ', vals[0].data.campaignID);
+      return new Promise((resolve)=>{
+        resolve('resolved');
+      });
     }
-    const docID = snapshot.docs[0].id;
-    const data = snapshot.docs[0].data();
-    return {id: docID, data: data};
+    const amount = vals[0].data.amount;
+    const poolSize = vals[1].size;
+    const costPerLearner = vals[2].data.costPerLearner;
+    const learnerCount = calculateUserCount(amount, poolSize, costPerLearner);
+    return batchWriteLearners(vals[1], vals[0], learnerCount);
   }).catch((err)=>{
     console.error(err);
   });
-  //the user pool we'll be pulling learners from
-  const poolRef = admin.firestore().collection('user_pool')
-    .where('country', '==', country).get().then((snapshot)=>{
-      return snapshot;
-    }).catch((err)=>{
-      console.error(err);
-    });
-  //data from the base campaign object such as cost/learner
-  const campaignRef = admin.firestore().collection('campaigns')
-    .where('country', '==', country).get().then((snapshot)=>{
-      if(snapshot.empty) {
-        throw new Error("Missing Campaign Document for ID: ", country);
-      }
-      let docData = snapshot.docs[0].data();
-      let docId = snapshot.docs[0].id;
-      return {id: docId, data: docData};
-    }).catch((err)=>{
-      console.error(err);
-    });
+}
 
-    Promise.all([donorRef, poolRef, campaignRef]).then((vals)=>{
-      if(vals[1].empty) {
-        console.warn("No users available for campaign: ", vals[0].data.campaignID);
-        return 1;
-      }
-      const amount = vals[0].data.amount;
-      const poolSize = vals[1].size;
-      const costPerLearner = vals[2].data.costPerLearner;
-      const learnerCount = calculateUserCount(amount, poolSize, costPerLearner);
-      return batchWriteLearners(vals[1], vals[0], learnerCount);
-    }).catch((err)=>{console.error(err);});
+// special assignment case that matches learners from any country
+function assignAnyLearner(donorID) {
+  const donorRef = admin.firestore().collection('donor_master').doc(donorID)
+      .collection('donations').where('country', '==', 'any')
+      .orderBy('startDate', 'desc').get()
+      .then((snapshot)=>{
+        if (snapshot.empty) {
+          throw new Error(donorID, ' is missing Donation Document for any country');
+        }
+        const docID = snapshot.docs[0].id;
+        const data = snapshot.docs[0].data();
+        return {id: docID, data: data};
+      }).catch((err)=>{
+        console.error(err);
+      });
+
+  const poolRef = admin.firestore().collection('user_pool').get()
+      .then((snapshot)=>{
+        return snapshot
+      }).catch((err)=>{
+        console.error(err);
+      });
+  const campaignRef = admin.firestore().collection('campaigns').get()
+      .then((snapshot)=>{
+        return snapshot;
+      }).catch((err)=>{
+        console.error(err);
+      });
+  return Promise.all([donorRef, poolRef, campaignRef]).then((vals)=>{
+    if (vals[1].empty) {
+      console.warn('No users available');
+      return new Promise((resolve) => {
+        resolve('resolved');
+      });
+    }
+    if (vals[2].empty) {
+      console.warn('no campaigns available');
+      return new Promise((reject)=>{
+        reject(new Error('no available campaigns'));
+      });
+    }
+    console.log('adding learners to donation ', vals[0].id, ' from donor ', vals[0].data.sourceDonor);
+    const amount = vals[0].data.amount;
+    const poolSize = vals[1].size;
+    const costPerLearner = DEFAULTCPL;
+    const learnerCount = calculateUserCount(amount, poolSize, costPerLearner);
+    return batchWriteLearners(vals[1], vals[0], learnerCount);
+  }).catch((err)=>{
+    console.error(err);
+  });
+}
+
+async function assignLearnersByContinent(donorID, continent) {
+  const donorRef = admin.firestore().collection('donor_master').doc(donorID)
+      .collection('donations').where('country', '==', continent)
+      .orderBy('startDate', 'desc').limit(1).get().then((snapshot)=>{
+        if (snapshot.empty) {
+          throw new Error('no donation for continent ', continent);
+        }
+        return {id: snapshot.docs[0].id, data: snapshot.docs[0].data()};
+      }).catch((err)=>{
+        console.error(err);
+      });
+  const poolRef = admin.firestore().collection('user_pool')
+      .where('continent', '==', continent).get().then((snapshot)=>{
+        return snapshot;
+      }).catch((err)=>{
+        console.error(err);
+      });
+  const campaignRef = admin.firestore().collection('campaigns')
+      .where('country', '==', continent).limit(1).get().then((snapshot)=>{
+        if(snapshot.empty) throw new Error('No campaign found for ', continent);
+        return snapshot.docs[0];
+      }).catch((err)=>{
+        console.error(err);
+      });
+  return Promise.all([donorRef, poolRef, campaignRef]).then((vals)=>{
+    if (vals[1].empty) {
+      return new Promise((resolve)=>{
+        resolve('no users to assign');
+      });
+    }
+    const amount = vals[0].data.amount;
+    const poolSize = vals[1].size;
+    const costPerLearner = vals[2].data.costPerLearner;
+    const learnerCount = calculateUserCount(amount, poolSize, costPerLearner);
+    return batchWriteLearners(vals[1], vals[0], learnerCount);
+  })
 }
 
 // add learners with country and region data to the front of the queue
-function prioritizeLearnerQueue (queue) {
+function prioritizeLearnerQueue(queue) {
   if (queue.empty) {
     return queue.docs;
   }
@@ -274,7 +408,7 @@ function batchWriteLearners(snapshot, donation, learnerCount) {
     let learnerID = snapshot.docs[i].id;
     let data = snapshot.docs[i].data();
     data.sourceDonor = donorID;
-    const newRef = donationRef.collection('users').doc();
+    const newRef = donationRef.collection('users').doc(learnerID);
     batches[batchCount].set(newRef, data);
     batches[batchCount].delete(poolRef.doc(learnerID)); //avoid multiple documents per learner
     batchSize += 2;
@@ -348,6 +482,67 @@ exports.checkForDonationEndDate = functions.firestore
         }
         return new Promise((resolve)=>{resolve('resolved');})
       }
+    });
+
+// If a user is added to a country with a disabled campaign, re-enable it
+exports.enableCampaign = functions.firestore.document('/user_pool/{docID}').
+    onCreate((snap, context)=>{
+      let data = snap.data();
+      return admin.firestore().collection('campaigns')
+          .where('country', '==', data.country)
+          .where('isActive', '==', true)
+          .where('isVisible', '==', false)
+          .limit(1).get().then((snap)=>{
+            if (snap.empty) {
+              return new Promise((resolve)=>{
+                resolve('no disabled campaigns');
+              });
+            } else {
+              let id = snap.docs[0].id;
+              return admin.firestore().collection('campaigns').doc(id).update({
+                isVisible: true
+              });
+            }
+          }).catch((err)=>{
+            console.error(err);
+          });
+    });
+
+// if the last user for a country is removed from the pool, disable that
+// country in the database
+exports.disableCampaign = functions.firestore.document('/user_pool/{docID}')
+    .onDelete((snap, context)=>{
+      let data = snap.data();
+      let pool = admin.firestore().collection('user_pool')
+          .where('country', '==', data.country).get().then((snapshot)=>{
+            return snapshot;
+          }).catch((err)=>{
+            console.error(err);
+          });
+      let campaigns = admin.firestore().collection('campaigns')
+          .where('country', '==', data.country).limit(1).get().then((snap)=>{
+            return snap;
+          }).catch((err)=>{
+            console.error(err);
+          });
+      return Promise.all([pool, campaigns]).then((vals)=>{
+        if (vals[1].empty) { // return early if no matching campaigns exist
+          return new Promise((resolve) =>{
+            resolve('no associated campaign');
+          });
+        }
+        if (vals[0].empty) { // if no learners, disable the campaign
+          let doc = vals[1].docs[0];
+          return admin.firestore().collection('campaigns').doc(doc.id)
+              .update({isVisible: false});
+        } else {
+          return new Promise((resolve)=>{ // no change if learners present
+            resolve('found learners');
+          });
+        }
+      }).catch((err)=>{
+        console.error(err);
+      });
     });
 
 exports.updateRegion = functions.firestore.document('/user_pool/{documentId}')
@@ -464,21 +659,37 @@ exports.updateSummary = functions.firestore.document('/loc_ref/{documentId}')
       updateLocationBreakdownForDonation(context);
     });
 
-  exports.updateAggregateData = functions.firestore
-    .document('aggregate_data/RegionSummary').onUpdate((change, context)=>{
-      const sumRef = admin.firestore().collection('aggregate_data').doc('data');
-      const data = change.after.data();
-      let sum = 0;
-      let noCountry =0;
-      data.countries.forEach((country)=> {
-        sum += country.learnerCount;
-        if (country.country === 'no-country') {
-          noCountry = country.learnerCount;
-        }
-      });
-      sumRef.update({
-        allLearnersCount: sum,
-        allLearnersWithDoNotTrack: noCountry
+exports.updateAggregateData = functions.firestore
+    .document('/loc_ref/{documentID}').onUpdate((change, context)=>{
+      const before = change.before.data();
+      const after = change.after.data();
+      console.log('country is: ', context.params.documentID);
+      console.log('before is: ', before.learnerCount);
+      console.log('after is: ', after.learnerCount);
+      if (change.after.learnerCount !== before.learnerCount) {
+        const sumRef = admin.firestore()
+            .collection('aggregate_data').doc('data');
+        return admin.firestore().collection('loc_ref').get().then((snap)=>{
+          let sum = 0;
+          let dntSum = 0;
+          snap.forEach((doc)=>{
+            sum += doc.data().learnerCount;
+            if (doc.data().country === 'no-country') {
+              dntSum += doc.data().learnerCount;
+            }
+          });
+          return {sum: sum, noCountry: dntSum};
+        }).then((data)=>{
+          return sumRef.set({
+            allLearnersCount: data.sum,
+            allLearnersWithDoNotTrack: data.noCountry,
+          });
+        }).catch((err)=>{
+          console.error(err);
+        });
+      }
+      return new Promise((resolve)=>{
+        resolve('no change in learner count');
       });
     });
 

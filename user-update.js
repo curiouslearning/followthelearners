@@ -4,6 +4,14 @@ const fireStoreAdmin = require('firebase-admin');
 const serviceAccount = require('./keys/firestore-key.json');
 const PRUNEDATE = 7;
 const DAYINMS = 86400000;
+const CONTINENTS = [
+  'Africa',
+  'Americas',
+  'Antarctica',
+  'Asia',
+  'Europe',
+  'Oceania',
+];
 
 fireStoreAdmin.initializeApp({
   credential: fireStoreAdmin.credential.cert(serviceAccount),
@@ -106,175 +114,8 @@ function main() {
     } catch (err) {
       console.error('ERROR', err);
     }
-    assignExpiringLearners();
   }
   fetchUpdatesFromBigQuery();
-}
-
-
-async function assignExpiringLearners() {
-  let priorityQueue = await getPriorityQueue();
-  if (priorityQueue === undefined) {
-    console.log('failed to create priority queue');
-    return;
-  } // early return for no donations
-  const learnerSnap = await getLearnerQueue(priorityQueue.length, PRUNEDATE);
-  if (learnerSnap === undefined || learnerSnap.empty) {
-    console.log('no new learners to assign');
-    return;
-  }
-  let learnerQueue = prioritizeLearnerQueue(learnerSnap);
-  let fullDonations = 0;
-  while ((learnerQueue !== undefined)&&(learnerQueue.length > 1) && (fullDonations < priorityQueue.length)) {
-    if (learnerQueue[0] === undefined) {
-      learnerQueue.splice(0, 1);
-      continue;
-    }
-    let foundDonor = false;
-    for (let i=0; i < priorityQueue.length; i++) {
-      let donation = [];
-      donation = priorityQueue[i];
-      let data = [];
-      data = learnerQueue[0].data();
-      if (donation.country !== data.country) {
-        // only assign users to donations from matching campaigns
-        continue;
-      }
-      if (donation.percentFilled < 100) {
-        foundDonor = true;
-        if (!donation.hasOwnProperty('learners')) {
-          donation['learners'] = [];
-        }
-        data.sourceDonor = donation.sourceDonor;
-        donation.learners.push(data);
-        const newCount = donation.learnerCount + donation.learners.length;
-        const donationMax = Math.round(donation.amount/donation.costPerLearner);
-        donation.percentFilled = (newCount/donationMax)*100;
-        // log the moment a donation is filled
-        if (donation.percentFilled >= 100) {
-          fullDonations++;
-          donation['isCounted'] = true;
-          firestore.collection('donor_master').doc(donation.sourceDonor)
-              .collection('donations').doc(donation.id).set({
-                endDate: fireStoreAdmin.firestore.Timestamp.now(),
-              }, {merge: true}).catch((err)=>{
-                console.error(err);
-              });
-        }
-        learnerQueue.splice(0, 1);
-      } else {
-        if (!donation.hasOwnProperty('isCounted')) {
-          donation['isCounted'] = false;
-        }
-        if (!donation.isCounted) {
-          donation.isCounted = true;
-          fullDonations++;
-        }
-      }
-    }
-    if (!foundDonor) {
-      // if there are no matching donors, kick this learner to avoid
-      // infinite loops
-      learnerQueue.splice(0, 1);
-    }
-  }
-  batchLearnerAssignment(priorityQueue);
-}
-
-function batchLearnerAssignment(priorityQueue) {
-  const batchMax= 495;
-  let batchSize = 0;
-  let batchCount = 0;
-  let batches = [];
-  batches[batchCount] = firestore.batch();
-  const poolRef = firestore.collection('user_pool');
-  priorityQueue.forEach((donation, i)=>{
-    const msgRef = firestore.collection('donor_master')
-        .doc(donation.sourceDonor)
-        .collection('donations').doc(donation.id).collection('users');
-    if (donation.hasOwnProperty('learners')) {
-      donation.learners.forEach((learner) =>{
-        if (batchSize >= batchMax) {
-          batchSize = 0;
-          batchCount++;
-          batches[batchCount] = firestore.batch();
-        }
-        const docRef = msgRef.doc(learner.userID);
-        batches[batchCount].set(docRef, learner);
-        const deleteRef = poolRef.doc(learner.userID);
-        batches[batchCount].delete(deleteRef);
-        batchSize += 2;
-      });
-    }
-  });
-  writeToDb(batches);
-}
-
-function getLearnerQueue(donationCount, interval) {
-  const pivotDate = new Date(Date.now()-(DAYINMS*interval));
-  return firestore.collection('user_pool').where('dateCreated', '<=', pivotDate)
-      .orderBy('dateCreated', 'asc').get().then((snap)=>{
-        if (snap.empty || snap.size < donationCount) {
-          if (interval > 0) {
-            const newInterval = interval -1;
-            return getLearnerQueue(donationCount, newInterval);
-          } else {
-            return snap;
-          }
-        }
-        return snap;
-      }).catch((err)=>{
-        console.error(err);
-      });
-}
-
-function prioritizeLearnerQueue(queue) {
-  if (queue.empty) {
-    return queue.docs;
-  }
-  let prioritizedQueue = [];
-  queue.forEach((doc)=>{
-    let data = doc.data();
-    if (data.region !== 'no-region') {
-      prioritizedQueue.unshift(doc);
-    } else {
-      prioritizedQueue.push(doc);
-    }
-  });
-  return prioritizedQueue;
-}
-
-function getPriorityQueue() {
-  return firestore.collectionGroup('donations')
-      .where('percentFilled', '<', 100)
-      .orderBy('percentFilled', 'desc')
-      .orderBy('startDate', 'asc').get().then((snap)=>{
-        if (snap.empty) {
-          console.log('no un-filled donations');
-          return undefined;
-        }
-        let priorityQueue = [];
-        let monthlyQueue = [];
-        let oneTimeQueue = [];
-        snap.forEach((doc)=>{
-          let data = doc.data();
-          data['id'] = doc.id;
-          if (data.frequency === 'monthly') {
-            monthlyQueue.push(data);
-          } else {
-            oneTimeQueue.push(data);
-          }
-        });
-        monthlyQueue.forEach((elem)=>{
-          priorityQueue.push(elem);
-        });
-        oneTimeQueue.forEach((elem) => {
-          priorityQueue.push(elem);
-        });
-        return priorityQueue;
-      }).catch((err)=>{
-        console.error(err);
-      });
 }
 
 /**
@@ -347,6 +188,9 @@ function createUser(row) {
   if (row.country === undefined || row.country === null || row.country === '') {
     row.country = 'no-country';
   }
+  if (row.continent === undefined|| row.country === null || row.country ==='') {
+    row.country = 'not-set';
+  }
 
   const user = {
     userID: row.user_pseudo_id,
@@ -354,6 +198,7 @@ function createUser(row) {
     sourceCampaign: row.name,
     region: row.region,
     country: row.country,
+    continent: row.continent,
     learnerLevel: row.event_name,
   };
   console.log('created user: ' + user.userID);

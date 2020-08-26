@@ -22,8 +22,10 @@ const allLearnersCountElementId = 'all-learners-count';
 const dntLearnersCountElementId = 'no-region-user-count';
 const dntYourLearnersCountElementId = 'your-learners-no-region-user-count';
 
-let newDonorInfoTextId = '#new-donor-info-text';
-let newDonorInfoContentId = '#new-donor-info-content';
+const newDonorInfoTextId = '#new-donor-info-text';
+const newDonorInfoContentId = '#new-donor-info-content';
+const donorEmailModal = '#donor-email-modal';
+const donorEmailSubmit = '#donor-email-submit'
 
 let loadedMarkers = [];
 let loadedYourLearnersMarkers = [];
@@ -32,6 +34,8 @@ let markerClusterer = null;
 let allLearnersData = null;
 let loadingAllLearnersData = false;
 let yourLearnersData = null;
+
+const COSTPERLEARNER = 0.25;
 
 $(document).ready(function() {
   donorModal = document.getElementById('donor-email-modal');
@@ -68,7 +72,7 @@ $(document).ready(function() {
       }
     });
     tabSelector.addEventListener('tabToggle', (tabId) => {
-      console.log(tabId);
+      // console.log(tabId);
     });
   }
 
@@ -146,7 +150,7 @@ function GetDataAndSwitchToAllLearners() {
 function getTotalCountForAllLearners(countryLearnersData) {
   let totalCount = 0;
   for (let key in countryLearnersData.campaignData) {
-    if (countryLearnersData.campaignData[key].country !== "no-country") {
+    if ( countryLearnersData.campaignData[key] !== undefined) {
       totalCount += countryLearnersData.campaignData[key].learnerCount;
     }
   }
@@ -199,6 +203,42 @@ function onAllLearnersCountryZoomInClick(country) {
   onCountrySelectionChanged();
 }
 
+/**
+ * Called when user interacts with the give now button
+ */
+function onGiveNowButtonClick() {
+  if (!yourLearnersCountrySelectElement) {
+    console.error("Unable to find country select element for your learners")
+    return;
+  }
+
+  let countrySelection = yourLearnersCountrySelectElement.
+    options[yourLearnersCountrySelectElement.selectedIndex].value;
+  
+  let donorCountries = [];
+  if (yourLearnersCountrySelectElement.options.length > 0 && 
+    countrySelection === 'all-countries') {
+    for (let i = 1; i < yourLearnersCountrySelectElement.options.length; i++) {
+      donorCountries.push(yourLearnersCountrySelectElement.options[i].value);
+    }
+  }
+  
+  $.post('/giveAgain', {
+    email: currentDonorEmail, 
+    countrySelection: countrySelection,
+    donorCountries: donorCountries},
+    function(data, status) {
+      if (data) {
+        if (data.hasOwnProperty('action')) {
+          if (data.action === 'switch-to-regions') {
+            tabSelector.ToggleTab('tab-campaigns');
+          }
+        }
+      } 
+    }
+  );
+  
+}
 
 function validateEmail(email) {
   if (email === null || email === undefined) return false;
@@ -213,6 +253,9 @@ function validateEmail(email) {
  * Called from the donor email form
  */
 function GetDataAndSwitchToDonorLearners() {
+  if ($(donorEmailSubmit).prop('disabled') === true) {
+    return;
+  }
   if (currentDonorEmail === null) {
     currentDonorEmail = document.getElementById(donorEmailElementId).value;
   }
@@ -247,12 +290,13 @@ function GetDataAndSwitchToDonorLearners() {
             data.locationData[i].country);
       }
     }
-
+    // TODO: expand this  to cover campaigns with varying cost/learner
     let allCountriesAggregateAmount = 0;
     let tempDonationStartDate = null;
     let allCountriesDonationStartDate = "";
     let allCountriesLearnersCount = 0;
     let allCountriesDNTUsersCount = 0;
+    let percentFilled = 0;
     for (let i = 0; i < data.campaignData.length; i++) {
       let donation = data.campaignData[i].data;
       allCountriesAggregateAmount += typeof donation.amount === 'string' ?
@@ -272,7 +316,11 @@ function GetDataAndSwitchToDonorLearners() {
         }
       }
     }
-
+    setDonationPercentage(
+        allCountriesAggregateAmount,
+        allCountriesLearnersCount,
+        COSTPERLEARNER
+    );
     document.getElementById('donation-amount').innerText =
       allCountriesAggregateAmount;
 
@@ -393,6 +441,11 @@ function onYourLearnersCountrySelectionChanged() {
       }
     }
 
+    setDonationPercentage(
+        allCountriesAggregateAmount,
+        allCountriesLearnersCount,
+        COSTPERLEARNER
+    );
     document.getElementById('donation-amount').innerText =
       allCountriesAggregateAmount;
 
@@ -440,6 +493,11 @@ function onYourLearnersCountrySelectionChanged() {
       }
     }
 
+    setDonationPercentage(
+        countryDonationAggregate,
+        countryLearnersAggregate,
+        COSTPERLEARNER
+    );
     createCountUpTextInElement('learner-count', countryLearnersAggregate);
 
     document.getElementById('donation-amount').innerText =
@@ -455,6 +513,25 @@ function onYourLearnersCountrySelectionChanged() {
   }
 
   console.log(countrySelection);
+}
+
+function setDonationPercentage(fullAmount, learnerCount, costPerLearner) {
+  let learnerMax = fullAmount/costPerLearner;
+  if (isNaN(learnerMax)) {
+    learnerMax = 0;
+  }
+  let decimal = learnerCount/learnerMax;
+  if (isNaN(decimal)) {
+    decimal = 0;
+  }
+  const percentFilled = decimal * 100;
+  if (percentFilled < 100) {
+    $('#percent-filled').text('Check back in a few days to see more learners!');
+    $('#give-again').css('display', 'none');
+  } else {
+    $('#congrats').text('Congrats 🎉! ');
+    $('#give-again').css('display', 'block');
+  }
 }
 
 function clearYourLearnersMarkers() {

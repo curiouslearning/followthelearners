@@ -10,6 +10,40 @@ html
         src="https://code.jquery.com/jquery-3.5.0.min.js"
         integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
         crossorigin="anonymous")
+    style(type='text/css').
+      .read-more-text {
+        display: none;
+      }
+      .read-more-button {
+        width: 40%;
+        font-size: 1rem;
+        background-color: rgba(30, 30, 30, 0.8); 
+        border: none;
+        color: white;
+      }
+      .read-more-button-parent {
+        text-align: center; 
+        margin-top: -4px; 
+        z-index: 100;
+      }
+      #give-again {
+        background: none!important;
+        border: none;
+        padding: 0!important;
+        text-decoration: underline;
+        cursor: pointer;
+        font-size: 1.4rem;
+        font-weight: bold;
+        color: #069;
+      }
+      #percent-filled {
+        font-size: 1.4rem;
+        background: none!important;
+        border: none;
+        padding: 0!important;
+        font-weight: bold;
+      }
+
   body
     header(style='z-index: 10;')
       .section(style='margin-bottom: -120px;')
@@ -41,29 +75,55 @@ html
           h3.subtitle.has-text-grey.has-text-centered(style='font-size: 1rem; background-color: rgba(255, 217, 105, 0.5)')
             p Follow The Learners is currently in beta testing.
             p If you have not received a beta testing invitation, please e-mail info@curiouslearning.org to log your interest in becoming a tester before donating.
-          .columns.is-desktop
-            each campaign in campaigns
-              +campaign(campaign.country, campaign.imgRef, campaign.body, campaign.campaignID, campaign.amount, campaign.country, campaign.donateRef)
-            script.
-              function goToDonate(campaign, amount, donateRef) {
-                window.open("/donate?campaign=" + campaign + "&amount=" + amount + "&donateRef=" + donateRef, '_blank');
+          - for (let i = 0; i < campaigns.length; i++)
+            if (i === 0 || i % 3 === 0)
+              .columns.is-desktop 
+                - for (var j = i; j < (3 + i); j++)
+                  - if (j >= campaigns.length) break;
+                    - let campaign = campaigns[j];
+                    +campaign(campaign.country, campaign.imgRef, campaign.body, campaign.campaignID, campaign.amount, campaign.country, campaign.donateRef, campaign.isFeatured)
+          script.
+            function goToDonate(campaign, amount, donateRef) {
+              window.open("/donate?campaign=" + campaign + "&amount=" + amount + "&donateRef=" + donateRef, '_blank');
+            }
+            function readMore(btn) {
+              let spanId = btn.id.replace('btn_', '');
+              let readMoreElement = document.getElementById(spanId);
+              if (readMoreElement && readMoreElement.style.display === '' || 
+                  readMoreElement && readMoreElement.style.display === 'none') {
+                readMoreElement.style.display = 'block';
+                btn.innerText = 'Read Less';
+                btn.style.marginTop = '10px';
+              } else if (readMoreElement && readMoreElement.style.display === 'block') {
+                readMoreElement.style.display = 'none';
+                btn.innerText = 'Read More';
+                btn.style.marginTop = '-4px';
               }
+            }
       .section.is-hidden#tab-your-learners
         .section(style='margin-top: -2rem; padding-top: 0.5rem; padding-bottom: 0.2rem; margin-bottom: none;')
           h1.title.has-text-grey-dark(style='font-size: 4rem;') Your Learners
-        .select.is-large(style='font-size: 2.4rem')
-          select#yourLearnersCountrySelect(onchange='onYourLearnersCountrySelectionChanged()' style='border: none; width: auto; -webkit-appearance: none; -moz-appearance: none; appearance:none;' name='campaignSelection')
-        .section(style='margin-top: none; padding-top: 0.5rem; padding-bottom: 0.2rem; margin-bottom: none;')
-          h3.subtitle.is-3.has-text-grey Donation: 
-            span $
-            span#donation-amount
-          h3.subtitle.is-3.has-text-grey You've reached&nbsp;
+        .columns.is-large(style='align-items: center; margin-left: 0.2rem; margin-top: 0.2rem; margin-bottom: 0')
+          .select.is-large(style='font-size: 2.4rem')
+            select#yourLearnersCountrySelect(onchange='onYourLearnersCountrySelectionChanged()' style='border: none; width: auto; -webkit-appearance: none; -moz-appearance: none; appearance:none;' name='campaignSelection')
+          p
+            h3.subtitle.is-3.has-text-grey(style='margin-top: 1.5rem') Amount Donated: 
+              span $
+              span#donation-amount
+        .section(style='margin-top: 0rem; padding-top: 0.2rem; padding-bottom: 0.2rem; margin-bottom: none;')
+          h3.subtitle.is-3.has-text-grey(style='margin-bottom: 0.5rem;')
+            span#congrats
+            span You've reached&nbsp;
             span#learner-count
             span &nbsp;Learners since&nbsp;
             span#donation-date
             span(style='font-size: 1.4rem;') &nbsp;(
               span#your-learners-no-region-user-count
               span &nbsp;users have Do Not Track on.)
+          button.button.is-large#give-again(onclick="onGiveNowButtonClick()")
+            span Would you like to give again to reach more?
+          h3.subtitle.is-3.has-text-grey
+            span#percent-filled
         .section(style='margin-top: none; padding-top: 0.5rem; margin-bottom: none; padding-bottom: 0.1rem')
           #map-display-your-learners(style="width: 100%; height: 640px;")
 
@@ -95,7 +155,7 @@ html
             span
               br
               br
-          form
+          form(onsubmit='GetDataAndSwitchToDonorLearners(); return false;')
             //- .help Go to your Donor Summary
             //- br
             label.has-text-grey(for='email') E-mail
