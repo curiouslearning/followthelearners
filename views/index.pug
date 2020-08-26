@@ -10,6 +10,23 @@ html
         src="https://code.jquery.com/jquery-3.5.0.min.js"
         integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
         crossorigin="anonymous")
+    style(type='text/css').
+      .read-more-text {
+        display: none;
+      }
+      .read-more-button {
+        width: 40%;
+        font-size: 1rem;
+        background-color: rgba(30, 30, 30, 0.8); 
+        border: none;
+        color: white;
+      }
+      .read-more-button-parent {
+        text-align: center; 
+        margin-top: -4px; 
+        z-index: 100;
+      }
+
   body
     header(style='z-index: 10;')
       .section(style='margin-bottom: -120px;')
@@ -51,6 +68,20 @@ html
           script.
             function goToDonate(campaign, amount, donateRef) {
               window.open("/donate?campaign=" + campaign + "&amount=" + amount + "&donateRef=" + donateRef, '_blank');
+            }
+            function readMore(btn) {
+              let spanId = btn.id.replace('btn_', '');
+              let readMoreElement = document.getElementById(spanId);
+              if (readMoreElement && readMoreElement.style.display === '' || 
+                  readMoreElement && readMoreElement.style.display === 'none') {
+                readMoreElement.style.display = 'block';
+                btn.innerText = 'Read Less';
+                btn.style.marginTop = '10px';
+              } else if (readMoreElement && readMoreElement.style.display === 'block') {
+                readMoreElement.style.display = 'none';
+                btn.innerText = 'Read More';
+                btn.style.marginTop = '-4px';
+              }
             }
       .section.is-hidden#tab-your-learners
         .section(style='margin-top: -2rem; padding-top: 0.5rem; padding-bottom: 0.2rem; margin-bottom: none;')
