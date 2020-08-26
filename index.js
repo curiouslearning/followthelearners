@@ -139,6 +139,15 @@ app.post('/donate', function(req, res) {
   });
 });
 
+app.post('/giveAgain', function(req, res) {
+  let email = req.body.email;
+  let countrySelection = req.body.countrySelection;
+  let donorCountries = req.body.donorCountries;
+
+  console.log(email, countrySelection, donorCountries);
+  res.json({action: 'switch-to-regions'});
+});
+
 app.get('/getDonorCampaigns', function(req, res) {
   const email = req.query.email;
   getDonorID(email).then((donorID)=>{

@@ -72,7 +72,7 @@ $(document).ready(function() {
       }
     });
     tabSelector.addEventListener('tabToggle', (tabId) => {
-      console.log(tabId);
+      // console.log(tabId);
     });
   }
 
@@ -203,6 +203,42 @@ function onAllLearnersCountryZoomInClick(country) {
   onCountrySelectionChanged();
 }
 
+/**
+ * Called when user interacts with the give now button
+ */
+function onGiveNowButtonClick() {
+  if (!yourLearnersCountrySelectElement) {
+    console.error("Unable to find country select element for your learners")
+    return;
+  }
+
+  let countrySelection = yourLearnersCountrySelectElement.
+    options[yourLearnersCountrySelectElement.selectedIndex].value;
+  
+  let donorCountries = [];
+  if (yourLearnersCountrySelectElement.options.length > 0 && 
+    countrySelection === 'all-countries') {
+    for (let i = 1; i < yourLearnersCountrySelectElement.options.length; i++) {
+      donorCountries.push(yourLearnersCountrySelectElement.options[i].value);
+    }
+  }
+  
+  $.post('/giveAgain', {
+    email: currentDonorEmail, 
+    countrySelection: countrySelection,
+    donorCountries: donorCountries},
+    function(data, status) {
+      if (data) {
+        if (data.hasOwnProperty('action')) {
+          if (data.action === 'switch-to-regions') {
+            tabSelector.ToggleTab('tab-campaigns');
+          }
+        }
+      } 
+    }
+  );
+  
+}
 
 function validateEmail(email) {
   if (email === null || email === undefined) return false;
@@ -489,9 +525,15 @@ function setDonationPercentage(fullAmount, learnerCount, costPerLearner) {
     decimal = 0;
   }
   const percentFilled = decimal * 100;
-  $('#percent-filled')
-      .text('You have filled '+ percentFilled+ '% of your donations');
+  if (percentFilled < 100) {
+    $('#percent-filled').text('Check back in a few days to see more learners!');
+    $('#give-again').css('display', 'none');
+  } else {
+    $('#congrats').text('Congrats 🎉! ');
+    $('#give-again').css('display', 'block');
+  }
 }
+
 function clearYourLearnersMarkers() {
   if (loadedYourLearnersMarkers.length > 0) {
     for (let i = 0; i < loadedYourLearnersMarkers.length; i++) {
