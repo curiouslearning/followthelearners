@@ -145,7 +145,7 @@ app.post('/giveAgain', function(req, res) {
   let donorCountries = req.body.donorCountries;
 
   console.log(email, countrySelection, donorCountries);
-  res.json({test: 'test'});
+  res.json({action: 'switch-to-regions'});
 });
 
 app.get('/getDonorCampaigns', function(req, res) {
