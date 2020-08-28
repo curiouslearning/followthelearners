@@ -746,7 +746,11 @@ exports.updateAggregateData = functions.firestore
           const learnerCount = data.learnerCount;
           return (learnerCount/Math.round(amount / costPerLearner))*100;
         }).then((percent)=>{
-            return docRef.set({percentFilled: percent},{merge: true});
+            return docRef.set({
+              percentFilled: Math.round(percent)
+            },{
+              merge: true
+            });
         }).catch((err)=>{
           console.error(err);
         });
