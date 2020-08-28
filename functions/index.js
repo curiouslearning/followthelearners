@@ -408,6 +408,7 @@ function batchWriteLearners(snapshot, donation, learnerCount) {
     let learnerID = snapshot.docs[i].id;
     let data = snapshot.docs[i].data();
     data.sourceDonor = donorID;
+    data['assignedOn'] = admin.firestore.Timestamp.now();
     const newRef = donationRef.collection('users').doc(learnerID);
     batches[batchCount].set(newRef, data);
     batches[batchCount].delete(poolRef.doc(learnerID)); //avoid multiple documents per learner
