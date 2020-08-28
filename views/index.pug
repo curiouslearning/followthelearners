@@ -20,6 +20,7 @@ html
         background-color: rgba(30, 30, 30, 0.8); 
         border: none;
         color: white;
+        margin-top: 0.5rem;
       }
       .read-more-button-parent {
         text-align: center; 
@@ -93,11 +94,9 @@ html
                   readMoreElement && readMoreElement.style.display === 'none') {
                 readMoreElement.style.display = 'block';
                 btn.innerText = 'Read Less';
-                btn.style.marginTop = '10px';
               } else if (readMoreElement && readMoreElement.style.display === 'block') {
                 readMoreElement.style.display = 'none';
                 btn.innerText = 'Read More';
-                btn.style.marginTop = '-4px';
               }
             }
       .section.is-hidden#tab-your-learners
