@@ -1,4 +1,4 @@
-const fireStoreAdmin = require('firebase-admin');
+const admin = require('firebase-admin');
 // const firebase = require('firebase/app');
 const serviceAccount = require('./keys/firestore-key.json');
 const PRUNEDATE = 7;
@@ -12,10 +12,10 @@ const CONTINENTS = [
   'Oceania',
 ];
 
-fireStoreAdmin.initializeApp({
-  credential: fireStoreAdmin.credential.cert(serviceAccount),
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
 });
-const firestore = fireStoreAdmin.firestore();
+const firestore = admin.firestore();
 
 function main() {
   assignExpiringLearners();
@@ -78,7 +78,8 @@ function matchLearnersToDonors(learners, donations) {
         continue;
       }
       if (!donation.percentFilled) {
-        donation['percentFilled'] = Math.round(calculatePercentFilled(donation));
+        let denominator = donation.amount/donation.costPerLearner
+        donation['percentFilled'] = (donation.learnerCount/denominator)*100;
       }
       if (donation.percentFilled < 100) {
         foundDonor = true;
@@ -245,7 +246,7 @@ function writeEndDate(donation) {
   donation['isCounted'] = true;
   firestore.collection('donor_master').doc(donation.sourceDonor)
       .collection('donations').doc(donation.id).set({
-        endDate: fireStoreAdmin.firestore.Timestamp.now(),
+        endDate: admin.firestore.Timestamp.now(),
       }, {merge: true}).catch((err)=>{
         console.error(err);
       });
@@ -256,7 +257,7 @@ function writeEndDate(donation) {
 */
 function checkUserExpirationDate(user) {
   let data = user.data();
-  if (data.dateCreated <= new Date(Date.now()-(DAYINMS*PRUNEDATE))) {
+  if (data.dateCreated <= getPivot() ) {
     setTimeout((user)=>{
       firestore.collection('unassigned_users').doc(user.id).set(user.data());
       firestore.collection('user_pool').doc(user.id).delete();
@@ -295,6 +296,13 @@ function prioritizeLearnerQueue(queue) {
     }
   });
   return prioritizedQueue;
+}
+
+function getPivot () {
+  const nowInMillis = admin.firestore.Timestamp.now().toMillis();
+  const pivot = nowInMillis - (DAYINMS * PRUNEDATE);
+  const timestamp = admin.firestore.Timestamp.fromMillis(pivot);
+  return timestamp;
 }
 
 /**
