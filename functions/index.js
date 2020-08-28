@@ -94,12 +94,16 @@ exports.clearLearnerPool = functions.https.onRequest(async (req, res)=>{
 
 exports.logDonation = functions.https.onRequest(async (req, res) =>{
   let splitString = req.body.campaignID.split('|');
+  let amount = Number(req.body.amount);
+  if (req.body.coveredByDonor) {
+    amount = amount - Number(req.body.coveredByDonor);
+  }
   let params = {
     firstName: req.body.firstName,
     lastName: req.body.lastName,
     email: req.body.email,
     timestamp: admin.firestore.Firestore.Timestamp.now(),
-    amount: Number(req.body.amount),
+    amount: amount,
     frequency: req.body.frequency,
     campaignID: splitString[0],
     country: splitString[1],
