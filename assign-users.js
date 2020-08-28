@@ -1,4 +1,4 @@
-const fireStoreAdmin = require('firebase-admin');
+const admin = require('firebase-admin');
 // const firebase = require('firebase/app');
 const serviceAccount = require('./keys/firestore-key.json');
 const PRUNEDATE = 7;
@@ -12,10 +12,10 @@ const CONTINENTS = [
   'Oceania',
 ];
 
-fireStoreAdmin.initializeApp({
-  credential: fireStoreAdmin.credential.cert(serviceAccount),
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
 });
-const firestore = fireStoreAdmin.firestore();
+const firestore = admin.firestore();
 
 function main() {
   assignExpiringLearners();
@@ -37,6 +37,7 @@ async function assignExpiringLearners() {
         console.log('no new learners to assign');
         return;
       }
+      console.log('prioritizing snap of size ', learnerSnap.size);
       let learnerQueue = prioritizeLearnerQueue(learnerSnap);
       console.log('learnerQueue length: ', learnerQueue.length);
       console.log('priority queue length:', priorityQueue.length);
@@ -72,11 +73,13 @@ function matchLearnersToDonors(learners, donations) {
       donation = donations[i];
       let data = [];
       data = learners[0].data();
-      console.log('learner has country: ', data.country);
       if (!checkForMatch(data, donation)) {
-        console.log('no match for donation to country ', donation.country);
         // only assign users to donations from matching campaigns
         continue;
+      }
+      if (!donation.percentFilled) {
+        let denominator = donation.amount/donation.costPerLearner
+        donation['percentFilled'] = (donation.learnerCount/denominator)*100;
       }
       if (donation.percentFilled < 100) {
         foundDonor = true;
@@ -85,9 +88,10 @@ function matchLearnersToDonors(learners, donations) {
         }
         donation['learners'].push(data);
         learners.splice(0, 1);
-        donation.percentFilled = calculatePercentFilled(donation);
+        donation.percentFilled = Math.round(calculatePercentFilled(donation));
         // log the moment a donation is filled
         if (donation.percentFilled >= 100) {
+          console.log('filled donation ', donation.id)
           fullDonations++;
           writeEndDate(donation);
         }
@@ -142,18 +146,11 @@ function batchLearnerAssignment(priorityQueue) {
 * @param{num} donationCount the maximum length of the learnerQueue
 * @param{num} interval the age cap on any learner fetched from the database
 */
-function getLearnerQueue(donationCount, interval) {
+async function getLearnerQueue(donationCount, interval) {
   const pivotDate = new Date(Date.now()-(DAYINMS*interval));
-  return firestore.collection('user_pool').where('dateCreated', '<=', pivotDate)
+  return firestore.collection('user_pool').where('dateCreated', '>=', pivotDate)
       .orderBy('dateCreated', 'asc').get().then((snap)=>{
-        if (snap.empty || snap.size < donationCount) {
-          if (interval > 0) {
-            const newInterval = interval -1;
-            return snapConcat(snap, getLearnerQueue(donationCount, newInterval));
-          } else {
-            return snap;
-          }
-        }
+        console.log('fetched snap of size ', snap.size);
         return snap;
       }).catch((err)=>{
         console.error(err);
@@ -249,7 +246,7 @@ function writeEndDate(donation) {
   donation['isCounted'] = true;
   firestore.collection('donor_master').doc(donation.sourceDonor)
       .collection('donations').doc(donation.id).set({
-        endDate: fireStoreAdmin.firestore.Timestamp.now(),
+        endDate: admin.firestore.Timestamp.now(),
       }, {merge: true}).catch((err)=>{
         console.error(err);
       });
@@ -260,7 +257,7 @@ function writeEndDate(donation) {
 */
 function checkUserExpirationDate(user) {
   let data = user.data();
-  if (data.dateCreated <= new Date(Date.now()-(DAYINMS*PRUNEDATE))) {
+  if (data.dateCreated <= getPivot() ) {
     setTimeout((user)=>{
       firestore.collection('unassigned_users').doc(user.id).set(user.data());
       firestore.collection('user_pool').doc(user.id).delete();
@@ -299,6 +296,13 @@ function prioritizeLearnerQueue(queue) {
     }
   });
   return prioritizedQueue;
+}
+
+function getPivot () {
+  const nowInMillis = admin.firestore.Timestamp.now().toMillis();
+  const pivot = nowInMillis - (DAYINMS * PRUNEDATE);
+  const timestamp = admin.firestore.Timestamp.fromMillis(pivot);
+  return timestamp;
 }
 
 /**
