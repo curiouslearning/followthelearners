@@ -412,6 +412,7 @@ function batchWriteLearners(snapshot, donation, learnerCount) {
     let learnerID = snapshot.docs[i].id;
     let data = snapshot.docs[i].data();
     data.sourceDonor = donorID;
+    data['assignedOn'] = admin.firestore.Timestamp.now();
     const newRef = donationRef.collection('users').doc(learnerID);
     batches[batchCount].set(newRef, data);
     batches[batchCount].delete(poolRef.doc(learnerID)); //avoid multiple documents per learner
@@ -750,7 +751,11 @@ exports.updateAggregateData = functions.firestore
           const learnerCount = data.learnerCount;
           return (learnerCount/Math.round(amount / costPerLearner))*100;
         }).then((percent)=>{
-            return docRef.set({percentFilled: percent},{merge: true});
+            return docRef.set({
+              percentFilled: Math.round(percent)
+            },{
+              merge: true
+            });
         }).catch((err)=>{
           console.error(err);
         });
