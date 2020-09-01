@@ -76,6 +76,20 @@ $(document).ready(function() {
       // console.log(tabId);
     });
   }
+  if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
+    let email = window.localStorage.getItem('emailForSignIn');
+    if (!email) {
+      email = window.prompt('please enter your email to finish signing in');
+    }
+    firebase.auth().signInWithEmailLink(email, window.location.href)
+        .then((result)=>{
+          currentDonorEmail = email;
+          GetDataAndSwitchToDonorLearners();
+          window.localStorage.removeItem('emailForSignIn');
+        }).catch((err)=>{
+          console.error(err);
+        });
+  }
 
 });
 
@@ -217,17 +231,17 @@ function onGiveNowButtonClick() {
 
   let countrySelection = yourLearnersCountrySelectElement.
     options[yourLearnersCountrySelectElement.selectedIndex].value;
-  
+
   let donorCountries = [];
-  if (yourLearnersCountrySelectElement.options.length > 0 && 
+  if (yourLearnersCountrySelectElement.options.length > 0 &&
     countrySelection === 'all-countries') {
     for (let i = 1; i < yourLearnersCountrySelectElement.options.length; i++) {
       donorCountries.push(yourLearnersCountrySelectElement.options[i].value);
     }
   }
-  
+
   $.post('/giveAgain', {
-    email: currentDonorEmail, 
+    email: currentDonorEmail,
     countrySelection: countrySelection,
     donorCountries: donorCountries},
     function(data, status) {
@@ -237,10 +251,10 @@ function onGiveNowButtonClick() {
             tabSelector.ToggleTab('tab-campaigns');
           }
         }
-      } 
+      }
     }
   );
-  
+
 }
 
 function validateEmail(email) {
@@ -256,19 +270,13 @@ function validateEmail(email) {
  * Called from the donor email form
  */
 function GetDataAndSwitchToDonorLearners() {
-  if ($(donorEmailSubmit).prop('disabled') === true) {
-    return;
-  }
-  if (currentDonorEmail === null) {
-    currentDonorEmail = document.getElementById(donorEmailElementId).value;
-  }
   $.get('/yourLearners', {email: currentDonorEmail}, function(data, status) {
     if (data.err) {
       $(newDonorInfoContentId).text(data.err);
       $(newDonorInfoTextId).removeClass('is-hidden');
       currentDonorEmail = null;
     }
-    if (data === "" || data === null || data === undefined) {
+    if (data === '' || data === null || data === undefined) {
       $(newDonorInfoTextId).removeClass('is-hidden');
       setTimeout(() => {
         $(newDonorInfoTextId).addClass('is-hidden');
@@ -288,15 +296,16 @@ function GetDataAndSwitchToDonorLearners() {
         yourLearnersCountrySelectElement.options[i + 1] =
           new Option(data.locationData[i].country + ' - ' +
             getTotalCountryLearnerCountFromDonations(
-              yourLearnersData.campaignData,
-              data.locationData[i].country),
-            data.locationData[i].country);
+                yourLearnersData.campaignData,
+                data.locationData[i].country),
+          data.locationData[i].country
+          );
       }
     }
     // TODO: expand this  to cover campaigns with varying cost/learner
     let allCountriesAggregateAmount = 0;
     let tempDonationStartDate = null;
-    let allCountriesDonationStartDate = "";
+    let allCountriesDonationStartDate = '';
     let allCountriesLearnersCount = 0;
     let allCountriesDNTUsersCount = 0;
     let percentFilled = 0;
@@ -322,30 +331,54 @@ function GetDataAndSwitchToDonorLearners() {
     setDonationPercentage(
         allCountriesAggregateAmount,
         allCountriesLearnersCount,
-        COSTPERLEARNER
+        COSTPERLEARNER,
     );
     document.getElementById('donation-amount').innerText =
       allCountriesAggregateAmount;
 
-    if (allCountriesDonationStartDate !== "") {
+    if (allCountriesDonationStartDate !== '') {
       document.getElementById('donation-date').innerText =
         allCountriesDonationStartDate.toString();
     }
 
-    createCountUpTextInElement('learner-count', allCountriesLearnersCount);
+    createCountUpTextInElement('learner-count',
+        allCountriesLearnersCount);
 
     if (donorModal) {
       donorModal.classList.remove('is-active');
     }
 
     createCountUpTextInElement(dntYourLearnersCountElementId,
-      allCountriesDNTUsersCount);
+        allCountriesDNTUsersCount);
 
     tabSelector.ToggleTab('tab-your-learners');
 
     displayYourLearnersData(yourLearnersData, true);
 
   });
+
+}
+
+function checkForDonorSignIn() {
+  if ($(donorEmailSubmit).prop('disabled') === true) {
+    return;
+  }
+  if (currentDonorEmail === null) {
+    currentDonorEmail = document.getElementById(donorEmailElementId).value;
+  }
+  const actionCodeSettings = {
+    url: 'http://localhost:3000/campaigns',
+    handleCodeInApp: true,
+  };
+
+  firebase.auth().sendSignInLinkToEmail(currentDonorEmail, actionCodeSettings)
+      .then(function() {
+        window.localStorage.setItem('emailForSignIn', currentDonorEmail);
+        $(newDonorInfoContentId).text('please follow the link in your email to complete the sign in process!');
+        $(newDonorInfoTextId).removeClass('is-hidden');
+      }).catch((err) =>{
+        console.error(err.code);
+      });
 }
 
 /**
