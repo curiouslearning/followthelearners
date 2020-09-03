@@ -38,35 +38,69 @@ let yourLearnersData = null;
 
 const COSTPERLEARNER = 0.25;
 
+// Auth data
+let uid = '';
+let email = '';
+let emailVerified = false;
+let token = undefined;
+
+firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
+    .then(()=>{
+      return true;
+    }).catch((err)=>{
+      console.error(err);
+    });
+
+firebase.auth().onAuthStateChanged((user) =>{
+  if (user) {
+    uid = user.uid;
+    email = user.email;
+    emailVerified = user.emailVerified
+    token = firebase.auth().currentUser.getIdToken(true).then((token) =>{
+      return token;
+    }).catch((err)=>{
+      console.error(err);
+    });
+  } else {
+    uid = '';
+    email = '';
+    emailVerified = false;
+    token = undefined;
+  }
+});
+
 $(document).ready(function() {
   donorModal = document.getElementById('donor-email-modal');
   if (tabSelector) {
     tabSelector.addEventListener('preTabToggle', (tabId) => {
-      if (tabId === 'tab-your-learners' && currentDonorEmail === null &&
+      if (tabId === 'tab-your-learners'&& currentDonorEmail === null &&
         donorModal) {
-        $(newDonorInfoTextId).addClass('is-hidden');
-        tabSelector.preventDefault();
-        donorModal.classList.add('is-active');
-      } else if (tabId === 'tab-your-learners' && yourLearnersData) {
-        // clearYourLearnersMarkers();
-        // displayYourLearnersData(yourLearnersData);
-      } else if (tabId === 'tab-all-learners' && allLearnersData === null
-        && !loadingAllLearnersData) {
+        if (token) {
+          currentDonorEmail = email;
+          tabSelector.preventDefault();
+          GetDataAndSwitchToDonorLearners();
+        } else {
+          $(newDonorInfoTextId).addClass('is-hidden');
+          tabSelector.preventDefault();
+          donorModal.classList.add('is-active');
+        }
+      } else if (tabId === 'tab-all-learners' && allLearnersData === null &&
+        !loadingAllLearnersData) {
         loadingAllLearnersData = true;
         tabSelector.preventDefault();
         GetDataAndSwitchToAllLearners();
-      } else if (tabId === 'tab-all-learners' && allLearnersData === null
-        && loadingAllLearnersData) {
+      } else if (tabId === 'tab-all-learners' && allLearnersData === null &&
+          loadingAllLearnersData) {
         tabSelector.preventDefault();
       } else if (tabId === 'tab-all-learners' && allLearnersData !== null) {
         clearAllMarkers();
         createCountUpTextInElement('all-learners-count',
-          getTotalCountForAllLearners(allLearnersData));
+            getTotalCountForAllLearners(allLearnersData));
         displayAllLearnersData(allLearnersData, true);
-        for (var key in allLearnersData.campaignData) {
-          if (allLearnersData.campaignData[key].country == "no-country") {
+        for (let key in allLearnersData.campaignData) {
+          if (allLearnersData.campaignData[key].country == 'no-country') {
             createCountUpTextInElement(dntLearnersCountElementId,
-              allLearnersData.campaignData[key].learnerCount);
+                allLearnersData.campaignData[key].learnerCount);
           }
         }
         countrySelectElement.value = 'all-learners';
@@ -86,11 +120,14 @@ $(document).ready(function() {
           currentDonorEmail = email;
           GetDataAndSwitchToDonorLearners();
           window.localStorage.removeItem('emailForSignIn');
+          window.history.replaceState({}, document.title, '/campaigns');
         }).catch((err)=>{
           console.error(err);
         });
+  } else if (token) {
+    currentDonorEmail = email;
+    GetDataAndSwitchToDonorLearners();
   }
-
 });
 
 /**
@@ -259,6 +296,7 @@ function onGiveNowButtonClick() {
 
 function validateEmail(email) {
   if (email === null || email === undefined) return false;
+  console.log('validating email: ', email);
   const result = email.match(/[[\w\d-\.]+\@]?[[\w\d-]*[\.]+[\w\d-\.]+]*/);
   if (result !== null && result !== undefined && result !== ['']) {
     return true;
@@ -360,12 +398,17 @@ function GetDataAndSwitchToDonorLearners() {
 }
 
 function checkForDonorSignIn() {
-  if ($(donorEmailSubmit).prop('disabled') === true) {
-    return;
-  }
   if (currentDonorEmail === null) {
     currentDonorEmail = document.getElementById(donorEmailElementId).value;
   }
+  console.log('token: ', token);
+  if (token !== undefined) {
+    GetDataAndSwitchToDonorLearners();
+    return;
+  } else if ($(donorEmailSubmit).prop('disabled') === true) {
+    return;
+  }
+
   const actionCodeSettings = {
     url: 'http://localhost:3000/campaigns',
     handleCodeInApp: true,
@@ -374,7 +417,7 @@ function checkForDonorSignIn() {
   firebase.auth().sendSignInLinkToEmail(currentDonorEmail, actionCodeSettings)
       .then(function() {
         window.localStorage.setItem('emailForSignIn', currentDonorEmail);
-        $(newDonorInfoContentId).text('please follow the link in your email to complete the sign in process!');
+        $(newDonorInfoContentId).text('please follow the link we sent to your email to complete the sign in process! You can now safely close this browser tab.');
         $(newDonorInfoTextId).removeClass('is-hidden');
       }).catch((err) =>{
         console.error(err.code);

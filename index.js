@@ -173,20 +173,11 @@ app.get('/getDonorCampaigns', function(req, res) {
 });
 
 app.get('/yourLearners', function(req, res) {
-  if (!validateEmail(req.query.email)) {
-    res.json({err: 'please enter a valid email address.'});
-    res.end();
-    return;
-  }
-  console.log('Getting learner data for donor: ', req.query.email);
   let donorID = '';
-  getDonorID(req.query.email).then((result)=>{
-    donorID = result;
-    console.log('found donorID: ', donorID);
-    if (donorID === null || donorID === undefined || donorID === '') {
-      return undefined;
-    }
-    return getDonations(donorID);
+  admin.auth().verifyIdToken(token).then((decodedToken)=>{
+    return decodedToken.uid;
+  }).then((uid)=>{
+    return getDonations(uid);
   }).then((donations)=>{
     if (donations !== undefined) {
       const promises = [];
