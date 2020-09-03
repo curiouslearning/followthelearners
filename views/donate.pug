@@ -18,8 +18,18 @@ html
       .container
         .response
           .buffer(style='border: 5px; height: 350px; width: 750px')
-          h3.subtitle.has-text-grey.has-text-centered(style='font-size: 2rem; border: 5px; height: 350px; vertical-align: bottom')
+          h3.subtitle.has-text-grey.has-text-centered(style='font-size: 2rem; border: 5px; vertical-align: bottom')
+            img(src='/static/imgs/redirection.png' width='60%')
+            br
+            br
             span Thank you for your interest in supporting our campaign! We've partnered with GiveLively for a secure donation process. You'll be redirected to their secure site shortly.
+          h4.subtitle.has-text-grey.has-text-centered()
+            span If you are not automatically redirected in a moment, 
+            span
+              - let campaignUrl = donateRef;
+              - campaignUrl += "?utm_source=" + campaign + "&override_amount=" + amount + "&payment_method=card";
+              a(href= campaignUrl ) click here
+
       //Begin localhost only donation test form
       //- .container
         form(method='POST' action='http://localhost:5001/follow-the-learners/us-central1/logDonation')
