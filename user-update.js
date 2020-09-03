@@ -195,6 +195,7 @@ function createUser(row) {
   const user = {
     userID: row.user_pseudo_id,
     dateCreated: makeTimestamp(row.event_date),
+    dateIngested: fireStoreAdmin.firestore.Timestamp.now(),
     sourceCampaign: row.name,
     region: row.region,
     country: row.country,
@@ -230,6 +231,7 @@ function addUserToPool(user, batch) {
   batch.set(dbRef, {
     userID: user.userID,
     dateCreated: user.dateCreated,
+    dateIngested: user.dateIngested,
     sourceDonor: 'unassigned',
     sourceCampaign: user.sourceCampaign,
     region: user.region,

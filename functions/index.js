@@ -94,12 +94,16 @@ exports.clearLearnerPool = functions.https.onRequest(async (req, res)=>{
 
 exports.logDonation = functions.https.onRequest(async (req, res) =>{
   let splitString = req.body.campaignID.split('|');
+  let amount = Number(req.body.amount);
+  if (req.body.coveredByDonor) {
+    amount = amount - Number(req.body.coveredByDonor);
+  }
   let params = {
     firstName: req.body.firstName,
     lastName: req.body.lastName,
     email: req.body.email,
     timestamp: admin.firestore.Firestore.Timestamp.now(),
-    amount: Number(req.body.amount),
+    amount: amount,
     frequency: req.body.frequency,
     campaignID: splitString[0],
     country: splitString[1],
@@ -408,6 +412,7 @@ function batchWriteLearners(snapshot, donation, learnerCount) {
     let learnerID = snapshot.docs[i].id;
     let data = snapshot.docs[i].data();
     data.sourceDonor = donorID;
+    data['assignedOn'] = admin.firestore.Timestamp.now();
     const newRef = donationRef.collection('users').doc(learnerID);
     batches[batchCount].set(newRef, data);
     batches[batchCount].delete(poolRef.doc(learnerID)); //avoid multiple documents per learner
@@ -746,7 +751,11 @@ exports.updateAggregateData = functions.firestore
           const learnerCount = data.learnerCount;
           return (learnerCount/Math.round(amount / costPerLearner))*100;
         }).then((percent)=>{
-            return docRef.set({percentFilled: percent},{merge: true});
+            return docRef.set({
+              percentFilled: Math.round(percent)
+            },{
+              merge: true
+            });
         }).catch((err)=>{
           console.error(err);
         });
