@@ -11,7 +11,7 @@ html
       let amount = "#{amount}";
       campaignUrl += "?utm_source=" + campaign + "&override_amount=" + amount + "&payment_method=card";
       function redirectToCampaignPage() {
-        //- setTimeout(function(){ window.location.href = campaignUrl; }, 5000);
+        setTimeout(function(){ window.location.href = campaignUrl; }, 5000);
       }
   body(onload='redirectToCampaignPage()')
     .containers
