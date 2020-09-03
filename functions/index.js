@@ -2,7 +2,7 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const nodemailer = require('nodemailer');
 const cors = require('cors')({origin: true});
-const mailConfig = require('../keys/nodemailerConfig.json');
+const mailConfig = require('./keys/nodemailerConfig.json');
 
 admin.initializeApp();
 const transporter = nodemailer.createTransport(mailConfig);
