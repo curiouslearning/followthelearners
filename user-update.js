@@ -1,5 +1,6 @@
 const {BigQuery} = require('@google-cloud/bigquery');
 const fireStoreAdmin = require('firebase-admin');
+const {Client, Status} = require('@googlemaps/google-maps-services-js');
 // const firebase = require('firebase/app');
 const serviceAccount = require('./keys/firestore-key.json');
 const PRUNEDATE = 7;
@@ -17,6 +18,8 @@ fireStoreAdmin.initializeApp({
   credential: fireStoreAdmin.credential.cert(serviceAccount),
 });
 const firestore = fireStoreAdmin.firestore();
+const gmaps = new Client({});
+
 /**
 * main function
 */
@@ -156,21 +159,57 @@ function insertLocation(row) {
     const locationRef = firestore.collection('loc_ref').doc(row.country);
     locationRef.get().then((doc)=>{
       if (!doc.exists) {
-        locationRef.set({
-          country: row.country,
-          continent: row.continent,
-          learnerCount: 0,
-          pin: {
-            lat: 0,
-            lng: 0,
-          },
-          regions: [],
-        }, {merge: true});
+        getPinForAddress(row.country, (markerLoc) => {
+          locationRef.set({
+            country: row.country,
+            continent: row.continent,
+            learnerCount: 0,
+            pin: {
+              lat: markerLoc.lat,
+              lng: markerLoc.lng,
+            },
+            regions: [],
+          }, {merge: true});
+        });
+      } else if (doc.exists && !doc.data().hasOwnProperty('pin') ||
+          (doc.exists && doc.data().pin.lat === 0 && doc.data().pin.lng === 0)) {
+        getPinForAddress(row.country, (markerLoc) => {
+          locationRef.set({
+            pin: {
+              lat: markerLoc.lat,
+              lng: markerLoc.lng,
+            },
+          }, {merge: true});
+        });
       }
     }).catch((err)=>{
       console.log(err);
     });
   }
+}
+
+/**
+ * Returns a [lat, lng] pair of values for the given address
+ * @param {String} address is the address in string format
+ * @param {Function} callback is a function that's called after getting a marker
+ */
+async function getPinForAddress(address, callback) {
+  if (address === 'Georgia') address = 'Country of Georgia';
+  await gmaps.geocode({
+    params: {
+      address: address,
+      key: "AIzaSyDEl20cTMsc72W_TasuK5PlWYIgMrzyuAU",
+    },
+    timeout: 1000, // milliseconds
+  }).then((r) => {
+    if (r.data.results[0]) {
+      // console.log(r.data.results[0]);
+      const markerLoc = r.data.results[0].geometry.location;
+      callback(markerLoc);
+    }
+  }).catch((e) => {
+    console.log(e.response.data.error_message);
+  });
 }
 
 /**
@@ -202,7 +241,7 @@ function createUser(row) {
     continent: row.continent,
     learnerLevel: row.event_name,
   };
-  console.log('created user: ' + user.userID);
+  console.log('created user: ' + user.userID + ' ' + row.country + ' / ' + row.region);
   return user;
 }
 

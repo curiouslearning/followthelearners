@@ -3,9 +3,12 @@ const admin = require('firebase-admin');
 const nodemailer = require('nodemailer');
 const cors = require('cors')({origin: true});
 const mailConfig = require('../keys/nodemailerConfig.json');
+const {Client, Status} = require('@googlemaps/google-maps-services-js');
+const { exampleDocumentSnapshot } = require('firebase-functions-test/lib/providers/firestore');
 
 admin.initializeApp();
 const transporter = nodemailer.createTransport(mailConfig);
+const gmaps = new Client({});
 
 const DEFAULTCPL = 0.25;
 const CONTINENTS = [
@@ -555,49 +558,106 @@ exports.updateRegion = functions.firestore.document('/user_pool/{documentId}')
     const country = snap.data().country;
     const region = snap.data().region;
     console.log(country, region);
-    return updateCountForRegion(country, region).then(sum=>{
-      let docRef = admin.firestore().collection('loc_ref').doc(country);
-      return docRef.get().then(doc=>{
-        let regions = doc.data().regions;
-        let countrySum = 0;
-        let foundRegion = false;
-        for (let i=0; i < regions.length; i++){
-          if (!regions[i].hasOwnProperty('learnerCount') ||
-            typeof regions[i].learnerCount !== 'number' ||
-            regions[i].learnerCount < 0){
-            continue; //only add positive numbers to learnerCount
-          }
-          if(regions[i].region === region){
-            regions[i].learnerCount = sum;
-            foundRegion = true;
-          }
-          countrySum += regions[i].learnerCount;
+
+    let sum = updateCountForRegion(country, region);
+    let docRef = admin.firestore().collection('loc_ref').doc(country);
+    let docSnapshot = getRegionsForCountry(docRef);
+    let regions = [];
+    let countrySum = 0;
+    Promise.all([sum, docSnapshot]).then((vals) => {
+      regions = vals[1].data().regions;
+      let foundRegion = false;
+      let regionIndex = -1;
+      for (let i=0; i < regions.length; i++){
+        if (!regions[i].hasOwnProperty('learnerCount') ||
+          typeof regions[i].learnerCount !== 'number' ||
+          regions[i].learnerCount < 0){
+          continue; //only add positive numbers to learnerCount
         }
-        if (!foundRegion) {
+        if(regions[i].region === region){
+          regions[i].learnerCount = vals[0];
+          foundRegion = true;
+          regionIndex = i;
+        }
+        countrySum += regions[i].learnerCount;
+      }
+      return { foundRegion: foundRegion, regionIndex: regionIndex, 
+        sum: vals[0] };
+    }).then((vals) => {
+      if (!vals.foundRegion) {
+        getPinForAddress(country + ', ' + region).then((markerLoc) => {
+          console.log('--------------------- FOUND LOCATION: ' + markerLoc);
           regions.push({
             region: region,
             pin: {
-              lat: 0,
-              lng: 0,
+              lat: markerLoc.lat,
+              lng: markerLoc.lng,
             },
-            learnerCount: sum,
+            learnerCount: vals.sum,
             streetViews: {
-              headingValue: [0],
+              headingValues: [0],
               locations: [
               ],
             },
           });
-          countrySum += sum;
+          countrySum += vals.sum;
+
+          docRef.set({
+              regions: regions,
+              learnerCount: countrySum
+          }, {merge: true});
+
+          return;
+        }).catch((err) => {
+          console.error(err);
+        });
+      } else if (vals.foundRegion && vals.regionIndex !== -1) {
+        if (!regions[vals.regionIndex].hasOwnProperty('pin') ||
+          regions[vals.regionIndex]['pin'].lat === 0 && regions[vals.regionIndex]['pin'].lng === 0) {
+          getPinForAddress(country + ', ' + region).then((markerLoc) => {
+            regions[vals.regionIndex]['pin'] = { lat: markerLoc.lat, lng: markerLoc.lng };
+
+            countrySum += vals.sum;
+            
+            // Update the loc_ref country regions with new data
+            docRef.set({
+              regions: regions,
+              learnerCount: countrySum
+            }, {merge: true});
+
+            return;
+          }).catch((err) => {
+            console.error(err);
+          });
         }
-        return {regions: regions, countrySum: countrySum};
-      }).then(values=>{
-        return docRef.set({
-          regions: values.regions,
-          learnerCount: values.countrySum
-        }, {merge: true});
-      }).catch(err=>{console.error(err);});
-    }).catch(err=>{console.error(err);});
+      }
+      return null;
+    }).catch((err) => {
+      console.error(err);
+    });
   });
+
+function getPinForAddress(address) {
+  let markerLoc = {lat: 0, lng: 0};
+  return gmaps.geocode({
+    params: {
+      address: address,
+      key: "AIzaSyDEl20cTMsc72W_TasuK5PlWYIgMrzyuAU",
+    },
+    timeout: 1000,
+  }).then((r) => {
+    if (r.data.results[0]) {
+      markerLoc = r.data.results[0].geometry.location;
+    }
+    return markerLoc;
+  }).catch((e) => {
+    console.log(e.response.data.error_message);
+  });
+}
+
+function getRegionsForCountry(docRef) {
+  return docRef.get();
+}
 
 exports.addCountryToSummary = functions.firestore.document('loc_ref/{documentId}')
   .onCreate((snap, context)=>{
