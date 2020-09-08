@@ -516,11 +516,11 @@ function onYourLearnersCountrySelectionChanged() {
 }
 
 function setDonationPercentage(fullAmount, learnerCount, costPerLearner) {
-  let learnerMax = fullAmount/costPerLearner;
+  let learnerMax = Math.round(fullAmount/costPerLearner);
   if (isNaN(learnerMax)) {
     learnerMax = 0;
   }
-  let decimal = learnerCount/learnerMax;
+  let decimal = Math.round(learnerCount/learnerMax);
   if (isNaN(decimal)) {
     decimal = 0;
   }
