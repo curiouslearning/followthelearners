@@ -131,6 +131,7 @@ html
           h1.title.has-text-grey-dark(style='font-size: 4rem;') All Learners
           .select.is-large
             select#countrySelection(onchange='onCountrySelectionChanged()' style='width: auto; -webkit-appearance: none; -moz-appearance: none; appearance:none;' name='campaignSelection')
+          button.button.is-large#btn-reset-map(style='display: inline-block; margin-left: 1rem' onclick='OnResetMapButtonClick()') Reset Map
           h3.subtitle.is-3.has-text-grey(style='margin-top: 1rem;') We've reached&nbsp;
             span#all-learners-count
             span &nbsp;Learners
