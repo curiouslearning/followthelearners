@@ -1,16 +1,24 @@
 const express = require('express');
+const session = require('express-session');
 const http = require('http');
 const Memcached = require('memcached');
 const fireStoreAdmin = require('firebase-admin');
 const serviceAccount = require('./keys/firestore-key.json');
 const bodyParser = require('body-parser');
 const dateFormat = require('date-format');
+const randLoc = require('random-location');
+const fs = require('fs');
+const e = require('express');
 const app = express();
 const CACHETIMEOUT = 720; // the cache timeout in minutes
 
 fireStoreAdmin.initializeApp({
   credential: fireStoreAdmin.credential.cert(serviceAccount),
 });
+
+// TODO: get more info on the cookie secure param
+app.use(session({secret: 'ftl-secret', resave: true, saveUninitialized: true,
+  cookie: {secure: false, maxAge: 60000}}));
 
 const firestore = fireStoreAdmin.firestore();
 const memcached = new Memcached('127.0.0.1:11211');
@@ -85,7 +93,7 @@ app.get('/donate', function(req, res) {
   const json = {
     campaign: req.query.campaign,
     amount: req.query.amount,
-    donateRef: req.query.donateRef
+    donateRef: req.query.donateRef,
   };
   res.render('donate', json);
 });
@@ -140,12 +148,40 @@ app.post('/donate', function(req, res) {
 });
 
 app.post('/giveAgain', function(req, res) {
-  let email = req.body.email;
-  let countrySelection = req.body.countrySelection;
-  let donorCountries = req.body.donorCountries;
+  const email = req.body.email;
+  const countrySelection = req.body.countrySelection;
+  const donorCountries = req.body.donorCountries;
 
   console.log(email, countrySelection, donorCountries);
   res.json({action: 'switch-to-regions'});
+});
+
+app.get('/admin', function(req, res) {
+  if (req.session.loggedin) {
+    res.render('admin');
+  } else {
+    res.render('admin-login');
+  }
+});
+
+app.post('/auth', function(req, res) {
+  const username = req.body.username;
+  const password = req.body.password;
+  if (username && password) {
+    const fileContent = fs.readFileSync('./keys/admin.json');
+    const adminObj = JSON.parse(fileContent);
+    if (adminObj.hasOwnProperty(username) && adminObj[username] === password) {
+      req.session.loggedin = true;
+      req.session.username = username;
+      res.redirect('/admin');
+    } else {
+      res.send('Incorrect Username and/or Password!');
+    }
+    res.end();
+  } else {
+    res.send('Please enter Username and Password');
+    res.end();
+  }
 });
 
 app.get('/getDonorCampaigns', function(req, res) {
