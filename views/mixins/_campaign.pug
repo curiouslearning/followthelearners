@@ -17,4 +17,4 @@ mixin campaign (title, imgRef, body, campaignID, amount, country, donateRef, isF
     .card-content
       .subtitle.is-size-6.has-text-grey !{body}
     .card-footer(style='border: none; justify-content: center;')
-       .button(type='button', id='giveNow'+campaignID, onclick = "goToDonate(\""+campaignID + '|' + country + '","' + amount + '","' + donateRef + "\")") Give Now
+       button.button.is-rounded.is-primary.is-medium(type='button', id='giveNow'+campaignID, onclick = "goToDonate(\""+campaignID + '|' + country + '","' + amount + '","' + donateRef + "\")") Give Now
