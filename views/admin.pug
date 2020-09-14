@@ -1,0 +1,51 @@
+html
+  include mixins/_campaign
+  head
+    meta(charset='UTF-8')
+    meta(name="viewport" content='width=device-width, initial-scale=1.0')
+    link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css')
+    script(src="https://kit.fontawesome.com/89be96593a.js" crossorigin="anonymous")
+    script(
+        src="https://code.jquery.com/jquery-3.5.0.min.js"
+        integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
+        crossorigin="anonymous")
+  body
+    h1.title.has-text-centered FTL Dashboard
+    section()
+      .tabs.is-boxed
+        ul
+          li.is-active
+            a
+              span.icon.is-small
+                i.fas.fa-street-view
+              span Street Views
+          li
+            a
+              span.icon.is-small
+                i.fas.fa-tachometer-alt
+              span Dashboard Metrics
+          li
+            a
+              span.icon.is-small
+                i.fas.fa-cogs
+              span Logs
+    section#street-views
+      .columns
+        .column
+          div#pano(style='height: 600px;')
+        .column
+          div#side-panel
+            h1.title.has-text-grey Choose a Country
+            .select.is-large(style='font-size: 2.4rem')
+              select#yourLearnersCountrySelect(onchange='onYourLearnersCountrySelectionChanged()' style='border: none; width: auto; -webkit-appearance: none; -moz-appearance: none; appearance:none;' name='campaignSelection')
+                option India
+                option Kenya
+                option Tanzania
+            button.button.is-dark.is-large Load Streetviews
+
+          
+
+
+    script(src='/static/js/admin.js')
+    script(src='https://maps.googleapis.com/maps/api/js?key=AIzaSyDEl20cTMsc72W_TasuK5PlWYIgMrzyuAU&callback=initializeMaps')
+    
