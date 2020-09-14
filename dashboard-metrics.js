@@ -87,7 +87,7 @@ function generateCountryReport(vals, dateString) {
       }
       report[country].unassignedLearners= learners[country];
       if (demand[country] !== undefined) {
-        report[country].demand = demand[country];
+        report[country].demand = Math.round(demand[country]);
       }
       if (ingestions[country] !== undefined) {
         report[country].ingestedLearners = ingestions[country];
@@ -106,8 +106,11 @@ function generateCountryReport(vals, dateString) {
           Math.round(donations[country].totalValue/costPerLearner);
         report[country].learnersAssigned = learnersAssigned
         report[country].remainingValue = donations[country].remainingValue;
+        if (report[country].remainingValue < 0) {
+          report[country].remainingValue = 0;
+        }
         const learnersToAssign =
-          Math.round(donations[country].remainingValue/costPerLearner);
+          Math.round(report[country].remainingValue/costPerLearner);
         report[country].learnersToAssign= learnersToAssign;
       }
     }
