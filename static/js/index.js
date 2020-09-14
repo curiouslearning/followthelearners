@@ -21,6 +21,7 @@ const mapZoomCountryView = 7;
 const allLearnersCountElementId = 'all-learners-count';
 const dntLearnersCountElementId = 'no-region-user-count';
 const dntYourLearnersCountElementId = 'your-learners-no-region-user-count';
+const allLearnersResetMapButtonId = 'btn-reset-map';
 
 const newDonorInfoTextId = '#new-donor-info-text';
 const newDonorInfoContentId = '#new-donor-info-content';
@@ -140,6 +141,8 @@ function GetDataAndSwitchToAllLearners() {
     initializeCountrySelect(allLearnersData);
     clearAllMarkers();
     tabSelector.ToggleTab('tab-all-learners');
+
+    updateResetMapButtonState();
   });
 }
 
@@ -341,7 +344,35 @@ function GetDataAndSwitchToDonorLearners() {
     tabSelector.ToggleTab('tab-your-learners');
 
     displayYourLearnersData(yourLearnersData, true);
+
   });
+}
+
+/**
+ * Updates the visibility of the reset button based on country selection
+ */
+function updateResetMapButtonState() {
+  if (!countrySelectElement) {
+    console.error("Unable to find country select element.");
+    return;
+  }
+  let countrySelection = countrySelectElement.
+    options[countrySelectElement.selectedIndex].value;
+
+  
+  if (countrySelection === 'all-learners') {
+    $('#' + allLearnersResetMapButtonId).hide();
+  } else {
+    $('#' + allLearnersResetMapButtonId).show();
+  }
+}
+
+/**
+ * Called on reset map button click event
+ */
+function OnResetMapButtonClick() {
+  countrySelectElement.value = 'all-learners';
+  onCountrySelectionChanged();
 }
 
 /**
@@ -399,6 +430,8 @@ function onCountrySelectionChanged() {
       createCountUpTextInElement(dntLearnersCountElementId, 0);
     }
   }
+
+  updateResetMapButtonState();
 }
 
 /**
