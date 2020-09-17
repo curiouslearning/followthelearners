@@ -55,9 +55,12 @@ firebase.auth().onAuthStateChanged((user) =>{
   if (user) {
     uid = user.uid;
     email = user.email;
-    emailVerified = user.emailVerified
-    token = firebase.auth().currentUser.getIdToken(true).then((token) =>{
-      return token;
+    emailVerified = user.emailVerified;
+    firebase.auth().currentUser.getIdToken(true).then((newToken) =>{
+      token = newToken;
+      console.log('token: ', token);
+      GetDataAndSwitchToDonorLearners();
+      return;
     }).catch((err)=>{
       console.error(err);
     });
@@ -118,10 +121,11 @@ $(document).ready(function() {
     firebase.auth().signInWithEmailLink(email, window.location.href)
         .then((result)=>{
           currentDonorEmail = email;
-          GetDataAndSwitchToDonorLearners();
           window.localStorage.removeItem('emailForSignIn');
           window.history.replaceState({}, document.title, '/campaigns');
         }).catch((err)=>{
+          window.localStorage.removeItem('emailForSignIn');
+          window.history.replaceState({}, document.title, '/campaigns');
           console.error(err);
         });
   } else if (token) {
@@ -308,7 +312,8 @@ function validateEmail(email) {
  * Called from the donor email form
  */
 function GetDataAndSwitchToDonorLearners() {
-  $.get('/yourLearners', {email: currentDonorEmail}, function(data, status) {
+  console.log('submitting token: ', token);
+  $.get('/yourLearners', {email: currentDonorEmail, token: token}, function(data, status) {
     if (data.err) {
       $(newDonorInfoContentId).text(data.err);
       $(newDonorInfoTextId).removeClass('is-hidden');
@@ -435,7 +440,7 @@ function updateResetMapButtonState() {
   let countrySelection = countrySelectElement.
     options[countrySelectElement.selectedIndex].value;
 
-  
+
   if (countrySelection === 'all-learners') {
     $('#' + allLearnersResetMapButtonId).hide();
   } else {
