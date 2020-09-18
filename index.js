@@ -18,7 +18,7 @@ fireStoreAdmin.initializeApp({
 
 // TODO: get more info on the cookie secure param
 app.use(session({secret: 'ftl-secret', resave: true, saveUninitialized: true,
-  cookie: {secure: false, maxAge: 60000}}));
+  cookie: {secure: false, maxAge: 10 * 60000}}));
 
 const firestore = fireStoreAdmin.firestore();
 const memcached = new Memcached('127.0.0.1:11211');
@@ -182,6 +182,58 @@ app.post('/auth', function(req, res) {
     res.send('Please enter Username and Password');
     res.end();
   }
+});
+
+app.post('/getAllCountriesList', function(req, res) {
+  if (!req.session.loggedin) {
+    res.redirect('/admin');
+  }
+  const dbRef = firestore.collection('loc_ref');
+  let countryNames = [];
+  dbRef.get().then((querySnapshot)=>{
+    if (!querySnapshot) {
+      return undefined;
+    }
+    querySnapshot.forEach(function(doc) {
+      countryNames.push(doc.data().country);
+    });
+    res.json({countryNames: countryNames});
+  }).catch((err)=>{
+    console.error(err);
+  });
+});
+
+app.post('/getAllCountryRegions', function(req, res) {
+  if (!req.session.loggedin) {
+    res.redirect('/admin');
+  }
+  const country = req.body.country;
+  const dbRef = firestore.collection('loc_ref').doc(country);
+  let regionData = [];
+  dbRef.get().then((doc)=>{
+    if (!doc.exists) {
+      return undefined;
+    }
+    for (let i = 0; i < doc.data().regions.length; i++) {
+      const region = doc.data().regions[i];
+      if (region.region === 'no-region') {
+        continue;
+      }
+      if (!region.hasOwnProperty('pin') ||
+        region.pin.lat === 0 && region.pin.lng === 0) {
+        continue;
+      }
+      regionData.push({
+        region: region.hasOwnProperty('region') ? region.region : null,
+        streetViews: region.hasOwnProperty('streetViews') ?
+          region.streetViews : null,
+        pin: region.hasOwnProperty('pin') ? region.pin : null,
+      });
+    }
+    res.json({regionData: regionData});
+  }).catch((err)=>{
+    console.error(err);
+  });
 });
 
 app.get('/getDonorCampaigns', function(req, res) {
