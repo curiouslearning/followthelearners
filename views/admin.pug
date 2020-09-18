@@ -10,7 +10,7 @@ html
         integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
         crossorigin="anonymous")
   body
-    h1.title.has-text-centered FTL Dashboard
+    h1.title.has-text-centered FTL Admin
     section()
       .tabs.is-boxed
         ul
@@ -31,17 +31,21 @@ html
               span Logs
     section#street-views
       .columns
-        .column
+        .column.is-two-fifths
           div#pano(style='height: 600px;')
         .column
-          div#side-panel
-            h1.title.has-text-grey Choose a Country
-            .select.is-large(style='font-size: 2.4rem')
-              select#yourLearnersCountrySelect(onchange='onYourLearnersCountrySelectionChanged()' style='border: none; width: auto; -webkit-appearance: none; -moz-appearance: none; appearance:none;' name='campaignSelection')
-                option India
-                option Kenya
-                option Tanzania
-            button.button.is-dark.is-large Load Streetviews
+          div#side-panel(style='margin-top: 1rem')
+            .select.is-large
+              select#countrySelect(style='border: none; width: auto; -webkit-appearance: none; -moz-appearance: none; appearance:none;' name='campaignSelection')
+                option Country
+            button.button.is-dark.is-large(onclick='OnLoadCountriesClick()' style='margin-left: 1rem') Load Countries
+            button.button.is-dark.is-large(onclick='OnLoadCountryRegionsClick()' style='margin-left: 1rem') Load Regions
+            .columns(style='margin: 1rem')
+              input.input.column.is-medium#inputRadius(type='text' placeholder='Radius in Meters (5000)')
+              input.input.column.is-medium#inputCount(type='number' placeholder='Street Views Count' style='margin-left: 1rem')
+              button.button.column.is-dark.is-medium(onclick='OnGenerateSVForAllCountries()' style='margin-left: 1rem') Generate Street Views
+            section#regions(style='margin-top: 1rem')
+
 
           
 
