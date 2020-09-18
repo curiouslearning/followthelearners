@@ -43,6 +43,8 @@ let uid = '';
 let email = '';
 let emailVerified = false;
 let token = undefined;
+const TOKENTIMEOUT = 3600001;
+let lastRefresh = Date.now();
 
 firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
     .then(()=>{
@@ -60,6 +62,7 @@ firebase.auth().onAuthStateChanged((user) =>{
       token = newToken;
       console.log('token: ', token);
       GetDataAndSwitchToDonorLearners();
+      lastRefresh = Date.now();
       return;
     }).catch((err)=>{
       console.error(err);
@@ -79,9 +82,8 @@ $(document).ready(function() {
       if (tabId === 'tab-your-learners'&& currentDonorEmail === null &&
         donorModal) {
         if (token) {
-          currentDonorEmail = email;
           tabSelector.preventDefault();
-          GetDataAndSwitchToDonorLearners();
+          CheckTokenAndSwitchToDonorLearners(email);
         } else {
           $(newDonorInfoTextId).addClass('is-hidden');
           tabSelector.preventDefault();
@@ -129,10 +131,24 @@ $(document).ready(function() {
           console.error(err);
         });
   } else if (token) {
-    currentDonorEmail = email;
-    GetDataAndSwitchToDonorLearners();
+    CheckTokenAndSwitchToDonorLearners(email);
   }
 });
+
+function CheckTokenAndSwitchToDonorLearners(email) {
+  currentDonorEmail = email;
+  if (lastRefresh.getTime() <= Date(Date.now().getTime() - TOKENTIMEOUT)) {
+    firebase.auth().currentUser.getIdToken(true).then((newToken)=>{
+      token = newToken;
+      lastRefresh = Date.now();
+      GetDataAndSwitchToDonorLearners();
+    }).catch((err)=>{
+      console.error(err);
+    });
+  } else {
+    GetDataAndSwitchToDonorLearners();
+  }
+}
 
 /**
  * Callback for Google Maps deferred load that initializes the map
@@ -166,9 +182,8 @@ function initializeMaps() {
   }
 
   const targetEmail = getURLParam('email');
-  if (targetEmail) {
-    currentDonorEmail = targetEmail;
-    GetDataAndSwitchToDonorLearners();
+  if (targetEmail && token) {
+    CheckTokenAndSwitchToDonorLearners(targetEmail);
   }
 }
 
@@ -312,7 +327,6 @@ function validateEmail(email) {
  * Called from the donor email form
  */
 function GetDataAndSwitchToDonorLearners() {
-  console.log('submitting token: ', token);
   $.get('/yourLearners', {email: currentDonorEmail, token: token}, function(data, status) {
     if (data.err) {
       $(newDonorInfoContentId).text(data.err);
@@ -408,7 +422,7 @@ function checkForDonorSignIn() {
   }
   console.log('token: ', token);
   if (token !== undefined) {
-    GetDataAndSwitchToDonorLearners();
+    CheckTokenAndSwitchToDonorLearners(currentDonorEmail);
     return;
   } else if ($(donorEmailSubmit).prop('disabled') === true) {
     return;
