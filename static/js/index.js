@@ -1067,6 +1067,8 @@ function constructCountryLevelInfoWindow(country, randomFact) {
     randomFact + '<br><br><div style="text-align: center">' +
     '<button onclick="onAllLearnersCountryZoomInClick(\''+ country + '\')" class=\'button is-link is-outlined \'>' +
     ' <i class="fas fa-search-plus"></i>&nbsp;&nbsp;Take Me There ' +
+    '</button>&nbsp;' +
+    '<button onclick="GiveNow()" type=\'button\' class=\'button is-primary \'> Give Now ' +
     '</button></div>';
   return contentString;
 }
@@ -1076,6 +1078,7 @@ function constructCountryLevelInfoWindow(country, randomFact) {
  * @param {String} country country
  * @param {String} region region
  * @param {String} randomFact fact
+ * @return {String} HTML content string
  */
 function constructRegionPinWindow(country, region, randomFact) {
   const contentString = '<div style=\'text-align: left;\'>' +
@@ -1118,8 +1121,19 @@ function constructInfoWindowContent(country, region, randomFact, latitude,
     heading + '\'></input>' +
     '<button type=\'submit\' class=\'button is-link is-outlined \'>' +
     ' <i class="fas fa-street-view"></i>&nbsp;&nbsp;Take Me There ' +
-    '</button></form></div>';
+    '</button> ' +
+    '<button onclick="GiveNow()" type=\'button\' class=\'button is-primary \'> Give Now ' +
+    '</button>' +
+    '</form></div>';
   return contentString;
+}
+
+/**
+ * Function that's called when clicking the give now button on the map pin info
+ * window
+ */
+function GiveNow() {
+  tabSelector.ToggleTab('regions');
 }
 
 /**
