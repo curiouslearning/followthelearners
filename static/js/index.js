@@ -39,6 +39,10 @@ let yourLearnersData = null;
 const COSTPERLEARNER = 0.25;
 
 // Auth data
+let signInButton = '#sign-in-out'
+let signInTextElement = '#sign-in-text';
+let signInText = 'Sign In';
+let signOutText = 'Sign Out';
 let uid = '';
 let email = '';
 let emailVerified = false;
@@ -53,29 +57,39 @@ firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
       console.error(err);
     });
 
-firebase.auth().onAuthStateChanged((user) =>{
-  if (user) {
-    uid = user.uid;
-    email = user.email;
-    emailVerified = user.emailVerified;
-    firebase.auth().currentUser.getIdToken(true).then((newToken) =>{
-      token = newToken;
-      console.log('token: ', token);
-      GetDataAndSwitchToDonorLearners();
-      lastRefresh = Date.now();
-      return;
-    }).catch((err)=>{
-      console.error(err);
-    });
-  } else {
-    uid = '';
-    email = '';
-    emailVerified = false;
-    token = undefined;
-  }
-});
 
 $(document).ready(function() {
+  firebase.auth().onAuthStateChanged((user) =>{
+    if (user) {
+      uid = user.uid;
+      email = user.email;
+      emailVerified = user.emailVerified;
+      $(signInButton).click(function() {
+        firebase.auth().signOut();
+        tabSelector.ToggleTab('tab-campaigns');
+      });
+      $(signInTextElement).text(signOutText);
+      firebase.auth().currentUser.getIdToken(true).then((newToken) =>{
+        token = newToken;
+        console.log('token: ', token);
+        GetDataAndSwitchToDonorLearners();
+        lastRefresh = Date.now();
+        return;
+      }).catch((err)=>{
+        console.error(err);
+      });
+    } else {
+      $(signInButton).click(function() {
+        tabSelector.ToggleTab('tab-your-learners');
+      });
+      $(signInTextElement).text(signInText);
+      currentDonorEmail = null;
+      uid = '';
+      email = '';
+      emailVerified = false;
+      token = undefined;
+    }
+  });
   donorModal = document.getElementById('donor-email-modal');
   if (tabSelector) {
     tabSelector.addEventListener('preTabToggle', (tabId) => {
@@ -136,8 +150,11 @@ $(document).ready(function() {
 });
 
 function CheckTokenAndSwitchToDonorLearners(email) {
+  if (!token) {
+    return;
+  }
   currentDonorEmail = email;
-  if (lastRefresh.getTime() <= Date(Date.now().getTime() - TOKENTIMEOUT)) {
+  if (lastRefresh <= (Date.now() - TOKENTIMEOUT)) {
     firebase.auth().currentUser.getIdToken(true).then((newToken)=>{
       token = newToken;
       lastRefresh = Date.now();
@@ -417,17 +434,18 @@ function GetDataAndSwitchToDonorLearners() {
 }
 
 function checkForDonorSignIn() {
-  if (currentDonorEmail === null) {
-    currentDonorEmail = document.getElementById(donorEmailElementId).value;
-  }
   console.log('token: ', token);
   if (token !== undefined) {
-    CheckTokenAndSwitchToDonorLearners(currentDonorEmail);
+    let email = currentDonorEmail;
+    if (email === undefined) {
+      email = document.getElementById(donorEmailElementId).value;
+    }
+    CheckTokenAndSwitchToDonorLearners(email);
     return;
   } else if ($(donorEmailSubmit).prop('disabled') === true) {
     return;
   }
-
+  currentDonorEmail = document.getElementById(donorEmailElementId).value;
   const actionCodeSettings = {
     url: 'http://localhost:3000/campaigns',
     handleCodeInApp: true,

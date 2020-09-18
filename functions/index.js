@@ -190,6 +190,19 @@ function writeDonation(params) {
   });
 }
 
+
+function updateOldDonorAccount(email, uid) {
+  const dbref = firestore.collection('donor_master');
+  return dbref.where('email', '==', email).get.then((snap)=>{
+    if (snap.empty) return undefined;
+    if (snap.docs[0].id !== uid) {
+      let id = snap.docs[0].id;
+      return dbref.doc(id).update({donorID: uid});
+    }
+    return undefined;
+  })
+}
+
 function generateNewLearnersEmail(name, email, url) {
   const capitalized = name.charAt(0).toUpperCase();
   const formattedName = capitalized + name.slice(1);
