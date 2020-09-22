@@ -3,6 +3,7 @@ html
   head
     script(src="https://www.gstatic.com/firebasejs/7.14.3/firebase-app.js")
     script(src="https://www.gstatic.com/firebasejs/7.14.3/firebase-analytics.js")
+    script(src="https://www.gstatic.com/firebasejs/7.14.3/firebase-auth.js")
     script(src="/static/js/hj.js")
     link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css')
     script(src="https://kit.fontawesome.com/89be96593a.js" crossorigin="anonymous")
@@ -47,6 +48,10 @@ html
 
   body
     header(style='z-index: 10;')
+      .section(style='margin-bottom: -120px; margin-left: 30px;')
+        //Sign In/Out Button
+        button.button.is-medium.is-pulled-right.is-dark#sign-in-out(onclick= "tabSelector.ToggleTab('tab-your-learners')")
+          span#sign-in-text Sign In
       .section(style='margin-bottom: -120px;')
           p.buttons.is-pulled-right#tab-buttons
             // Campaigns Button
@@ -66,7 +71,6 @@ html
               span.icon.is-small
                 i.fas.fa-globe(aria-hidden='true' style='pointer-events: none;')
               span All Learners
-
     .section#tabs-parent(style='z-index: 5')
       .section#tab-campaigns
         a.title.has-text-grey-dark(href="/" style='font-size: 4rem;') Follow The Learners™
@@ -155,7 +159,7 @@ html
             span
               br
               br
-          form(onsubmit='GetDataAndSwitchToDonorLearners(); return false;')
+          form(onsubmit='checkForDonorSignIn(); return false;')
             //- .help Go to your Donor Summary
             //- br
             label.has-text-grey(for='email') E-mail
@@ -165,7 +169,7 @@ html
                 i.fas.fa-envelope
             br
             .control
-              input.button#donor-email-submit(type='button' disabled=true onclick='GetDataAndSwitchToDonorLearners()' value='View Your Learners')
+              input.button#donor-email-submit(type='button' disabled=true onclick='checkForDonorSignIn()' value='View Your Learners')
           script.
             $(function() {
               $('#donor-email').change(function() {

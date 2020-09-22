@@ -1,18 +1,18 @@
 const express = require('express');
 const http = require('http');
 const Memcached = require('memcached');
-const fireStoreAdmin = require('firebase-admin');
+const admin = require('firebase-admin');
 const serviceAccount = require('./keys/firestore-key.json');
 const bodyParser = require('body-parser');
 const dateFormat = require('date-format');
 const app = express();
 const CACHETIMEOUT = 720; // the cache timeout in minutes
 
-fireStoreAdmin.initializeApp({
-  credential: fireStoreAdmin.credential.cert(serviceAccount),
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
 });
 
-const firestore = fireStoreAdmin.firestore();
+const firestore = admin.firestore();
 const memcached = new Memcached('127.0.0.1:11211');
 const memcachedMiddleware = (duration) => {
   return (req, res, next) => {
@@ -173,20 +173,11 @@ app.get('/getDonorCampaigns', function(req, res) {
 });
 
 app.get('/yourLearners', function(req, res) {
-  if (!validateEmail(req.query.email)) {
-    res.json({err: 'please enter a valid email address.'});
-    res.end();
-    return;
-  }
-  console.log('Getting learner data for donor: ', req.query.email);
   let donorID = '';
-  getDonorID(req.query.email).then((result)=>{
-    donorID = result;
-    console.log('found donorID: ', donorID);
-    if (donorID === null || donorID === undefined || donorID === '') {
-      return undefined;
-    }
-    return getDonations(donorID);
+  admin.auth().verifyIdToken(req.query.token).then((decodedToken)=>{
+    return decodedToken.uid;
+  }).then((uid)=>{
+    return getDonations(uid);
   }).then((donations)=>{
     if (donations !== undefined) {
       const promises = [];
@@ -211,6 +202,8 @@ app.get('/yourLearners', function(req, res) {
     }
   }).catch((err)=>{
     console.error(err);
+    res.json({err: err});
+    res.end();
   });
 });
 
@@ -526,5 +519,5 @@ function generateGooglePlayURL(appID, source, campaignID, donorID) {
 }
 
 function getDateTime() {
-  return fireStoreAdmin.firestore.Timestamp.now();
+  return admin.firestore.Timestamp.now();
 }

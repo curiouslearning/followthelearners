@@ -125,14 +125,19 @@ function writeDonation(params) {
   let donorID ='';
   return getDonorID(params.email).then((foundID)=>{
     if (foundID === '') {
-      return dbRef.add({
-        firstName: params.firstName,
-        lastName: params.lastName,
+      return admin.auth().createUser({
+        displayName: params.firstName,
         email: params.email,
-        dateCreated: params.timestamp,
-      }).then((docRef)=>{
-        dbRef.doc(docRef.id).set({donorID: docRef.id},{merge:true});
-        return docRef.id;
+      }).then((user)=>{
+        const uid = user.uid;
+        dbRef.doc(uid).set({
+          firstName: params.firstName,
+          lastName: params.lastName,
+          email: params.email,
+          dateCreated: params.timestamp,
+          donorID: uid,
+        });
+        return uid;
       });
     } else {
       return foundID;
@@ -165,23 +170,17 @@ function writeDonation(params) {
       }
       return assignInitialLearners(donorID, params.country);
     }).then((promise)=>{
-      const capitalized = params.firstName.charAt(0).toUpperCase();
-      const name = capitalized + params.firstName.slice(1);
-      const mailOptions = {
-        from: 'notifications@curiouslearning.org',
-        to: params.email,
-        subject: 'Follow The Learners -- Your Learners are Ready!',
-        text: 'Hi '+name+', thank you for helping support Follow the Learners! Click the link below, navigate to the "Your Learners" section, and enter your email to view how we\'re using your donation to bring reading into the lives of children!\n\nhttps://followthelearners.curiouslearning.org/campaigns\n\nFollow the Learners is currently in beta, and we\'re still ironing out some of the wrinkles! If you don\'t see your learners appear after about 5 minutes, please contact support@curiouslearning.org and we will be happy to assist you. ',
+      let actionCodeSettings = {
+        url: 'http://localhost:3000/campaigns',
+        handleCodeInApp: true,
       };
-      return transporter.sendMail(mailOptions, (error, info)=>{
-        if (error) {
-          console.error(error);
-          promise.reject(error);
-        } else {
-          console.log('email sent: ' + info.response);
-          return;
-        }
-      });
+      return admin.auth()
+          .generateSignInWithEmailLink(params.email, actionCodeSettings)
+          .then((link)=>{
+            return generateNewLearnersEmail(params.firstName, params.email, link);
+          }).catch((err)=>{
+            console.error(err);
+          });
     }).catch((err)=>{
       console.error(err);
     });
@@ -191,11 +190,47 @@ function writeDonation(params) {
   });
 }
 
+
+function updateOldDonorAccount(email, uid) {
+  const dbref = firestore.collection('donor_master');
+  return dbref.where('email', '==', email).get.then((snap)=>{
+    if (snap.empty) return undefined;
+    if (snap.docs[0].id !== uid) {
+      let id = snap.docs[0].id;
+      return dbref.doc(id).update({donorID: uid});
+    }
+    return undefined;
+  })
+}
+
+function generateNewLearnersEmail(name, email, url) {
+  const capitalized = name.charAt(0).toUpperCase();
+  const formattedName = capitalized + name.slice(1);
+
+
+  const mailOptions = {
+    from: 'notifications@curiouslearning.org',
+    to: email,
+    subject: 'Follow The Learners -- Your Learners are Ready!',
+    text: 'Hi '+formattedName+', thank you for helping support Follow the Learners! Click the link below, navigate to the "Your Learners" section, and enter your email to view how we\'re using your donation to bring reading into the lives of children!\n\n'+url+'\n\nFollow the Learners is currently in beta, and we\'re still ironing out some of the wrinkles! If you don\'t see your learners appear after about 5 minutes, please contact support@curiouslearning.org and we will be happy to assist you. ',
+  };
+  return transporter.sendMail(mailOptions, (error, info)=>{
+    if (error) {
+      console.error(error);
+      promise.reject(error);
+    } else {
+      console.log('email sent: ' + info.response);
+      return;
+    }
+  });
+}
+
 function getCostPerLearner(campaignID) {
-  return admin.firestore().collection('campaigns').where('campaignID', '==', campaignID)
+  return admin.firestore().collection('campaigns')
+      .where('campaignID', '==', campaignID)
       .get().then((snap)=>{
         if (snap.empty) {
-          throw new Error("can't find campaign with ID: ", campaignID);
+          throw new Error('can\'t find campaign with ID: ', campaignID);
         }
         return snap.docs[0].data().costPerLearner;
       }).catch((err)=>{
@@ -204,16 +239,15 @@ function getCostPerLearner(campaignID) {
 }
 
 function getDonorID(email) {
-  const dbRef = admin.firestore().collection('donor_master');
-  return dbRef.where('email', '==', email).get().then((snapshot)=>{
-    if (snapshot.empty) {
-      console.log('no donorID found for email ', email);
-      return '';
-    }
-    return snapshot.docs[0].data().donorID;
-  }).catch((err)=>{
-    console.error(err);
-  });
+  return admin.auth().getUserByEmail(email)
+      .then((user)=>{
+        return user.uid;
+      }).catch((err)=>{
+        if (err.code === 'auth/user-not-found') {
+          console.log('No Donor found for email: ', email);
+          return '';
+        } else throw new Error(err);
+      });
 }
 
 // Grab initial list of learners at donation time from user_pool
@@ -581,7 +615,7 @@ exports.updateRegion = functions.firestore.document('/user_pool/{documentId}')
         }
         countrySum += regions[i].learnerCount;
       }
-      return { foundRegion: foundRegion, regionIndex: regionIndex, 
+      return { foundRegion: foundRegion, regionIndex: regionIndex,
         sum: vals[0] };
     }).then((vals) => {
       if (!vals.foundRegion) {
@@ -618,7 +652,7 @@ exports.updateRegion = functions.firestore.document('/user_pool/{documentId}')
             regions[vals.regionIndex]['pin'] = { lat: markerLoc.lat, lng: markerLoc.lng };
 
             countrySum += vals.sum;
-            
+
             // Update the loc_ref country regions with new data
             docRef.set({
               regions: regions,

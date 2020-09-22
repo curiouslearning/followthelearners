@@ -95,6 +95,7 @@ function main() {
       let commitCounter = 0;
       const batches = [];
       const usedIDs = [];
+      let counter = 0;
       let doubleCounter = 0;
       batches[commitCounter] = firestore.batch();
       rows.forEach((row)=>{
@@ -104,6 +105,7 @@ function main() {
           batches[commitCounter] = firestore.batch();
         }
         if (!usedIDs.includes(row.user_pseudo_id)) {
+          counter++;
           usedIDs.push(row.user_pseudo_id);
           addUserToPool(createUser(row), batches[commitCounter]);
           insertLocation(row);
@@ -112,6 +114,7 @@ function main() {
           doubleCounter++;
         }
       });
+      console.log('created ', counter, ' new users');
       writeToDb(batches);
       console.log('doubleCounter: ' + doubleCounter);
     } catch (err) {

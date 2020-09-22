@@ -9,7 +9,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
-/keys
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
@@ -113,6 +112,8 @@ temp/
 .htaccess
 /test_database
 /localBin
+/keys
+/functions/keys
 
 # End of https://www.gitignore.io/api/node
 *.psd

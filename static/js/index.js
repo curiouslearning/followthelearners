@@ -38,35 +38,88 @@ let yourLearnersData = null;
 
 const COSTPERLEARNER = 0.25;
 
+// Auth data
+let signInButton = '#sign-in-out'
+let signInTextElement = '#sign-in-text';
+let signInText = 'Sign In';
+let signOutText = 'Sign Out';
+let uid = '';
+let email = '';
+let emailVerified = false;
+let token = undefined;
+const TOKENTIMEOUT = 3600001;
+let lastRefresh = Date.now();
+
+firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
+    .then(()=>{
+      return true;
+    }).catch((err)=>{
+      console.error(err);
+    });
+
+
 $(document).ready(function() {
+  firebase.auth().onAuthStateChanged((user) =>{
+    if (user) {
+      uid = user.uid;
+      email = user.email;
+      emailVerified = user.emailVerified;
+      $(signInButton).click(function() {
+        firebase.auth().signOut();
+        tabSelector.ToggleTab('tab-campaigns');
+      });
+      $(signInTextElement).text(signOutText);
+      firebase.auth().currentUser.getIdToken(true).then((newToken) =>{
+        token = newToken;
+        console.log('token: ', token);
+        GetDataAndSwitchToDonorLearners();
+        lastRefresh = Date.now();
+        return;
+      }).catch((err)=>{
+        console.error(err);
+      });
+    } else {
+      $(signInButton).click(function() {
+        tabSelector.ToggleTab('tab-your-learners');
+      });
+      $(signInTextElement).text(signInText);
+      currentDonorEmail = null;
+      uid = '';
+      email = '';
+      emailVerified = false;
+      token = undefined;
+    }
+  });
   donorModal = document.getElementById('donor-email-modal');
   if (tabSelector) {
     tabSelector.addEventListener('preTabToggle', (tabId) => {
-      if (tabId === 'tab-your-learners' && currentDonorEmail === null &&
+      if (tabId === 'tab-your-learners'&& currentDonorEmail === null &&
         donorModal) {
-        $(newDonorInfoTextId).addClass('is-hidden');
-        tabSelector.preventDefault();
-        donorModal.classList.add('is-active');
-      } else if (tabId === 'tab-your-learners' && yourLearnersData) {
-        // clearYourLearnersMarkers();
-        // displayYourLearnersData(yourLearnersData);
-      } else if (tabId === 'tab-all-learners' && allLearnersData === null
-        && !loadingAllLearnersData) {
+        if (token) {
+          tabSelector.preventDefault();
+          CheckTokenAndSwitchToDonorLearners(email);
+        } else {
+          $(newDonorInfoTextId).addClass('is-hidden');
+          tabSelector.preventDefault();
+          donorModal.classList.add('is-active');
+        }
+      } else if (tabId === 'tab-all-learners' && allLearnersData === null &&
+        !loadingAllLearnersData) {
         loadingAllLearnersData = true;
         tabSelector.preventDefault();
         GetDataAndSwitchToAllLearners();
-      } else if (tabId === 'tab-all-learners' && allLearnersData === null
-        && loadingAllLearnersData) {
+      } else if (tabId === 'tab-all-learners' && allLearnersData === null &&
+          loadingAllLearnersData) {
         tabSelector.preventDefault();
       } else if (tabId === 'tab-all-learners' && allLearnersData !== null) {
         clearAllMarkers();
         createCountUpTextInElement('all-learners-count',
-          getTotalCountForAllLearners(allLearnersData));
+            getTotalCountForAllLearners(allLearnersData));
         displayAllLearnersData(allLearnersData, true);
-        for (var key in allLearnersData.campaignData) {
-          if (allLearnersData.campaignData[key].country == "no-country") {
+        for (let key in allLearnersData.campaignData) {
+          if (allLearnersData.campaignData[key].country == 'no-country') {
             createCountUpTextInElement(dntLearnersCountElementId,
-              allLearnersData.campaignData[key].learnerCount);
+                allLearnersData.campaignData[key].learnerCount);
           }
         }
         countrySelectElement.value = 'all-learners';
@@ -76,8 +129,43 @@ $(document).ready(function() {
       // console.log(tabId);
     });
   }
-
+  if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
+    let email = window.localStorage.getItem('emailForSignIn');
+    if (!email) {
+      email = window.prompt('please enter your email to finish signing in');
+    }
+    firebase.auth().signInWithEmailLink(email, window.location.href)
+        .then((result)=>{
+          currentDonorEmail = email;
+          window.localStorage.removeItem('emailForSignIn');
+          window.history.replaceState({}, document.title, '/campaigns');
+        }).catch((err)=>{
+          window.localStorage.removeItem('emailForSignIn');
+          window.history.replaceState({}, document.title, '/campaigns');
+          console.error(err);
+        });
+  } else if (token) {
+    CheckTokenAndSwitchToDonorLearners(email);
+  }
 });
+
+function CheckTokenAndSwitchToDonorLearners(email) {
+  if (!token) {
+    return;
+  }
+  currentDonorEmail = email;
+  if (lastRefresh <= (Date.now() - TOKENTIMEOUT)) {
+    firebase.auth().currentUser.getIdToken(true).then((newToken)=>{
+      token = newToken;
+      lastRefresh = Date.now();
+      GetDataAndSwitchToDonorLearners();
+    }).catch((err)=>{
+      console.error(err);
+    });
+  } else {
+    GetDataAndSwitchToDonorLearners();
+  }
+}
 
 /**
  * Callback for Google Maps deferred load that initializes the map
@@ -111,9 +199,8 @@ function initializeMaps() {
   }
 
   const targetEmail = getURLParam('email');
-  if (targetEmail) {
-    currentDonorEmail = targetEmail;
-    GetDataAndSwitchToDonorLearners();
+  if (targetEmail && token) {
+    CheckTokenAndSwitchToDonorLearners(targetEmail);
   }
 }
 
@@ -217,17 +304,17 @@ function onGiveNowButtonClick() {
 
   let countrySelection = yourLearnersCountrySelectElement.
     options[yourLearnersCountrySelectElement.selectedIndex].value;
-  
+
   let donorCountries = [];
-  if (yourLearnersCountrySelectElement.options.length > 0 && 
+  if (yourLearnersCountrySelectElement.options.length > 0 &&
     countrySelection === 'all-countries') {
     for (let i = 1; i < yourLearnersCountrySelectElement.options.length; i++) {
       donorCountries.push(yourLearnersCountrySelectElement.options[i].value);
     }
   }
-  
+
   $.post('/giveAgain', {
-    email: currentDonorEmail, 
+    email: currentDonorEmail,
     countrySelection: countrySelection,
     donorCountries: donorCountries},
     function(data, status) {
@@ -237,14 +324,15 @@ function onGiveNowButtonClick() {
             tabSelector.ToggleTab('tab-campaigns');
           }
         }
-      } 
+      }
     }
   );
-  
+
 }
 
 function validateEmail(email) {
   if (email === null || email === undefined) return false;
+  console.log('validating email: ', email);
   const result = email.match(/[[\w\d-\.]+\@]?[[\w\d-]*[\.]+[\w\d-\.]+]*/);
   if (result !== null && result !== undefined && result !== ['']) {
     return true;
@@ -256,19 +344,13 @@ function validateEmail(email) {
  * Called from the donor email form
  */
 function GetDataAndSwitchToDonorLearners() {
-  if ($(donorEmailSubmit).prop('disabled') === true) {
-    return;
-  }
-  if (currentDonorEmail === null) {
-    currentDonorEmail = document.getElementById(donorEmailElementId).value;
-  }
-  $.get('/yourLearners', {email: currentDonorEmail}, function(data, status) {
+  $.get('/yourLearners', {email: currentDonorEmail, token: token}, function(data, status) {
     if (data.err) {
       $(newDonorInfoContentId).text(data.err);
       $(newDonorInfoTextId).removeClass('is-hidden');
       currentDonorEmail = null;
     }
-    if (data === "" || data === null || data === undefined) {
+    if (data === '' || data === null || data === undefined) {
       $(newDonorInfoTextId).removeClass('is-hidden');
       setTimeout(() => {
         $(newDonorInfoTextId).addClass('is-hidden');
@@ -288,15 +370,16 @@ function GetDataAndSwitchToDonorLearners() {
         yourLearnersCountrySelectElement.options[i + 1] =
           new Option(data.locationData[i].country + ' - ' +
             getTotalCountryLearnerCountFromDonations(
-              yourLearnersData.campaignData,
-              data.locationData[i].country),
-            data.locationData[i].country);
+                yourLearnersData.campaignData,
+                data.locationData[i].country),
+          data.locationData[i].country
+          );
       }
     }
     // TODO: expand this  to cover campaigns with varying cost/learner
     let allCountriesAggregateAmount = 0;
     let tempDonationStartDate = null;
-    let allCountriesDonationStartDate = "";
+    let allCountriesDonationStartDate = '';
     let allCountriesLearnersCount = 0;
     let allCountriesDNTUsersCount = 0;
     let percentFilled = 0;
@@ -322,30 +405,60 @@ function GetDataAndSwitchToDonorLearners() {
     setDonationPercentage(
         allCountriesAggregateAmount,
         allCountriesLearnersCount,
-        COSTPERLEARNER
+        COSTPERLEARNER,
     );
     document.getElementById('donation-amount').innerText =
       allCountriesAggregateAmount;
 
-    if (allCountriesDonationStartDate !== "") {
+    if (allCountriesDonationStartDate !== '') {
       document.getElementById('donation-date').innerText =
         allCountriesDonationStartDate.toString();
     }
 
-    createCountUpTextInElement('learner-count', allCountriesLearnersCount);
+    createCountUpTextInElement('learner-count',
+        allCountriesLearnersCount);
 
     if (donorModal) {
       donorModal.classList.remove('is-active');
     }
 
     createCountUpTextInElement(dntYourLearnersCountElementId,
-      allCountriesDNTUsersCount);
+        allCountriesDNTUsersCount);
 
     tabSelector.ToggleTab('tab-your-learners');
 
     displayYourLearnersData(yourLearnersData, true);
 
   });
+
+}
+
+function checkForDonorSignIn() {
+  console.log('token: ', token);
+  if (token !== undefined) {
+    let email = currentDonorEmail;
+    if (email === undefined) {
+      email = document.getElementById(donorEmailElementId).value;
+    }
+    CheckTokenAndSwitchToDonorLearners(email);
+    return;
+  } else if ($(donorEmailSubmit).prop('disabled') === true) {
+    return;
+  }
+  currentDonorEmail = document.getElementById(donorEmailElementId).value;
+  const actionCodeSettings = {
+    url: 'http://localhost:3000/campaigns',
+    handleCodeInApp: true,
+  };
+
+  firebase.auth().sendSignInLinkToEmail(currentDonorEmail, actionCodeSettings)
+      .then(function() {
+        window.localStorage.setItem('emailForSignIn', currentDonorEmail);
+        $(newDonorInfoContentId).text('please follow the link we sent to your email to complete the sign in process! You can now safely close this browser tab.');
+        $(newDonorInfoTextId).removeClass('is-hidden');
+      }).catch((err) =>{
+        console.error(err.code);
+      });
 }
 
 /**
@@ -359,7 +472,7 @@ function updateResetMapButtonState() {
   let countrySelection = countrySelectElement.
     options[countrySelectElement.selectedIndex].value;
 
-  
+
   if (countrySelection === 'all-learners') {
     $('#' + allLearnersResetMapButtonId).hide();
   } else {
