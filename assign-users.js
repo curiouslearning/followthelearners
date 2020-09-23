@@ -46,8 +46,6 @@ async function assignExpiringLearners() {
       console.log('priority queue length:', priorityQueue.length);
       matchLearnersToDonors(learnerQueue, priorityQueue);
       batchLearnerAssignment(priorityQueue);
-      batchCount++;
-      batchSize = 0;
       sweepExpiredLearners();
     }).catch((err)=>{
       console.error(err);
