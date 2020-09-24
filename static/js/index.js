@@ -340,6 +340,16 @@ function validateEmail(email) {
   return false;
 }
 
+function isSpecial(keyCode) {
+  switch (keyCode) {
+    case 9: return true;
+    case 13: return true;
+    case 18: return true;
+    case 20: return true;
+    default: return false;
+  }
+}
+
 /**
  * Called from the donor email form
  */
@@ -456,7 +466,7 @@ function checkForDonorSignIn() {
           .sendSignInLinkToEmail(currentDonorEmail, actionCodeSettings)
           .then(function() {
             window.localStorage.setItem('emailForSignIn', currentDonorEmail);
-            $(newDonorInfoContentId).text('please follow the link we sent to your email to complete the sign in process! You can now safely close this browser tab.');
+            $(newDonorInfoTextId).text('please follow the link we sent to your email to complete the sign in process! You can now safely close this browser tab.');
             $(newDonorInfoTextId).removeClass('is-hidden');
             currentDonorEmail = null;
             $(donorEmailElementId).value = null;
@@ -465,9 +475,8 @@ function checkForDonorSignIn() {
           });
     } else {
       currentDonorEmail = null;
-      $(donorEmailElementId).value = null;
-      $(newDonorInfoContentId).text(data.displayText);
       $(newDonorInfoTextId).removeClass('is-hidden');
+      $(newDonorInfoTextId).text(data.displayText);
     }
   });
 }

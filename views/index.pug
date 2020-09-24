@@ -1,5 +1,6 @@
 html
   include mixins/_campaign
+  include mixins/_link
   head
     script(src="https://www.gstatic.com/firebasejs/7.14.3/firebase-app.js")
     script(src="https://www.gstatic.com/firebasejs/7.14.3/firebase-analytics.js")
@@ -149,7 +150,7 @@ html
       .modal-background(onclick="document.getElementById('donor-email-modal').classList.remove('is-active');")
       .modal-card
         header.modal-card-head(style='border: none')
-          p.modal-card-title.has-text-grey-dark Enter Your E-Mail
+          p.modal-card-title.hast-text-grey-dark Login
           button.delete(aria-label='close' onclick="document.getElementById('donor-email-modal').classList.remove('is-active');")
         .modal-card-body
           p.has-text-info.is-hidden#new-donor-info-text
@@ -159,6 +160,8 @@ html
             span
               br
               br
+          p.has-text-grey-dark Enter your e-mail address to sign and see your learners
+          p.has-text-grey-dark Or make a donation to create your account and start following your learners!
           form(onsubmit='checkForDonorSignIn(); return false;')
             //- .help Go to your Donor Summary
             //- br
@@ -170,18 +173,25 @@ html
             br
             .control
               input.button#donor-email-submit(type='button' disabled=true onclick='checkForDonorSignIn()' value='View Your Learners')
+              input.button.is-pulled-right#go-to-donate(type='button' disabled=false onclick="document.getElementById('donor-email-modal').classList.remove('is-active'); tabSelector.ToggleTab('tab-campaigns')" value='Make a Donation')
           script.
             $(function() {
-              $('#donor-email').keyup(function() {
-                let value = $('#donor-email').val();
-                if (validateEmail(value)) {
-                  $('#donor-email-submit').prop('disabled', false);
-                  $('#new-donor-info-text').addClass('is-hidden');
-                } else {
-                  $('#donor-email-submit').prop('disabled', true);
-                  $('#new-donor-info-text').text('please enter a valid email address');
-                  $('#new-donor-info-text').removeClass('is-hidden');
-                }
+              $('#donor-email').focusin(function() {
+                $('#donor-email').keyup(function(event) {
+                  if(isSpecial(event.which)) return;
+                  let value = $('#donor-email').val();
+                  if (validateEmail(value)) {
+                    $('#donor-email-submit').prop('disabled', false);
+                    $('#new-donor-info-text').addClass('is-hidden');
+                  } else {
+                    $('#donor-email-submit').prop('disabled', true);
+                    $('#new-donor-info-text').text('please enter a valid email address');
+                    $('#new-donor-info-text').removeClass('is-hidden');
+                  }
+                });  
+              });
+              $('#donor-email').focusout(function() {
+                  $('#donor-email').keyup(function(event) {});
               });
             });
 
