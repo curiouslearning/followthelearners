@@ -172,14 +172,14 @@ html
               input.button#donor-email-submit(type='button' disabled=true onclick='checkForDonorSignIn()' value='View Your Learners')
           script.
             $(function() {
-              $('#donor-email').change(function() {
+              $('#donor-email').keyup(function() {
                 let value = $('#donor-email').val();
                 if (validateEmail(value)) {
                   $('#donor-email-submit').prop('disabled', false);
                   $('#new-donor-info-text').addClass('is-hidden');
                 } else {
-                  $('#donor-email').val('');
                   $('#donor-email-submit').prop('disabled', true);
+                  $('#new-donor-info-text').text('please enter a valid email address');
                   $('#new-donor-info-text').removeClass('is-hidden');
                 }
               });

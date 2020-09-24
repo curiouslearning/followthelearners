@@ -172,6 +172,19 @@ app.get('/getDonorCampaigns', function(req, res) {
   });
 });
 
+app.get('/isUser', function(req, res) {
+  let email = req.query.email;
+  admin.auth().getUserByEmail(email).then((user)=>{
+    res.status(200).json({isUser:true});
+  }).catch((err)=>{
+    if (err.code === 'auth/user-not-found') {
+      res.status(200).send({err: err, isUser: false, displayText: 'Oops! We couldn\'t find that email in our database. If you\'d like to make an account with us, pick a region to support!\n If you\'ve already made an account and cannot access your learners, please email support@curiouslearning.org.'});
+    } else {
+      next(err);
+    }
+  });
+});
+
 app.get('/yourLearners', function(req, res) {
   let donorID = '';
   admin.auth().verifyIdToken(req.query.token).then((decodedToken)=>{
