@@ -95,7 +95,7 @@ $(document).ready(function() {
     tabSelector.addEventListener('preTabToggle', (tabId) => {
       if (tabId === 'tab-your-learners'&& currentDonorEmail === null &&
         donorModal) {
-        if (token) {
+        if (token !== undefined) {
           tabSelector.preventDefault();
           CheckTokenAndSwitchToDonorLearners(email);
         } else {
@@ -340,6 +340,16 @@ function validateEmail(email) {
   return false;
 }
 
+function isSpecial(keyCode) {
+  switch (keyCode) {
+    case 9: return true;
+    case 13: return true;
+    case 18: return true;
+    case 20: return true;
+    default: return false;
+  }
+}
+
 /**
  * Called from the donor email form
  */
@@ -446,19 +456,29 @@ function checkForDonorSignIn() {
     return;
   }
   currentDonorEmail = document.getElementById(donorEmailElementId).value;
-  const actionCodeSettings = {
-    url: 'http://localhost:3000/campaigns',
-    handleCodeInApp: true,
-  };
-
-  firebase.auth().sendSignInLinkToEmail(currentDonorEmail, actionCodeSettings)
-      .then(function() {
-        window.localStorage.setItem('emailForSignIn', currentDonorEmail);
-        $(newDonorInfoContentId).text('please follow the link we sent to your email to complete the sign in process! You can now safely close this browser tab.');
-        $(newDonorInfoTextId).removeClass('is-hidden');
-      }).catch((err) =>{
-        console.error(err.code);
-      });
+  $.get('/isUser', {email: currentDonorEmail}, function(data, status) {
+    if (data.isUser) {
+      const actionCodeSettings = {
+        url: 'http://localhost:3000/campaigns',
+        handleCodeInApp: true,
+      };
+      firebase.auth()
+          .sendSignInLinkToEmail(currentDonorEmail, actionCodeSettings)
+          .then(function() {
+            window.localStorage.setItem('emailForSignIn', currentDonorEmail);
+            $(newDonorInfoTextId).text('please follow the link we sent to your email to complete the sign in process! You can now safely close this browser tab.');
+            $(newDonorInfoTextId).removeClass('is-hidden');
+            currentDonorEmail = null;
+            $(donorEmailElementId).value = null;
+          }).catch((err) =>{
+            console.error(err.code);
+          });
+    } else {
+      currentDonorEmail = null;
+      $(newDonorInfoTextId).removeClass('is-hidden');
+      $(newDonorInfoTextId).text(data.displayText);
+    }
+  });
 }
 
 /**
