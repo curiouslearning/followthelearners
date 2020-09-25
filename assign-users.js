@@ -37,6 +37,7 @@ async function assignExpiringLearners() {
     return getLearnerQueue(priorityQueue.length, PRUNEDATE).then((learnerSnap)=>{
       if (learnerSnap === undefined || learnerSnap.empty) {
         console.log('no new learners to assign');
+        sweepExpiredLearners();
         return;
       }
       console.log('prioritizing snap of size ', learnerSnap.size);
@@ -45,8 +46,6 @@ async function assignExpiringLearners() {
       console.log('priority queue length:', priorityQueue.length);
       matchLearnersToDonors(learnerQueue, priorityQueue);
       batchLearnerAssignment(priorityQueue);
-      batchCount++;
-      batchSize = 0;
       sweepExpiredLearners();
     }).catch((err)=>{
       console.error(err);
@@ -223,7 +222,7 @@ function sweepExpiredLearners() {
           let id = doc.id;
           data['expiredOn'] = admin.firestore.Timestamp.now();
           batches[batchCount].set(expiredRef.doc(id), data);
-          batches[batchCount].delete(poolRef.doc('id'));
+          batches[batchCount].delete(poolRef.doc(id));
           batchSize +=2;
         });
         return batches;
