@@ -91,6 +91,7 @@ function matchLearnersToDonors(learners, donations) {
           donation['learners'] = [];
         }
         data.sourceDonor = donation.sourceDonor;
+        data.userStatus = 'assigned';
         data['assignedOn'] = admin.firestore.Timestamp.now();
         donation['learners'].push(data);
         learners.splice(0, 1);
@@ -123,9 +124,6 @@ function batchLearnerAssignment(priorityQueue) {
   batches[batchCount] = firestore.batch();
   const poolRef = firestore.collection('user_pool');
   priorityQueue.forEach((donation, i)=>{
-    const msgRef = firestore.collection('donor_master')
-        .doc(donation.sourceDonor)
-        .collection('donations').doc(donation.id).collection('users');
     if (donation.hasOwnProperty('learners')) {
       donation.learners.forEach((learner) =>{
         if (batchSize >= BATCHMAX) {
@@ -133,11 +131,9 @@ function batchLearnerAssignment(priorityQueue) {
           batchCount++;
           batches[batchCount] = firestore.batch();
         }
-        const docRef = msgRef.doc(learner.userID);
-        batches[batchCount].set(docRef, learner);
-        const deleteRef = poolRef.doc(learner.userID);
-        batches[batchCount].delete(deleteRef);
-        batchSize += 2;
+        const docRef = poolRef.doc(learner.userID);
+        batches[batchCount].set(docRef, learner, {merge: true});
+        batchSize++;
       });
     }
   });
@@ -153,6 +149,7 @@ function batchLearnerAssignment(priorityQueue) {
 async function getLearnerQueue(donationCount, interval) {
   const pivotDate = new Date(Date.now()-(DAYINMS*interval));
   return firestore.collection('user_pool')
+      .where('userStatus', '==', 'unassigned')
       .orderBy('dateCreated', 'asc').get().then((snap)=>{
         console.log('fetched snap of size ', snap.size);
         return snap;
@@ -201,8 +198,8 @@ function getPriorityQueue() {
 function sweepExpiredLearners() {
   const pivot = getPivot();
   const poolRef = firestore.collection('user_pool');
-  const expiredRef = firestore.collection('unassigned_users');
-  poolRef.where('dateCreated', '<=', pivot).get()
+  poolRef.where('userStatus', '==', 'unassigned')
+      .where('dateCreated', '<=', pivot).get()
       .then((snap)=>{
         if (snap.empty) {
           console.log('empty snap');
@@ -220,10 +217,10 @@ function sweepExpiredLearners() {
           }
           let data = doc.data();
           let id = doc.id;
+          data.userStatus = 'expired';
           data['expiredOn'] = admin.firestore.Timestamp.now();
-          batches[batchCount].set(expiredRef.doc(id), data);
-          batches[batchCount].delete(poolRef.doc(id));
-          batchSize +=2;
+          batches[batchCount].set(poolRef.doc(id), data, {merge: true});
+          batchSize ++;
         });
         return batches;
       }).then((batches)=>{

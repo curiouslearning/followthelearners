@@ -162,6 +162,7 @@ function writeDonation(params) {
       startDate: params.timestamp,
       country: params.country,
     }).then((doc)=>{
+      doc.update({donationID: doc.id});
       if (params.country === 'any') {
         return assignAnyLearner(donorID);
       }
@@ -449,42 +450,41 @@ function batchWriteLearners(snapshot, donation, learnerCount) {
     let learnerID = snapshot.docs[i].id;
     let data = snapshot.docs[i].data();
     data.sourceDonor = donorID;
+    data['sourceDonation'] = donation.id;
+    data.userStatus = 'assigned';
     data['assignedOn'] = admin.firestore.Timestamp.now();
-    const newRef = donationRef.collection('users').doc(learnerID);
-    batches[batchCount].set(newRef, data);
-    batches[batchCount].delete(poolRef.doc(learnerID)); //avoid multiple documents per learner
-    batchSize += 2;
+    batches[batchCount].set(poolRef.doc(learnerID), data, {merge: true});
+    batchSize++;
   }
   return writeBatches(batches);
 }
 
- // write an array of batches at a rate of 1 batch/second to prevent
- // exceeding the write limit
- function writeBatches(batches) {
-  for (let i=0; i < batches.length; i++)
-  {
+// write an array of batches at a rate of 1 batch/second to prevent
+// exceeding the write limit
+function writeBatches(batches) {
+  for (let i=0; i < batches.length; i++) {
     delayOneSecond(()=>{
-      console.log("committing batch ", i);
+      console.log('committing batch ', i);
       batches[i].commit();
     });
   }
-  return "Success!";
+  return 'Success!';
 }
-function delayOneSecond (callback) {
+function delayOneSecond(callback) {
   setTimeout(callback, 1050);
 }
 
 exports.forceUpdateAggregates = functions.https.onRequest(async (req, res) =>{
   let dbRef = admin.firestore().collection('loc_ref');
-  dbRef.get().then(snapshot=>{
+  dbRef.get().then((snapshot)=>{
     let countries = [];
-    snapshot.forEach(doc=>{
+    snapshot.forEach((doc)=>{
       const regions = doc.data().regions;
       const country = doc.data().country;
       let learnerCounts = [];
       let countrySum = 0;
       regions.forEach((region)=>{
-        if(region.hasOwnProperty("learnerCount") && region.learnerCount >=0){
+        if (region.hasOwnProperty('learnerCount') && region.learnerCount >=0) {
           learnerCounts.push({region: region.region,
             learnerCount: region.learnerCount
           });
@@ -530,6 +530,9 @@ exports.checkForDonationEndDate = functions.firestore
 exports.enableCampaign = functions.firestore.document('/user_pool/{docID}').
     onCreate((snap, context)=>{
       let data = snap.data();
+      if (data === undefined || data.country === undefined) {
+        return;
+      }
       return admin.firestore().collection('campaigns')
           .where('country', '==', data.country)
           .where('isActive', '==', true)
@@ -588,95 +591,103 @@ exports.disableCampaign = functions.firestore.document('/user_pool/{docID}')
     });
 
 exports.updateRegion = functions.firestore.document('/user_pool/{documentId}')
-  .onCreate((snap, context)=>{
-    const country = snap.data().country;
-    const region = snap.data().region;
-    console.log(country, region);
-
-    let sum = updateCountForRegion(country, region);
-    let docRef = admin.firestore().collection('loc_ref').doc(country);
-    let docSnapshot = getRegionsForCountry(docRef);
-    let regions = [];
-    let countrySum = 0;
-    Promise.all([sum, docSnapshot]).then((vals) => {
-      regions = vals[1].data().regions;
-      let foundRegion = false;
-      let regionIndex = -1;
-      for (let i=0; i < regions.length; i++){
-        if (!regions[i].hasOwnProperty('learnerCount') ||
-          typeof regions[i].learnerCount !== 'number' ||
-          regions[i].learnerCount < 0){
-          continue; //only add positive numbers to learnerCount
+    .onCreate((snap, context)=>{
+      if (snap.data() === undefined) return;
+      const country = snap.data().country;
+      const region = snap.data().region;
+      console.log(country, region);
+      if (country === undefined || region === undefined) return;
+      let sum = updateCountForRegion(country, region);
+      let docRef = admin.firestore().collection('loc_ref').doc(country);
+      let docSnapshot = getRegionsForCountry(docRef);
+      let regions = [];
+      let countrySum = 0;
+      Promise.all([sum, docSnapshot]).then((vals) => {
+        regions = vals[1].data().regions;
+        let foundRegion = false;
+        let regionIndex = -1;
+        for (let i=0; i < regions.length; i++) {
+          if (!regions[i].hasOwnProperty('learnerCount') ||
+            typeof regions[i].learnerCount !== 'number' ||
+            regions[i].learnerCount < 0) {
+            continue; // only add positive numbers to learnerCount
+          }
+          if (regions[i].region === region) {
+            regions[i].learnerCount = vals[0];
+            foundRegion = true;
+            regionIndex = i;
+          }
+          countrySum += regions[i].learnerCount;
         }
-        if(regions[i].region === region){
-          regions[i].learnerCount = vals[0];
-          foundRegion = true;
-          regionIndex = i;
-        }
-        countrySum += regions[i].learnerCount;
-      }
-      return { foundRegion: foundRegion, regionIndex: regionIndex,
-        sum: vals[0] };
-    }).then((vals) => {
-      if (!vals.foundRegion) {
-        getPinForAddress(country + ', ' + region).then((markerLoc) => {
-          console.log('--------------------- FOUND LOCATION: ' + markerLoc);
-          regions.push({
-            region: region,
-            pin: {
-              lat: markerLoc.lat,
-              lng: markerLoc.lng,
-            },
-            learnerCount: vals.sum,
-            streetViews: {
-              headingValues: [0],
-              locations: [
-              ],
-            },
-          });
-          countrySum += vals.sum;
-
-          docRef.set({
-              regions: regions,
-              learnerCount: countrySum
-          }, {merge: true});
-
-          return;
-        }).catch((err) => {
-          console.error(err);
-        });
-      } else if (vals.foundRegion && vals.regionIndex !== -1) {
-        if (!regions[vals.regionIndex].hasOwnProperty('pin') ||
-          regions[vals.regionIndex]['pin'].lat === 0 && regions[vals.regionIndex]['pin'].lng === 0) {
+        return {
+          foundRegion: foundRegion,
+          regionIndex: regionIndex,
+          sum: vals[0],
+        };
+      }).then((vals) => {
+        if (!vals.foundRegion) {
           getPinForAddress(country + ', ' + region).then((markerLoc) => {
-            regions[vals.regionIndex]['pin'] = { lat: markerLoc.lat, lng: markerLoc.lng };
-
+            console.log('--------------------- FOUND LOCATION: ' + markerLoc);
+            regions.push({
+              region: region,
+              pin: {
+                lat: markerLoc.lat,
+                lng: markerLoc.lng,
+              },
+              learnerCount: vals.sum,
+              streetViews: {
+                headingValues: [0],
+                locations: [
+                ],
+              },
+            });
             countrySum += vals.sum;
 
-            // Update the loc_ref country regions with new data
             docRef.set({
               regions: regions,
-              learnerCount: countrySum
+              learnerCount: countrySum,
             }, {merge: true});
 
             return;
           }).catch((err) => {
             console.error(err);
           });
+        } else if (vals.foundRegion && vals.regionIndex !== -1) {
+          if (!regions[vals.regionIndex].hasOwnProperty('pin') ||
+            (regions[vals.regionIndex]['pin'].lat === 0 &&
+            region[vals.regionIndex]['pin'].lng === 0)) {
+            getPinForAddress(country + ', ' + region).then((markerLoc) => {
+              regions[vals.regionIndex]['pin'] = {
+                lat: markerLoc.lat,
+                lng: markerLoc.lng,
+              };
+
+              countrySum += vals.sum;
+
+              // Update the loc_ref country regions with new data
+              docRef.set({
+                regions: regions,
+                learnerCount: countrySum,
+              }, {merge: true});
+
+              return;
+            }).catch((err) => {
+              console.error(err);
+            });
+          }
         }
-      }
-      return null;
-    }).catch((err) => {
-      console.error(err);
+        return null;
+      }).catch((err) => {
+        console.error(err);
+      });
     });
-  });
 
 function getPinForAddress(address) {
   let markerLoc = {lat: 0, lng: 0};
   return gmaps.geocode({
     params: {
       address: address,
-      key: "AIzaSyDEl20cTMsc72W_TasuK5PlWYIgMrzyuAU",
+      key: 'AIzaSyDEl20cTMsc72W_TasuK5PlWYIgMrzyuAU',
     },
     timeout: 1000,
   }).then((r) => {
@@ -693,78 +704,113 @@ function getRegionsForCountry(docRef) {
   return docRef.get();
 }
 
-exports.addCountryToSummary = functions.firestore.document('loc_ref/{documentId}')
-  .onCreate((snap, context)=>{
-    const country = snap.data().country;
-    let regions = snap.data().regions;
-    let regionCounts = [];
-    let countrySum = 0;
-    regions.forEach(region=>{
-      if(region.hasOwnProperty('learnerCount') && region.learnerCount >=0){
-        regionCounts.push({
-          region: region.region,
-          learnerCount: region.learnerCount
-        });
-        countrySum += region.learnerCount;
-      }
-    });
-    let summary = admin.firestore().collection('aggregate_data').doc('RegionSummary');
-    return summary.get().then(doc=>{
-      let countries = doc.data().countries;
-      countries.push({
-        country: country,
-        learnerCount: countrySum,
-        regions: regionCounts
+exports.addCountryToSummary = functions.firestore
+    .document('loc_ref/{documentId}')
+    .onCreate((snap, context)=>{
+      const country = snap.data().country;
+      let regions = snap.data().regions;
+      let regionCounts = [];
+      let countrySum = 0;
+      regions.forEach((region)=>{
+        if (region.hasOwnProperty('learnerCount') && region.learnerCount >=0) {
+          regionCounts.push({
+            region: region.region,
+            learnerCount: region.learnerCount,
+          });
+          countrySum += region.learnerCount;
+        }
       });
-      return countries;
-    }).then(countries=>{
-      return summary.update({countries: countries});
-    }).catch(err=>{console.error(err);});
-  });
+      let summary = admin.firestore().collection('aggregate_data')
+          .doc('RegionSummary');
+      return summary.get().then((doc)=>{
+        let countries = doc.data().countries;
+        countries.push({
+          country: country,
+          learnerCount: countrySum,
+          regions: regionCounts,
+        });
+        return countries;
+      }).then((countries)=>{
+        return summary.update({countries: countries});
+      }).catch((err)=>{
+        console.error(err);
+      });
+    });
 
 exports.updateSummary = functions.firestore.document('/loc_ref/{documentId}')
-  .onUpdate(async (change, context)=>{
-    if (change.before.data().learnerCount === change.after.data().learnerCount) {return;}
-    const country = change.after.id;
-    const originalValue = change.after.data().regions;
-    let summary = await admin.firestore().collection('aggregate_data').doc('RegionSummary').get().catch(err=>{console.error(err);});
-    let sums = summary.data().countries;
-    let countryIndex = findObjWithProperty(sums, "country", country);
-    console.log('country index is ' + countryIndex);
-    if(countryIndex === undefined){
-      sums.push({country: country, learnerCount: 0, regions: []});
-      countryIndex = sums.length - 1;
-    }
-    let countrySum = 0;
-    let regionCounts = []
-    originalValue.forEach((region)=>{
-      if(region.hasOwnProperty('learnerCount') && region.learnerCount >= 0){
-        regionCounts.push({region: region.region, learnerCount: region.learnerCount});
-        countrySum += region.learnerCount;
+    .onUpdate(async (change, context)=>{
+      const before = change.before.data();
+      const after = change.after.data();
+      if (before.learnerCount === after.learnerCount) return;
+      const country = change.after.id;
+      const originalValue = change.after.data().regions;
+      let summary = await admin.firestore()
+          .collection('aggregate_data')
+          .doc('RegionSummary').get().catch((err)=>{
+            console.error(err);
+          });
+      let sums = summary.data().countries;
+      let countryIndex = findObjWithProperty(sums, 'country', country);
+      console.log('country index is ' + countryIndex);
+      if (countryIndex === undefined){
+        sums.push({country: country, learnerCount: 0, regions: []});
+        countryIndex = sums.length - 1;
       }
+      let countrySum = 0;
+      let regionCounts = [];
+      originalValue.forEach((region)=>{
+        if (region.hasOwnProperty('learnerCount') && region.learnerCount >= 0) {
+          regionCounts.push({
+            region: region.region,
+            learnerCount: region.learnerCount,
+          });
+          countrySum += region.learnerCount;
+        }
+      });
+      sums[countryIndex].regions = regionCounts;
+      sums[countryIndex]['learnerCount'] = countrySum;
+      admin.firestore().collection('loc_ref').doc(country).update({
+        learnerCount: sums[countryIndex].learnerCount
+      });
+      return admin.firestore().collection('aggregate_data').doc('RegionSummary')
+          .update({countries: sums}, {merge: true});
     });
-    sums[countryIndex].regions = regionCounts;
-    sums[countryIndex]['learnerCount'] = countrySum;
-    admin.firestore().collection('loc_ref').doc(country).update({
-      learnerCount: sums[countryIndex].learnerCount
-    });
-    return admin.firestore().collection('aggregate_data').doc('RegionSummary').update({countries: sums}, {merge: true});
-  });
 
   exports.updateDonationLearnerCount = functions.firestore
-    .document('donor_master/{donorId}/donations/{donationId}/users/{documentId}')
-    .onCreate((snap, context)=>{
-      console.log('found new user: ' + snap.id);
-      updateLocationBreakdownForDonation(context);
+    .document('user_pool/{documentId}')
+    .onUpdate((change, context)=>{
+      if (change.before.data().sourceDonation === undefined) {
+        const data = change.after.data();
+        updateLocationBreakdownForDonation(data);
+      }
+      return;
+    });
+
+exports.updateMasterLearnerCount = functions.firestore
+    .document('/user_pool/{userId}').onCreate((snap, context)=>{
+      const msgRef = admin.firestore.collection('aggregate_data').doc('data');
+      return admin.firestore.collection('user_pool').get().then((snapshot)=>{
+        const total = snapshot.size;
+        let dntSum = 0;
+        snapshot.forEach((doc)=>{
+          if (doc.data().country === 'no-country') {
+            dntSum++;
+          }
+        });
+        return {allLearnersCount: total, allLearnersWithDoNotTrack: dntSum};
+      }).then((data)=>{
+        return msgRef.set(data, {merge: true}).catch((err)=>{
+          console.error(err);
+        });
+      }).catch((err)=>{
+        console.error(err);
+      });
     });
 
 exports.updateAggregateData = functions.firestore
     .document('/loc_ref/{documentID}').onUpdate((change, context)=>{
       const before = change.before.data();
       const after = change.after.data();
-      console.log('country is: ', context.params.documentID);
-      console.log('before is: ', before.learnerCount);
-      console.log('after is: ', after.learnerCount);
       if (change.after.learnerCount !== before.learnerCount) {
         const sumRef = admin.firestore()
             .collection('aggregate_data').doc('data');
@@ -778,11 +824,6 @@ exports.updateAggregateData = functions.firestore
             }
           });
           return {sum: sum, noCountry: dntSum};
-        }).then((data)=>{
-          return sumRef.set({
-            allLearnersCount: data.sum,
-            allLearnersWithDoNotTrack: data.noCountry,
-          });
         }).catch((err)=>{
           console.error(err);
         });
@@ -792,214 +833,171 @@ exports.updateAggregateData = functions.firestore
       });
     });
 
-    /*exports.registerDeletedLearner = functions.firestore
-      .document('donor_master/{donorId}/donations/{donationId}/users/{documentId}')
-      .onDelete((snap, context)=>{
-        let dbRef = admin.firestore().collection('donor_master')
-          .doc(context.params.donorId).collection('donations')
-          .doc(context.params.donationId);
-        console.log('deleted user: ' + snap.id);
-        return dbRef.collection('users').get().then(snapshot=>{
-          if(snapshot.empty)
-          {
-            return 0;
-          }
-          return snapshot.size;
-        }).then(sum=>{
-          return dbRef.update({learnerCount: sum},{merge: true});
-        }).catch(err=>{console.error(err);});
-      });*/
-
-    exports.updateCampaignLearnerCount = functions.firestore
-      .document('donor_master/{donorId}/donations/{donationId}')
-      .onUpdate((change, context)=>{
-        if(change.before.data().learnerCount === change.after.data().learnerCount)
-        {
-          return 0;
-        }
-        const campaignId = change.after.data().campaignID;
-        updatePercentFilled(change.after, context);
-        return updateCountForCampaign(campaignId);
+exports.updateCampaignLearnerCount = functions.firestore
+    .document('donor_master/{donorId}/donations/{donationId}')
+    .onUpdate((change, context)=>{
+      const before = change.before.data();
+      const after = change.after.data();
+      if (before.learnerCount === after.learnerCount) {
+        return 0;
+      }
+      const campaignId = change.after.data().campaignID;
+      updatePercentFilled(change.after, context);
+      return updateCountForCampaign(campaignId);
     });
 
-    exports.addNewLearnersToCampaign = functions.firestore
-      .document('user_pool/{documentId}')
-      .onCreate((snap, context)=>{
-        let campaignID = snap.data().sourceCampaign;
-        return updateCountForCampaign(campaignID);
-      });
+exports.addNewLearnersToCampaign = functions.firestore
+    .document('user_pool/{documentId}')
+    .onCreate((snap, context)=>{
+      if (snap.data() === undefined) return;
+      let campaignID = snap.data().sourceCampaign;
+      if (campaignID === undefined) return;
+      updateCountForCampaign(campaignID);
+    });
 
-  function updatePercentFilled(snap, context) {
-    let data = snap.data();
-    const docRef = admin.firestore().collection('donor_master')
-        .doc(context.params.donorId)
-        .collection('donations').doc(context.params.donationId);
-    const campaignRef = admin.firestore().collection('campaigns')
-        .where('campaignID','==', data.campaignID).get().then((snap)=>{
-          if(snap.empty) {
-            throw new Error("missing campaign document for ", data.campaignID);
-          }
-          return snap.docs[0].data().costPerLearner;
-        }).then((costPerLearner)=>{
-          const amount = data.amount;
-          const learnerCount = data.learnerCount;
-          return (learnerCount/Math.round(amount / costPerLearner))*100;
-        }).then((percent)=>{
-            return docRef.set({
-              percentFilled: Math.round(percent)
-            },{
-              merge: true
-            });
-        }).catch((err)=>{
-          console.error(err);
+function updatePercentFilled(snap, context) {
+  let data = snap.data();
+  const docRef = admin.firestore().collection('donor_master')
+      .doc(context.params.donorId)
+      .collection('donations').doc(context.params.donationId);
+  const campaignRef = admin.firestore().collection('campaigns')
+      .where('campaignID', '==', data.campaignID).get().then((snap)=>{
+        if (snap.empty) {
+          throw new Error('missing campaign document for ', data.campaignID);
+        }
+        return snap.docs[0].data().costPerLearner;
+      }).then((costPerLearner)=>{
+        const amount = data.amount;
+        const learnerCount = data.learnerCount;
+        return (learnerCount/Math.round(amount / costPerLearner))*100;
+      }).then((percent)=>{
+        return docRef.set({
+          percentFilled: Math.round(percent),
+        }, {merge: true});
+      }).catch((err)=>{
+        console.error(err);
+      });
+}
+
+function updateLocationBreakdownForDonation(context) {
+  const donationRef = admin.firestore.collectionGroup('donations')
+      .where('donationID', '==', context.donationId);
+  const dbRef = admin.firestore.collection('user_pool')
+      .where('sourceDonation', '==', context.donationId);
+  return dbRef.get().then((snapshot)=>{
+    if (snapshot.empty) {
+      return {learnerCount: 0, countries: []};
+    }
+    let countries = [];
+    snapshot.forEach((doc)=>{
+      let data = doc.data();
+      let countryIndex= findObjWithProperty(countries, 'country', data.country);
+      if (countryIndex === undefined) {
+        countries.push({
+          country: data.country,
+          learnerCount: 1,
+          regions: [],
         });
-  }
-
-  function updateLocationBreakdownForDonation (context) {
-    let dbRef = admin.firestore().collection('donor_master')
-      .doc(context.params.donorId).collection('donations')
-      .doc(context.params.donationId);
-    return dbRef.collection('users').get().then(snapshot=>{
-      if(snapshot.empty)
-      {
-        return {learnerCount: 0, countries: []};
+        countryIndex = countries.length -1;
+      } else {
+        countries[countryIndex].learnerCount++;
       }
-      let countries = [];
-      snapshot.forEach((doc)=>{
-        let data = doc.data();
-        let countryIndex = findObjWithProperty(countries, "country", data.country);
-        if(countryIndex === undefined)
-        {
-          countries.push({
-            country: data.country,
-            learnerCount: 1,
-            regions: [],
-          });
-          countryIndex = countries.length -1;
-        }
-        else{
-          countries[countryIndex].learnerCount++;
-        }
-        let regionIndex = findObjWithProperty(countries[countryIndex].regions, "region", data.region);
-        if(regionIndex === undefined) {
-          countries[countryIndex].regions.push({
-            region: data.region,
-            learnerCount: 1,
-          });
-        } else {
-          countries[countryIndex].regions[regionIndex].learnerCount++;
-        }
-      });
-      return {learnerCount: snapshot.size, countries: countries};
-    }).then(res=>{
-      return dbRef.update({learnerCount: res.learnerCount, countries: res.countries},{merge: true});
-    }).catch(err=>{console.error(err);});
-  }
+      const regionIndex = findObjWithProperty(countries[countryIndex].regions,
+          'region', data.region);
+      if (regionIndex === undefined) {
+        countries[countryIndex].regions.push({
+          region: data.region,
+          learnerCount: 1,
+        });
+      } else {
+        countries[countryIndex].regions[regionIndex].learnerCount++;
+      }
+    });
+    return {learnerCount: snapshot.size, countries: countries};
+  }).then((res)=>{
+    return donationRef.get().then((snapshot)=>{
+      if (snapshot.empty) return;
+      if (snapshot.size > 1) {
+        snapshot.docs = snapshot.docs.filter((doc)=> {
+          doc.sourceDonor === context.sourceDonor
+        });
+      }
+      snapshot.docs[0].update({
+        learnerCount: res.learnerCount,
+        countries: res.countries,
+      }, {merge: true});
+    }).catch((err)=>{
+      console.error(err);
+    });
+  }).catch((err)=>{
+    console.error(err);
+  });
+}
 
 
-  async function updateCountForCampaign(campaignID)
-  {
-    let dbRef = admin.firestore().collection('campaigns');
-    const id = dbRef.where('campaignID', '==', campaignID).get()
+async function updateCountForCampaign(campaignID) {
+  let dbRef = admin.firestore().collection('campaigns');
+  const id = dbRef.where('campaignID', '==', campaignID).get()
       .then((snapshot)=> {
-        if(snapshot.empty){
+        if (snapshot.empty) {
           return undefined;
         }
         return snapshot.docs[0];
       }).then((doc)=>{
-        if(doc === undefined){
+        if (doc === undefined) {
           return '';
         }
         return doc.id;
-      }).catch((err)=>{console.error(err);});
-    const donationSums = admin.firestore().collectionGroup('donations')
-        .where('campaignID','==', campaignID).get().then(snapshot=>{
-          let sum = 0
-          if(snapshot.empty){
-            sum = 0;
-          }
-          else{
-            snapshot.forEach(doc=>{
-              if(doc.data().learnerCount !== undefined){
-                sum += doc.data().learnerCount;
-              }
-            });
-          }
-          return sum;
-        }).catch(err=>{console.error(err);});
-    const poolSums = admin.firestore().collection('user_pool')
-        .where('sourceCampaign', '==', campaignID)
-        .get().then(snapshot=>{
-          return snapshot.size;
-        }).catch(err=>{console.error(err);});
-    const unassignedSums = admin.firestore().collection('unassigned_users')
-        .where('sourceCampaign', '==', campaignID)
-        .get().then(snapshot=>{
-          return snapshot.size
-        }).catch(err=>{console.error(err);});
-    Promise.all([id, donationSums, poolSums, unassignedSums]).then((vals)=>{
-      if(vals[0] !== ''){
-        let sum = 0;
-        for (let i=1; i < vals.length; i++) {
-          if(!isNaN(vals[i])) {
-            sum += vals[i];
-          }
-        }
-        admin.firestore().collection('campaigns').doc(vals[0]).update({
-          learnerCount: sum
-        }, {merge: true});
-      }
-      return;
-    }).catch(err=>{console.error(err);});
-  }
-
-  function updateCountForRegion(country, region)
-  {
-    console.log(country, region);
-    if(country === undefined) {return new Promise((resolve)=>{
-      resolve('resolved');
-    });}
-    if(region === undefined){region = 'no-region';}
-    let dbRef = admin.firestore().collectionGroup('users');
-    const assignedUsers = dbRef.where('country', '==', country)
-        .where('region','==',region)
-        .get().then(snapshot=>{
-          return snapshot.size;
-        }).catch((error)=>{
-          console.error(err);
-        });
-    const poolRef = admin.firestore().collection('user_pool')
-        .where('country', '==', country).where('region', '==', region)
-        .get().then(snapshot=>{
-            return snapshot.size;
-        }).catch(err => {
-          console.error(err);
-        });
-    const unassignedRef = admin.firestore().collection('unassigned_users')
-        .where('country','==',country).where('region','==',region)
-        .get().then(snapshot=>{
-          return snapshot.size;
-        }).catch(err=>{
-          console.error(err);
-        });
-    return Promise.all([assignedUsers, poolRef, unassignedRef]).then((vals)=>{
-      let sum = 0;
-      vals.forEach((val)=>{
-        if(!isNaN(val)) {
-          sum += val;
-        }
+      }).catch((err)=>{
+        console.error(err);
       });
-      return sum;
-    }).catch((err)=>{
-      console.error(err);
+  const poolSums = admin.firestore().collection('user_pool')
+      .where('sourceCampaign', '==', campaignID)
+      .get().then((snapshot)=>{
+        return snapshot.size;
+      }).catch((err)=>{
+        console.error(err);
+      });
+  Promise.all([id, poolSums]).then((vals)=>{
+    if (vals[0] !== '') {
+      let sum = 0;
+      if (!isNaN(vals[1])) {
+        sum = vals[1];
+      }
+      admin.firestore().collection('campaigns').doc(vals[0]).update({
+        learnerCount: sum,
+      }, {merge: true});
+    }
+    return;
+  }).catch((err)=>{
+    console.error(err);
+  });
+}
+
+function updateCountForRegion(country, region) {
+  console.log(country, region);
+  if (country === undefined) {
+    return new Promise((resolve)=>{
+      resolve('resolved');
     });
   }
-
-  function findObjWithProperty(arr, prop, val) {
-    for(let i=0; i < arr.length; i++) {
-      if(arr[i].hasOwnProperty(prop) && arr[i][prop] === val) {
-        return i;
-      }
-    }
-    return undefined;
+  if (region === undefined) {
+    region = 'no-region';
   }
+  return admin.firestore().collection('user_pool')
+      .where('country', '==', country).where('region', '==', region)
+      .get().then((snapshot)=>{
+        return snapshot.size;
+      }).catch((err) => {
+        console.error(err);
+      });
+}
+
+function findObjWithProperty(arr, prop, val) {
+  for (let i=0; i < arr.length; i++) {
+    if (arr[i].hasOwnProperty(prop) && arr[i][prop] === val) {
+      return i;
+    }
+  }
+  return undefined;
+}
