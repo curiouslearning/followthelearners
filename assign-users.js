@@ -1,7 +1,8 @@
 const admin = require('firebase-admin');
 // const firebase = require('firebase/app');
 const serviceAccount = require('./keys/firestore-key.json');
-const PRUNEDATE = 7;
+const DONATIONFILLTIMELINE = 7; // The min number of days to fill a donation
+const PRUNEDATE = 7; // the number of days before a new user expires
 const DAYINMS = 86400000;
 const CONTINENTS = [
   'Africa',
@@ -85,7 +86,8 @@ function matchLearnersToDonors(learners, donations) {
         let denominator = donation.amount/donation.costPerLearner
         donation['percentFilled'] = (donation.learnerCount/denominator)*100;
       }
-      if (donation.percentFilled < 100) {
+      const cap = calculateLearnerCap(donation.amount, donation.costPerLearner);
+      if (donation.percentFilled < cap) {
         foundDonor = true;
         if (!donation.hasOwnProperty('learners')) {
           donation['learners'] = [];
@@ -111,6 +113,13 @@ function matchLearnersToDonors(learners, donations) {
       learners.splice(0, 1);
     }
   }
+}
+
+function calculateLearnerCap(learnerCount, costPerLearner, amount) {
+  const maxLearners = Math.round(amount/costPerLearner);
+  const maxDailyIncrease = Math.round(maxLearners/DONATIONFILLTIMELINE);
+  const rawCap = learnerCount + maxDailyIncrease;
+  return Math.round(rawCap/maxLearners) *100;
 }
 
 /**
