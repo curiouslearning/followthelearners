@@ -1,52 +1,52 @@
 let panoramaRef;
-let panoramaId = 'pano';
-let countrySelectId = 'countrySelect';
+const panoramaId = 'pano';
+const countrySelectId = 'countrySelect';
 let loadedRegionData = null;
 let loadedRandomGeoPoints = null;
 let generatedStreetViews = null;
-let svService = null;
+let streetViewService = null;
 
+const toastType = {
+  primary: 'primary',
+  warning: 'warning',
+  danger: 'danger',
+  link: 'link',
+  info: 'info',
+  success: 'success',
+};
+
+/**
+ * Entry point after the goolge maps has finished loading on the page
+ */
 function initializeMaps() {
-  svService = new google.maps.StreetViewService();
+  streetViewService = new google.maps.StreetViewService();
   panoramaRef = new google.maps.StreetViewPanorama(
       document.getElementById(panoramaId));
 }
 
+/**
+ * Requests the server to generate random locations, then sends requests to the
+ * Street Views service to get random street view panoramas close to those
+ * locations and then displays a list of generated street views.
+ */
 function OnGenerateStreetViewsClick() {
   const countrySelectElement = document.getElementById(countrySelectId);
   if (countrySelectElement.options.length < 2) {
-    bulmaToast.toast({
-      message: '<h1>Error, no countries loaded.</h1>',
-      type: 'is-danger',
-      dismissible: true,
-      closeOnClick: true,
-      animate: {in: 'fadeIn', out: 'fadeOut'},
-    });
+    showToast(toastType.danger, 'Error, no countries loaded.');
     return;
   }
   const countrySelection = countrySelectElement.
       options[countrySelectElement.selectedIndex].value;
   if (countrySelection !== 'all-countries' && loadedRegionData === null ||
       countrySelection === 'all-countries') {
-    bulmaToast.toast({
-      message: '<h1>Please load the region data for selected country.</h1>',
-      type: 'is-danger',
-      dismissible: true,
-      closeOnClick: true,
-      animate: {in: 'fadeIn', out: 'fadeOut'},
-    });
+    showToast(toastType.danger,
+        'Please load the region data for selected country.');
     return;
   }
   const radiusValue = document.getElementById('inputRadius').value;
   const countValue = document.getElementById('inputCount').value;
   if (radiusValue === NaN || countValue === NaN || countValue === '') {
-    bulmaToast.toast({
-      message: '<h1>Please fill in radius and count values.</h1>',
-      type: 'is-danger',
-      dismissible: true,
-      closeOnClick: true,
-      animate: {in: 'fadeIn', out: 'fadeOut'},
-    });
+    showToast(toastType.danger, 'Please fill in radius and count values.');
     return;
   }
   $.post('/generateRandomGeoPoints', {country: countrySelection,
@@ -73,7 +73,7 @@ function OnGenerateStreetViewsClick() {
               .lat.toFixed(6));
           const lng = parseFloat(loadedRandomGeoPoints[region.region][l]
               .lng.toFixed(6));
-          svService.getPanoramaByLocation(new google.maps.LatLng(
+          streetViewService.getPanoramaByLocation(new google.maps.LatLng(
               lat, lng), 10000,
           function(svData, status) {
             const svRegionParent = document.getElementById('streetView' + i);
@@ -85,10 +85,6 @@ function OnGenerateStreetViewsClick() {
                 lng: svData.location.latLng.lng(),
                 h: parseFloat(svData.tiles['centerHeading'].toFixed(2)),
               });
-              //   panoramaRef.setPano(svData.location.pano);
-              //   console.log(svData, svData.location, svData.location.latLng.lat(),
-              //       svData.location.latLng.lng(), svData.location.pano);
-              //   panoramaRef.setVisible(true);
               svRegionParent.innerHTML +=
                 '<div class="columns" id=sv'+ region.region.split(' ').join('_') + svIndex +' style="font-size: 1rem"><h2 class="subtitle column is-two-thirds" style="margin-left: 1rem">Street View ' +
                 svIndex + '<span> <a href="https://maps.google.com/maps/search/' +
@@ -96,9 +92,10 @@ function OnGenerateStreetViewsClick() {
                 '" target="_blank">[ ' + svData.location.latLng.lat() +
                 ', ' + svData.location.latLng.lng() + ' ]</a></span></h2><span class="column"><button class="button"' +
                 'onclick="showGeneratedStreetView(\'' + region.region + '\', ' + svIndex + ')"> Open Street View </button></span>' +
-                '<span class="column"><button class="button" onclick="saveStreetView(\'' +
+                '<span class="column"><button class="button" onclick="saveSingleStreetViewInDB(\'' +
                 region.region + '\', ' + svIndex + ')"> Save in DB </button></span>' +
-                '<span class="column"><button class="button is-danger" onclick="removeGeneratedSV(\'' + region.region + '\', ' + svIndex + ')"> X </button><span></div>';
+                '<span class="column"><button class="button is-danger" onclick="removeGeneratedStreetView(\'' +
+                region.region + '\', ' + svIndex + ')"> X </button><span></div>';
               svIndex++;
             } else {
               generatedStreetViews[region.region].push({
@@ -112,26 +109,17 @@ function OnGenerateStreetViewsClick() {
           });
         }
       }
-      bulmaToast.toast({
-        message: '<h1>Street view generation procedure complete.</h1>',
-        type: 'is-primary',
-        dismissible: true,
-        closeOnClick: true,
-        animate: {in: 'fadeIn', out: 'fadeOut'},
-      });
+      showToast(toastType.success, 'Street view generation complete.');
     }
   });
 }
 
+/**
+ * Called when the user attempts to save all generated street views
+ */
 function OnSaveAllStreetViewsClick() {
   if (!generatedStreetViews || generatedStreetViews.length === 0) {
-    bulmaToast.toast({
-      message: '<h1>No generated street views found!</h1>',
-      type: 'is-danger',
-      dismissible: true,
-      closeOnClick: true,
-      animate: {in: 'fadeIn', out: 'fadeOut'},
-    });
+    showToast(toastType.danger, 'No generated street views found!');
     return;
   }
 
@@ -149,17 +137,16 @@ function OnSaveAllStreetViewsClick() {
 
   $.post('/saveStreetView', {sv: sv}, function(data, status) {
     if (data.message === 'success') {
-      bulmaToast.toast({
-        message: '<h1>Street views saved!</h1>',
-        type: 'is-primary',
-        dismissible: true,
-        closeOnClick: true,
-        animate: {in: 'fadeIn', out: 'fadeOut'},
-      });
+      showToast(toastType.success, 'Street views saved!');
+    } else if (data.message === 'failure') {
+      showToast(toastType.danger, 'Failed to save street views!');
     }
   });
 }
 
+/**
+ * Called when the user attempts to load all countries
+ */
 function OnLoadCountriesClick() {
   const countrySelectElement = document.getElementById(countrySelectId);
   if (countrySelectElement.options.length > 2) {
@@ -177,47 +164,28 @@ function OnLoadCountriesClick() {
           countrySelectElement.add(new Option(country, country));
         }
       }
-      bulmaToast.toast({
-        message: '<h1>Countries Loaded!</h1>',
-        type: 'is-primary',
-        dismissible: true,
-        closeOnClick: true,
-        animate: {in: 'fadeIn', out: 'fadeOut'},
-      });
+      showToast(toastType.success, 'Countries Loaded!');
     } else {
-      bulmaToast.toast({
-        message: '<h1>Error loading countries, please refresh and try again.</h1>',
-        type: 'is-danger',
-        dismissible: true,
-        closeOnClick: true,
-        animate: {in: 'fadeIn', out: 'fadeOut'},
-      });
+      showToast(toastType.danger,
+          'Error loading countries, please refresh the page.');
     }
   });
 }
 
+/**
+ * Called when the user attempt to load country regions
+ */
 function OnLoadCountryRegionsClick() {
   const countrySelectElement = document.getElementById(countrySelectId);
   if (countrySelectElement.options.length < 2) {
-    bulmaToast.toast({
-      message: '<h1>Load the country data from DB and select a country.</h1>',
-      type: 'is-danger',
-      dismissible: true,
-      closeOnClick: true,
-      animate: {in: 'fadeIn', out: 'fadeOut'},
-    });
+    showToast(toastType.danger,
+        'Load the country data from DB and select a country.');
     return;
   }
   const countrySelection = countrySelectElement.
       options[countrySelectElement.selectedIndex].value;
   if (countrySelection === 'all-countries') {
-    bulmaToast.toast({
-      message: '<h1>Please select country from the dropdown.</h1>',
-      type: 'is-danger',
-      dismissible: true,
-      closeOnClick: true,
-      animate: {in: 'fadeIn', out: 'fadeOut'},
-    });
+    showToast(toastType.danger, 'Please select country from the dropdown.');
     return;
   }
 
@@ -232,7 +200,8 @@ function OnLoadCountryRegionsClick() {
             const region = regionData[i];
             regionsParent.innerHTML += '<div id="streetView' + i + '">' +
               '<h1 class="title">' + region.region +
-              '&nbsp;<span style="font-size: 1rem">(Pin: <a href="https://maps.google.com/maps/search/' +
+              '&nbsp;<span style="font-size: 1rem">' +
+              '(Pin: <a href="https://maps.google.com/maps/search/' +
               region.pin.lat + ',' + region.pin.lng + '" target="_blank">[' +
               region.pin.lat + ', ' + region.pin.lng + '])' +
               '</h1>';
@@ -241,31 +210,25 @@ function OnLoadCountryRegionsClick() {
               regionsParent.innerHTML +=
                 '<h2 class="subtitle" style="margin-left: 1rem">Street View ' +
                 v + '</span>&nbsp;&nbsp;&nbsp;<button class="button"' +
-                'onclick="showStreetView(' +
-                i + ', ' + v + ')"> Open Street View </button> <br>';
+                'onclick="showLoadedStreetView(' + i + ', ' + v +
+                ')"> Open Street View </button> <br>';
             }
             regionsParent.innerHTML += '</div>';
           }
-          bulmaToast.toast({
-            message: '<h1>Regions loaded from DB.</h1>',
-            type: 'is-primary',
-            dismissible: true,
-            closeOnClick: true,
-            animate: {in: 'fadeIn', out: 'fadeOut'},
-          });
+          showToast(toastType.success, 'Regions loaded from DB.');
         } else {
-          bulmaToast.toast({
-            message: '<h1>Error loading regions for country from DB.</h1>',
-            type: 'is-danger',
-            dismissible: true,
-            closeOnClick: true,
-            animate: {in: 'fadeIn', out: 'fadeOut'},
-          });
+          showToast(toastType.danger,
+              'Error loading regions for country from DB.');
         }
       });
 }
 
-function showStreetView(regionIndex, streetViewIndex) {
+/**
+ * Show a street view in panorama element loaded from DB
+ * @param {Number} regionIndex Index of the region
+ * @param {Number} streetViewIndex Index of the street view within region
+ */
+function showLoadedStreetView(regionIndex, streetViewIndex) {
   panoramaRef = new google.maps.StreetViewPanorama(
       document.getElementById(panoramaId), {
         position: {lat:
@@ -281,42 +244,71 @@ function showStreetView(regionIndex, streetViewIndex) {
   panoramaRef.setVisible(true);
 }
 
+/**
+ * Show a generated street view in panorama element
+ * @param {String} region Region name
+ * @param {Number} streetViewIndex Index of the street view to open
+ */
 function showGeneratedStreetView(region, streetViewIndex) {
-  panoramaRef = new google.maps.StreetViewPanorama(
-      document.getElementById(panoramaId), {
-        position: {
-          lat: generatedStreetViews[region][streetViewIndex].lat,
-          lng: generatedStreetViews[region][streetViewIndex].lng},
-        pov: {
-          heading: generatedStreetViews[region][streetViewIndex].h,
-          pitch: 10,
-        },
-      });
+  panoramaRef = new google.maps.StreetViewPanorama(document
+      .getElementById(panoramaId), {
+    position: {
+      lat: generatedStreetViews[region][streetViewIndex].lat,
+      lng: generatedStreetViews[region][streetViewIndex].lng},
+    pov: {
+      heading: generatedStreetViews[region][streetViewIndex].h,
+      pitch: 10,
+    },
+  });
 }
 
-function removeGeneratedSV(region, streetViewIndex) {
+/**
+ * Remove generated street view and the html element for it
+ * @param {String} region Region name
+ * @param {Number} streetViewIndex Index of the street view to remove
+ */
+function removeGeneratedStreetView(region, streetViewIndex) {
   if (generatedStreetViews.hasOwnProperty(region)) {
     generatedStreetViews[region][streetViewIndex] = null;
     delete generatedStreetViews[region][streetViewIndex];
-    const svElement = document.getElementById('sv' + region.split(' ').join('_') + streetViewIndex);
+    const svElement = document.getElementById('sv' +
+      region.split(' ').join('_') + streetViewIndex);
     svElement.parentNode.removeChild(svElement);
   }
 }
 
-function saveStreetView(region, streetViewIndex) {
-  let sv = generatedStreetViews[region][streetViewIndex];
+/**
+ * Save a single street view in the DB
+ * @param {String} region Region name
+ * @param {Number} streetViewIndex Index of the street view to be saved
+ */
+function saveSingleStreetViewInDB(region, streetViewIndex) {
+  const sv = generatedStreetViews[region][streetViewIndex];
   const countrySelectElement = document.getElementById(countrySelectId);
   const countrySelection = countrySelectElement.
       options[countrySelectElement.selectedIndex].value;
-  $.post('/saveStreetView', {sv: [{country: countrySelection, region: region, svData: [sv]}]}, function(data, status) {
+  $.post('/saveStreetView', {sv: [{country: countrySelection, region: region,
+    svData: [sv]}]}, function(data, status) {
     if (data.message === 'success') {
-      bulmaToast.toast({
-        message: '<h1>Street view saved!</h1>',
-        type: 'is-primary',
-        dismissible: true,
-        closeOnClick: true,
-        animate: {in: 'fadeIn', out: 'fadeOut'},
-      });
+      showToast(toastType.success, 'Street view saved!');
+    } else if (data.message === 'failure') {
+      showToast(toastType.danger, 'Failed to save the street view!');
     }
+  });
+}
+
+/**
+ * Displays a toast message on the page
+ * @param {String} type Type of the toast out of: primary, link, info,
+ * success, warning, danger
+ * @param {String} message Message to display
+ */
+function showToast(type, message) {
+  bulmaToast.toast({
+    message: '<h1>' + message + '</h1>',
+    type: 'is-' + type,
+    dismissible: true,
+    closeOnClick: true,
+    animate: {in: 'fadeIn', out: 'fadeOut'},
   });
 }
