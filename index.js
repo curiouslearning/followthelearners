@@ -2,7 +2,7 @@ const express = require('express');
 const session = require('express-session');
 const http = require('http');
 const Memcached = require('memcached');
-const fireStoreAdmin = require('firebase-admin');
+const admin = require('firebase-admin');
 const serviceAccount = require('./keys/firestore-key.json');
 const bodyParser = require('body-parser');
 const dateFormat = require('date-format');
@@ -12,8 +12,8 @@ const e = require('express');
 const app = express();
 const CACHETIMEOUT = 720; // the cache timeout in minutes
 
-fireStoreAdmin.initializeApp({
-  credential: fireStoreAdmin.credential.cert(serviceAccount),
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
 });
 
 // TODO: get more info on the cookie secure param
@@ -356,21 +356,25 @@ app.get('/getDonorCampaigns', function(req, res) {
   });
 });
 
-app.get('/yourLearners', function(req, res) {
-  if (!validateEmail(req.query.email)) {
-    res.json({err: 'please enter a valid email address.'});
-    res.end();
-    return;
-  }
-  console.log('Getting learner data for donor: ', req.query.email);
-  let donorID = '';
-  getDonorID(req.query.email).then((result)=>{
-    donorID = result;
-    console.log('found donorID: ', donorID);
-    if (donorID === null || donorID === undefined || donorID === '') {
-      return undefined;
+app.get('/isUser', function(req, res) {
+  let email = req.query.email;
+  admin.auth().getUserByEmail(email).then((user)=>{
+    res.status(200).json({isUser:true});
+  }).catch((err)=>{
+    if (err.code === 'auth/user-not-found') {
+      res.status(200).send({err: err, isUser: false, displayText: 'Oops! We couldn\'t find that email in our database. If you\'d like to make an account with us, pick a region to support!\n If you\'ve already made an account and cannot access your learners, please email support@curiouslearning.org.'});
+    } else {
+      next(err);
     }
-    return getDonations(donorID);
+  });
+});
+
+app.get('/yourLearners', function(req, res) {
+  let donorID = '';
+  admin.auth().verifyIdToken(req.query.token).then((decodedToken)=>{
+    return decodedToken.uid;
+  }).then((uid)=>{
+    return getDonations(uid);
   }).then((donations)=>{
     if (donations !== undefined) {
       const promises = [];
@@ -395,6 +399,8 @@ app.get('/yourLearners', function(req, res) {
     }
   }).catch((err)=>{
     console.error(err);
+    res.json({err: err});
+    res.end();
   });
 });
 
@@ -710,5 +716,5 @@ function generateGooglePlayURL(appID, source, campaignID, donorID) {
 }
 
 function getDateTime() {
-  return fireStoreAdmin.firestore.Timestamp.now();
+  return admin.firestore.Timestamp.now();
 }

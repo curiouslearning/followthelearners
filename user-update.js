@@ -95,6 +95,7 @@ function main() {
       let commitCounter = 0;
       const batches = [];
       const usedIDs = [];
+      let counter = 0;
       let doubleCounter = 0;
       batches[commitCounter] = firestore.batch();
       rows.forEach((row)=>{
@@ -104,6 +105,7 @@ function main() {
           batches[commitCounter] = firestore.batch();
         }
         if (!usedIDs.includes(row.user_pseudo_id)) {
+          counter++;
           usedIDs.push(row.user_pseudo_id);
           addUserToPool(createUser(row), batches[commitCounter]);
           insertLocation(row);
@@ -112,6 +114,7 @@ function main() {
           doubleCounter++;
         }
       });
+      console.log('created ', counter, ' new users');
       writeToDb(batches);
       console.log('doubleCounter: ' + doubleCounter);
     } catch (err) {
@@ -240,6 +243,7 @@ function createUser(row) {
     country: row.country,
     continent: row.continent,
     learnerLevel: row.event_name,
+    userStatus: 'unassigned'
   };
   console.log('created user: ' + user.userID + ' ' + row.country + ' / ' + row.region);
   return user;
@@ -276,6 +280,7 @@ function addUserToPool(user, batch) {
     region: user.region,
     country: user.country,
     learnerLevel: user.learnerLevel,
+    userStatus: user.userStatus,
   }, {merge: true});
 }
 main();
