@@ -2,22 +2,160 @@ let panoramaRef;
 let panoramaId = 'pano';
 let countrySelectId = 'countrySelect';
 let loadedRegionData = null;
+let loadedRandomGeoPoints = null;
+let generatedStreetViews = null;
+let svService = null;
 
 function initializeMaps() {
-  const geocoder = new google.maps.Geocoder();
-  const address = '666 5th avenue, New York, NY 10019';
-  const locations = [{lat: 37.7626813, lng: -122.3924804},
-    {lat: 34.352865, lng: 62.20402869999999},
-    {lat: 34.1718313, lng: 70.6216794}];
-  const svService = new google.maps.StreetViewService();
+  svService = new google.maps.StreetViewService();
   panoramaRef = new google.maps.StreetViewPanorama(
       document.getElementById(panoramaId));
-  geocoder.geocode({'address': address}, function(results, status) {
-    if (status == google.maps.GeocoderStatus.OK) {
-      latLng = results[0].geometry.location;
-      console.log(google.maps.LatLng);
-      svService.getPanoramaByLocation(new google.maps.LatLng(locations[0].lat,
-          locations[0].lng), 50, showPanorama);
+}
+
+function OnGenerateStreetViewsClick() {
+  const countrySelectElement = document.getElementById(countrySelectId);
+  if (countrySelectElement.options.length < 2) {
+    bulmaToast.toast({
+      message: '<h1>Error, no countries loaded.</h1>',
+      type: 'is-danger',
+      dismissible: true,
+      closeOnClick: true,
+      animate: {in: 'fadeIn', out: 'fadeOut'},
+    });
+    return;
+  }
+  const countrySelection = countrySelectElement.
+      options[countrySelectElement.selectedIndex].value;
+  if (countrySelection !== 'all-countries' && loadedRegionData === null ||
+      countrySelection === 'all-countries') {
+    bulmaToast.toast({
+      message: '<h1>Please load the region data for selected country.</h1>',
+      type: 'is-danger',
+      dismissible: true,
+      closeOnClick: true,
+      animate: {in: 'fadeIn', out: 'fadeOut'},
+    });
+    return;
+  }
+  const radiusValue = document.getElementById('inputRadius').value;
+  const countValue = document.getElementById('inputCount').value;
+  if (radiusValue === NaN || countValue === NaN || countValue === '') {
+    bulmaToast.toast({
+      message: '<h1>Please fill in radius and count values.</h1>',
+      type: 'is-danger',
+      dismissible: true,
+      closeOnClick: true,
+      animate: {in: 'fadeIn', out: 'fadeOut'},
+    });
+    return;
+  }
+  $.post('/generateRandomGeoPoints', {country: countrySelection,
+    radius: radiusValue, svCount: countValue}, function(data, status) {
+    if (data) {
+      loadedRandomGeoPoints = data.streetViewGenData;
+      console.log(loadedRandomGeoPoints);
+      generatedStreetViews = {};
+      const regionsParent = document.getElementById('regions');
+      regionsParent.innerText = '';
+      for (let i = 0; i < loadedRegionData.length; i++) {
+        const region = loadedRegionData[i];
+        regionsParent.innerHTML += '<div id="streetView' + i + '">' +
+          '<h1 class="title">' + region.region +
+          '&nbsp;<span style="font-size: 1rem">(Pin: <a href="https://maps.google.com/maps/search/' +
+          region.pin.lat + ',' + region.pin.lng + '" target="_blank">[' +
+          region.pin.lat + ', ' + region.pin.lng + '])' +
+          '</h1>';
+        regionsParent.innerHTML += '<br></div>';
+        generatedStreetViews[region.region] = [];
+        let svIndex = 0;
+        for (let l = 0; l < loadedRandomGeoPoints[region.region].length; l++) {
+          const lat = parseFloat(loadedRandomGeoPoints[region.region][l]
+              .lat.toFixed(6));
+          const lng = parseFloat(loadedRandomGeoPoints[region.region][l]
+              .lng.toFixed(6));
+          svService.getPanoramaByLocation(new google.maps.LatLng(
+              lat, lng), 10000,
+          function(svData, status) {
+            const svRegionParent = document.getElementById('streetView' + i);
+
+            if (status == google.maps.StreetViewStatus.OK) {
+              // Pano in: svData.location.pano
+              generatedStreetViews[region.region].push({
+                lat: svData.location.latLng.lat(),
+                lng: svData.location.latLng.lng(),
+                h: parseFloat(svData.tiles['centerHeading'].toFixed(2)),
+              });
+              //   panoramaRef.setPano(svData.location.pano);
+              //   console.log(svData, svData.location, svData.location.latLng.lat(),
+              //       svData.location.latLng.lng(), svData.location.pano);
+              //   panoramaRef.setVisible(true);
+              svRegionParent.innerHTML +=
+                '<div class="columns" style="font-size: 1rem"><h2 class="subtitle column is-two-thirds" style="margin-left: 1rem">Street View ' +
+                l + '<span> <a href="https://maps.google.com/maps/search/' +
+                svData.location.latLng.lat() + ', ' + svData.location.latLng.lng() +
+                '" target="_blank">[ ' + svData.location.latLng.lat() +
+                ', ' + svData.location.latLng.lng() + ' ]</a></span></h2><span class="column"><button class="button"' +
+                'onclick="showGeneratedStreetView(\'' + region.region + '\', ' + svIndex + ')"> Open Street View </button></span>' +
+                '<span class="column"><button class="button" onclick="saveStreetView(\'' +
+                region.region + '\', ' + svIndex + ')"> Save in DB </button></span>' +
+                '<span class="column"><button class="button is-danger" disabled onclick="removeGeneratedSV()"> X </button><span></div>';
+              svIndex++;
+            } else {
+              generatedStreetViews[region.region].push({
+                lat: null,
+                lng: null,
+                h: 180,
+              });
+              svIndex++;
+              console.log("Street View data not found." + svData);
+            }
+          });
+        }
+      }
+      bulmaToast.toast({
+        message: '<h1>Street view generation procedure complete.</h1>',
+        type: 'is-primary',
+        dismissible: true,
+        closeOnClick: true,
+        animate: {in: 'fadeIn', out: 'fadeOut'},
+      });
+    }
+  });
+}
+
+function OnSaveAllStreetViewsClick() {
+  if (!generatedStreetViews || generatedStreetViews.length === 0) {
+    bulmaToast.toast({
+      message: '<h1>No generated street views found!</h1>',
+      type: 'is-danger',
+      dismissible: true,
+      closeOnClick: true,
+      animate: {in: 'fadeIn', out: 'fadeOut'},
+    });
+    return;
+  }
+
+  const sv = [];
+  const countrySelectElement = document.getElementById(countrySelectId);
+  const countrySelection = countrySelectElement.
+      options[countrySelectElement.selectedIndex].value;
+
+  for (const region in generatedStreetViews) {
+    if (generatedStreetViews.hasOwnProperty(region)) {
+      sv.push({country: countrySelection,
+        region: region, svData: generatedStreetViews[region]});
+    }
+  }
+
+  $.post('/saveStreetView', {sv: sv}, function(data, status) {
+    if (data.message === 'success') {
+      bulmaToast.toast({
+        message: '<h1>Street views saved!</h1>',
+        type: 'is-primary',
+        dismissible: true,
+        closeOnClick: true,
+        animate: {in: 'fadeIn', out: 'fadeOut'},
+      });
     }
   });
 }
