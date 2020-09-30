@@ -1,0 +1,65 @@
+html
+  include mixins/_campaign
+  head
+    meta(charset='UTF-8')
+    meta(name="viewport" content='width=device-width, initial-scale=1.0')
+    link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css')
+    link(rel='stylesheet', href='/static/css/bulma-tooltip.min.css')
+    link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.0.0/animate.min.css")
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.8.6/showdown.min.js")
+    script(src="https://kit.fontawesome.com/89be96593a.js" crossorigin="anonymous")
+    script(
+        src="https://code.jquery.com/jquery-3.5.0.min.js"
+        integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
+        crossorigin="anonymous")
+  body
+    h1.title.has-text-centered FTL Admin
+    section()
+      .tabs.is-boxed
+        ul
+          li.is-active
+            a
+              span.icon.is-small
+                i.fas.fa-street-view
+              span Street Views
+          li
+            a
+              span.icon.is-small
+                i.fas.fa-tachometer-alt
+              span Dashboard Metrics
+          li
+            a
+              span.icon.is-small
+                i.fas.fa-cogs
+              span Logs
+    section#street-views
+      .columns
+        .column.is-two-fifths
+          div#pano(style='height: 600px;')
+        .column
+          div#side-panel(style='margin-top: 1rem')
+            .select.is-large
+              select#countrySelect(style='border: none; width: auto; -webkit-appearance: none; -moz-appearance: none; appearance:none;' name='campaignSelection')
+                option Country
+            button.button.is-dark.is-large.has-tooltip-multiline(onclick='OnLoadCountriesClick()' style='margin-left: 1rem' data-tooltip="1. Loading country names in the dropdown should be the first thing to do.") Load Countries
+            button.button.is-dark.is-large.has-tooltip-multiline(onclick='OnLoadCountryRegionsClick()' data-tooltip="2. Load regions from the database after choosing the country from the dropdown." style='margin-left: 1rem') Load Regions From DB
+            .columns(style='margin: 0.5rem')
+              p.column Radius in Miles
+              p.column Street View Count to Generate
+              p.column &nbsp;
+              p.column &nbsp;
+            .columns
+              span.column
+                input.input.is-medium#inputRadius(type='number' step="0.1" placeholder='Radius in Miles (1.5)')
+              span.column
+                input.input.is-medium#inputCount(type='number' placeholder='Street Views Count')
+              span.column.has-text-centered
+                button.button.is-dark.is-medium(onclick='OnGenerateStreetViewsClick()') Generate Street Views
+              span.column.has-text-centered
+                button.button.is-dark.is-medium(onclick='OnSaveAllStreetViewsClick()') Save All Street Views
+            section#regions(style='margin-top: 1rem')
+
+    script(src='https://unpkg.com/bulma-toast')
+    script(src='/static/js/admin.js')
+    script(src='https://maps.googleapis.com/maps/api/js?key=AIzaSyDEl20cTMsc72W_TasuK5PlWYIgMrzyuAU&callback=initializeMaps')
+    
