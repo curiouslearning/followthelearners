@@ -106,7 +106,7 @@ $(document).ready(function() {
       } else if (tabId === 'tab-all-learners' && allLearnersData === null &&
         !loadingAllLearnersData) {
         loadingAllLearnersData = true;
-        tabSelector.preventDefault();
+        // tabSelector.preventDefault();
         GetDataAndSwitchToAllLearners();
       } else if (tabId === 'tab-all-learners' && allLearnersData === null &&
           loadingAllLearnersData) {
@@ -227,9 +227,21 @@ function GetDataAndSwitchToAllLearners() {
 
     initializeCountrySelect(allLearnersData);
     clearAllMarkers();
-    tabSelector.ToggleTab('tab-all-learners');
+    // tabSelector.ToggleTab('tab-all-learners');
 
     updateResetMapButtonState();
+
+    clearAllMarkers();
+    createCountUpTextInElement('all-learners-count',
+        getTotalCountForAllLearners(allLearnersData));
+    displayAllLearnersData(allLearnersData, true);
+    for (let key in allLearnersData.campaignData) {
+      if (allLearnersData.campaignData[key].country == 'no-country') {
+        createCountUpTextInElement(dntLearnersCountElementId,
+            allLearnersData.campaignData[key].learnerCount);
+      }
+    }
+    countrySelectElement.value = 'all-learners';
   });
 }
 
