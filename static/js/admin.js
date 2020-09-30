@@ -265,17 +265,6 @@ function OnLoadCountryRegionsClick() {
       });
 }
 
-function showPanorama(svData, status) {
-  if (status == google.maps.StreetViewStatus.OK) {
-    panoramaRef.setPano(svData.location.pano);
-    console.log(svData, svData.location, svData.location.latLng.lat(),
-        svData.location.latLng.lng(), svData.location.pano);
-    panoramaRef.setVisible(true);
-  } else {
-    console.log("Street View data not found for this location." + svData);
-  }
-}
-
 function showStreetView(regionIndex, streetViewIndex) {
   panoramaRef = new google.maps.StreetViewPanorama(
       document.getElementById(panoramaId), {
