@@ -297,6 +297,7 @@ function showGeneratedStreetView(region, streetViewIndex) {
 function removeGeneratedSV(region, streetViewIndex) {
   if (generatedStreetViews.hasOwnProperty(region)) {
     generatedStreetViews[region][streetViewIndex] = null;
+    delete generatedStreetViews[region][streetViewIndex];
     const svElement = document.getElementById('sv' + region.split(' ').join('_') + streetViewIndex);
     svElement.parentNode.removeChild(svElement);
   }
