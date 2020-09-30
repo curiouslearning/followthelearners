@@ -291,3 +291,34 @@ function showStreetView(regionIndex, streetViewIndex) {
       });
   panoramaRef.setVisible(true);
 }
+
+function showGeneratedStreetView(region, streetViewIndex) {
+  panoramaRef = new google.maps.StreetViewPanorama(
+      document.getElementById(panoramaId), {
+        position: {
+          lat: generatedStreetViews[region][streetViewIndex].lat,
+          lng: generatedStreetViews[region][streetViewIndex].lng},
+        pov: {
+          heading: generatedStreetViews[region][streetViewIndex].h,
+          pitch: 10,
+        },
+      });
+}
+
+function saveStreetView(region, streetViewIndex) {
+  let sv = generatedStreetViews[region][streetViewIndex];
+  const countrySelectElement = document.getElementById(countrySelectId);
+  const countrySelection = countrySelectElement.
+      options[countrySelectElement.selectedIndex].value;
+  $.post('/saveStreetView', {sv: [{country: countrySelection, region: region, svData: [sv]}]}, function(data, status) {
+    if (data.message === 'success') {
+      bulmaToast.toast({
+        message: '<h1>Street view saved!</h1>',
+        type: 'is-primary',
+        dismissible: true,
+        closeOnClick: true,
+        animate: {in: 'fadeIn', out: 'fadeOut'},
+      });
+    }
+  });
+}
