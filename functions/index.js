@@ -310,10 +310,10 @@ function assignInitialLearners(donorID, country) {
       });
     }
     const amount = vals[0].data.amount;
-    const poolSize = vals[1].size;
+    const learnerCount = vals[2].learnerCount;
     const costPerLearner = vals[2].data.costPerLearner;
-    const learnerCount = calculateUserCount(amount, poolSize, costPerLearner);
-    return batchWriteLearners(vals[1], vals[0], learnerCount);
+    const cap = calculateUserCount(amount, learnerCount, costPerLearner);
+    return batchWriteLearners(vals[1], vals[0], cap);
   }).catch((err)=>{
     console.error(err);
   });
@@ -450,6 +450,7 @@ function calculateUserCount(amount, poolSize, costPerLearner) {
   }
   return count;
 }
+
 // collect learner re-assign operations in batches
 // each batch is less than the size of the consecutive document edit limit
 function batchWriteLearners(snapshot, donation, learnerCount) {
@@ -807,8 +808,10 @@ exports.updateSummary = functions.firestore.document('/loc_ref/{documentId}')
   exports.updateDonationLearnerCount = functions.firestore
     .document('user_pool/{documentId}')
     .onUpdate((change, context)=>{
-      if (change.before.data().sourceDonation === undefined) {
+      if (change.before.data().sourceDonation === undefined &&
+          change.after.data().sourceDonation !== undefined) {
         const data = change.after.data();
+        if (data === undefined) return;
         updateLocationBreakdownForDonation(data);
       }
       return;
@@ -816,8 +819,8 @@ exports.updateSummary = functions.firestore.document('/loc_ref/{documentId}')
 
 exports.updateMasterLearnerCount = functions.firestore
     .document('/user_pool/{userId}').onCreate((snap, context)=>{
-      const msgRef = admin.firestore.collection('aggregate_data').doc('data');
-      return admin.firestore.collection('user_pool').get().then((snapshot)=>{
+      const msgRef = admin.firestore().collection('aggregate_data').doc('data');
+      return admin.firestore().collection('user_pool').get().then((snapshot)=>{
         const total = snapshot.size;
         let dntSum = 0;
         snapshot.forEach((doc)=>{
@@ -908,10 +911,11 @@ function updatePercentFilled(snap, context) {
 }
 
 function updateLocationBreakdownForDonation(context) {
-  const donationRef = admin.firestore.collectionGroup('donations')
-      .where('donationID', '==', context.donationId);
-  const dbRef = admin.firestore.collection('user_pool')
-      .where('sourceDonation', '==', context.donationId);
+  console.log('sourceDonation is ', context.sourceDonation);
+  const donationRef = admin.firestore().collectionGroup('donations')
+      .where('donationID', '==', context.sourceDonation);
+  const dbRef = admin.firestore().collection('user_pool')
+      .where('sourceDonation', '==', context.sourceDonation);
   return dbRef.get().then((snapshot)=>{
     if (snapshot.empty) {
       return {learnerCount: 0, countries: []};
