@@ -236,6 +236,102 @@ app.post('/getAllCountryRegions', function(req, res) {
   });
 });
 
+app.post('/generateRandomGeoPoints', function(req, res) {
+  if (!req.session.loggedin) {
+    res.redirect('/admin');
+  }
+  const country = req.body.country;
+  const radius = req.body.radius * 1.60934; // Convert to metric
+  const svCount = parseFloat(req.body.svCount);
+  const dbRef = firestore.collection('loc_ref').doc(country);
+  const svGenData = {};
+
+  dbRef.get().then((doc)=>{
+    if (!doc.exists) {
+      res.end();
+      return undefined;
+    }
+    const regionPins = [];
+    for (let i = 0; i < doc.data().regions.length; i++) {
+      const region = doc.data().regions[i];
+      if (region.region === 'no-region') {
+        continue;
+      }
+      if (!region.hasOwnProperty('pin') ||
+        region.pin.lat === 0 && region.pin.lng === 0) {
+        continue;
+      }
+      regionPins.push({region: region.region, pin: region.pin});
+    }
+    for (let i = 0; i < regionPins.length; i++) {
+      svGenData[regionPins[i].region] = [];
+      const pin = {latitude: regionPins[i].pin.lat,
+        longitude: regionPins[i].pin.lng};
+      for (let j = 0; j < svCount; j++) {
+        const randomPoint = randLoc.randomCirclePoint(pin, radius * 1000);
+        svGenData[regionPins[i].region].push({lat: randomPoint.latitude,
+          lng: randomPoint.longitude});
+      }
+    }
+    res.json({streetViewGenData: svGenData});
+  }).catch((err)=>{
+    console.error(err);
+  });
+
+  // console.log('https://maps.google.com/maps/search/' + randomPoint.latitude + ',' + randomPoint.longitude);
+});
+
+app.post('/saveStreetView', function(req, res) {
+  const sv = req.body.sv;
+  const country = req.body.sv[0].country;
+
+  const dbRef = firestore.collection('loc_ref').doc(country);
+  dbRef.get().then((doc)=>{
+    const countryObj = doc.data();
+    if (!doc.exists) {
+      res.json('failure');
+      return undefined;
+    }
+
+    for (let i = 0; i < sv.length; i++) {
+      const svData = sv[i].svData;
+      const svRegion = sv[i].region;
+      let regionIndex = 0;
+      for (let r = 0; r < countryObj.regions.length; r++) {
+        if (countryObj.regions[r].region === svRegion) {
+          regionIndex = r;
+        }
+      }
+
+      for (let loc = 0; loc < svData.length; loc++) {
+        if (!countryObj.regions[regionIndex].streetViews
+            .hasOwnProperty('locations')) {
+          countryObj.regions[regionIndex].streetViews['locations'] = [];
+        }
+        if (!countryObj.regions[regionIndex].streetViews
+            .hasOwnProperty('headingValues')) {
+          countryObj.regions[regionIndex].streetViews['headingValues'] = [];
+        }
+        if (countryObj.regions[regionIndex].streetViews
+            .hasOwnProperty('headingValue')) {
+          delete countryObj.regions[regionIndex].streetViews['headingValue'];
+        }
+        countryObj.regions[regionIndex].streetViews['headingValues'].push(
+            parseFloat(svData[loc].h));
+        countryObj.regions[regionIndex].streetViews['locations'].push(
+            new fireStoreAdmin.firestore.GeoPoint(parseFloat(svData[loc].lat),
+                parseFloat(svData[loc].lng)),
+        );
+      }
+    }
+
+    dbRef.set({
+      regions: countryObj.regions,
+    }, {merge: true});
+    res.json({message: 'success'});
+  });
+});
+
 app.get('/getDonorCampaigns', function(req, res) {
   const email = req.query.email;
   getDonorID(email).then((donorID)=>{
