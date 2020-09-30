@@ -8,7 +8,6 @@ const bodyParser = require('body-parser');
 const dateFormat = require('date-format');
 const randLoc = require('random-location');
 const fs = require('fs');
-const e = require('express');
 const app = express();
 const CACHETIMEOUT = 720; // the cache timeout in minutes
 
