@@ -177,6 +177,21 @@ function OnLoadCountriesClick() {
           countrySelectElement.add(new Option(country, country));
         }
       }
+      bulmaToast.toast({
+        message: '<h1>Countries Loaded!</h1>',
+        type: 'is-primary',
+        dismissible: true,
+        closeOnClick: true,
+        animate: {in: 'fadeIn', out: 'fadeOut'},
+      });
+    } else {
+      bulmaToast.toast({
+        message: '<h1>Error loading countries, please refresh and try again.</h1>',
+        type: 'is-danger',
+        dismissible: true,
+        closeOnClick: true,
+        animate: {in: 'fadeIn', out: 'fadeOut'},
+      });
     }
   });
 }
