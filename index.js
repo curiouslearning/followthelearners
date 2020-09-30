@@ -8,7 +8,6 @@ const bodyParser = require('body-parser');
 const dateFormat = require('date-format');
 const randLoc = require('random-location');
 const fs = require('fs');
-const e = require('express');
 const app = express();
 const CACHETIMEOUT = 720; // the cache timeout in minutes
 
@@ -192,6 +191,7 @@ app.post('/getAllCountriesList', function(req, res) {
   let countryNames = [];
   dbRef.get().then((querySnapshot)=>{
     if (!querySnapshot) {
+      res.end();
       return undefined;
     }
     querySnapshot.forEach(function(doc) {
@@ -212,6 +212,7 @@ app.post('/getAllCountryRegions', function(req, res) {
   let regionData = [];
   dbRef.get().then((doc)=>{
     if (!doc.exists) {
+      res.end();
       return undefined;
     }
     for (let i = 0; i < doc.data().regions.length; i++) {
@@ -292,7 +293,7 @@ app.post('/saveStreetView', function(req, res) {
   dbRef.get().then((doc)=>{
     const countryObj = doc.data();
     if (!doc.exists) {
-      res.json('failure');
+      res.json({message: 'failure'});
       return undefined;
     }
 
