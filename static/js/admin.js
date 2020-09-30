@@ -46,12 +46,25 @@ function OnLoadCountriesClick() {
 function OnLoadCountryRegionsClick() {
   const countrySelectElement = document.getElementById(countrySelectId);
   if (countrySelectElement.options.length < 2) {
+    bulmaToast.toast({
+      message: '<h1>Load the country data from DB and select a country.</h1>',
+      type: 'is-danger',
+      dismissible: true,
+      closeOnClick: true,
+      animate: {in: 'fadeIn', out: 'fadeOut'},
+    });
     return;
   }
   const countrySelection = countrySelectElement.
       options[countrySelectElement.selectedIndex].value;
   if (countrySelection === 'all-countries') {
-    window.alert('Please choose a country to load regions for!');
+    bulmaToast.toast({
+      message: '<h1>Please select country from the dropdown.</h1>',
+      type: 'is-danger',
+      dismissible: true,
+      closeOnClick: true,
+      animate: {in: 'fadeIn', out: 'fadeOut'},
+    });
     return;
   }
 
@@ -74,11 +87,27 @@ function OnLoadCountryRegionsClick() {
             for (let v = 0; v < region.streetViews.locations.length; v++) {
               regionsParent.innerHTML +=
                 '<h2 class="subtitle" style="margin-left: 1rem">Street View ' +
-                v + '</span>&nbsp;&nbsp;&nbsp;<button class="button" onclick="showStreetView(' +
+                v + '</span>&nbsp;&nbsp;&nbsp;<button class="button"' +
+                'onclick="showStreetView(' +
                 i + ', ' + v + ')"> Open Street View </button> <br>';
             }
             regionsParent.innerHTML += '</div>';
           }
+          bulmaToast.toast({
+            message: '<h1>Regions loaded from DB.</h1>',
+            type: 'is-primary',
+            dismissible: true,
+            closeOnClick: true,
+            animate: {in: 'fadeIn', out: 'fadeOut'},
+          });
+        } else {
+          bulmaToast.toast({
+            message: '<h1>Error loading regions for country from DB.</h1>',
+            type: 'is-danger',
+            dismissible: true,
+            closeOnClick: true,
+            animate: {in: 'fadeIn', out: 'fadeOut'},
+          });
         }
       });
 }
