@@ -20,7 +20,7 @@ admin.initializeApp({
 app.use(session({secret: 'ftl-secret', resave: true, saveUninitialized: true,
   cookie: {secure: false, maxAge: 10 * 60000}}));
 
-const firestore = fireStoreAdmin.firestore();
+const firestore = admin.firestore();
 const memcached = new Memcached('127.0.0.1:11211');
 const memcachedMiddleware = (duration) => {
   return (req, res, next) => {
@@ -282,6 +282,9 @@ app.post('/generateRandomGeoPoints', function(req, res) {
 });
 
 app.post('/saveStreetView', function(req, res) {
+  if (!req.session.loggedin) {
+    res.redirect('/admin');
+  }
   const sv = req.body.sv;
   const country = req.body.sv[0].country;
 
@@ -319,7 +322,7 @@ app.post('/saveStreetView', function(req, res) {
         countryObj.regions[regionIndex].streetViews['headingValues'].push(
             parseFloat(svData[loc].h));
         countryObj.regions[regionIndex].streetViews['locations'].push(
-            new fireStoreAdmin.firestore.GeoPoint(parseFloat(svData[loc].lat),
+            new admin.firestore.GeoPoint(parseFloat(svData[loc].lat),
                 parseFloat(svData[loc].lng)),
         );
       }
