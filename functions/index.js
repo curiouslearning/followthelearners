@@ -310,9 +310,8 @@ function assignInitialLearners(donorID, country) {
       });
     }
     const amount = vals[0].data.amount;
-    const learnerCount = vals[2].learnerCount;
     const costPerLearner = vals[2].data.costPerLearner;
-    const cap = calculateUserCount(amount, learnerCount, costPerLearner);
+    const cap = calculateUserCount(amount, 0, costPerLearner);
     return batchWriteLearners(vals[1], vals[0], cap);
   }).catch((err)=>{
     console.error(err);
@@ -368,9 +367,8 @@ function assignAnyLearner(donorID) {
         ' from donor ',
         vals[0].data.sourceDonor);
     const amount = vals[0].data.amount;
-    const poolSize = vals[1].size;
     const costPerLearner = DEFAULTCPL;
-    const learnerCount = calculateUserCount(amount, poolSize, costPerLearner);
+    const learnerCount = calculateUserCount(amount, 0, costPerLearner);
     return batchWriteLearners(vals[1], vals[0], learnerCount);
   }).catch((err)=>{
     console.error(err);
@@ -410,10 +408,9 @@ async function assignLearnersByContinent(donorID, continent) {
       });
     }
     const amount = vals[0].data.amount;
-    const poolSize = vals[1].size;
     const costPerLearner = vals[2].data.costPerLearner;
-    const learnerCount = calculateUserCount(amount, poolSize, costPerLearner);
-    return batchWriteLearners(vals[1], vals[0], learnerCount);
+    const cap = calculateUserCount(amount, poolSize, costPerLearner);
+    return batchWriteLearners(vals[1], 0, cap);
   });
 }
 
@@ -435,20 +432,11 @@ function prioritizeLearnerQueue(queue) {
 }
 
 // algorithm to calculate how many learners to assign to a donation
-function calculateUserCount(amount, poolSize, costPerLearner) {
-  const threshold = 0.05;
-  let count = 1;
-  if (costPerLearner >= amount) {
-    return count;
-  }
-  if (poolSize * threshold > 1) {
-    count = Math.round(poolSize * threshold);
-    // upper bound determined by cost
-    if (count > Math.round(amount/costPerLearner)) {
-      count = Math.round(amount/costPerLearner);
-    }
-  }
-  return count;
+function calculateUserCount(amount, learnerCount, costPerLearner) {
+  const DONATIONFILLTIMELINE = 7; // minimum days to fill a donation
+  const learnerMax = Math.round(amount/costPerLearner);
+  const maxDailyIncrease = Math.round(learnerMax/DONATIONFILLTIMELINE);
+  return learnerCount + maxDailyIncrease;
 }
 
 // collect learner re-assign operations in batches
