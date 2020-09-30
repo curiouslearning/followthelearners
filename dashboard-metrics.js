@@ -232,7 +232,7 @@ function getDonationsByCountry(pivotDate) {
         };
       }
       let remainder = data.amount - (data.amount * (data.percentFilled/100));
-      if (isNaN(remainder)) {
+      if (isNaN(remainder) || remainder < 0) {
         remainder = 0;
       }
       countries[data.country].totalValue += data.amount;

@@ -243,6 +243,7 @@ function createUser(row) {
     country: row.country,
     continent: row.continent,
     learnerLevel: row.event_name,
+    userStatus: 'unassigned'
   };
   console.log('created user: ' + user.userID + ' ' + row.country + ' / ' + row.region);
   return user;
@@ -279,6 +280,7 @@ function addUserToPool(user, batch) {
     region: user.region,
     country: user.country,
     learnerLevel: user.learnerLevel,
+    userStatus: user.userStatus,
   }, {merge: true});
 }
 main();

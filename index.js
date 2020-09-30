@@ -85,7 +85,7 @@ app.get('/donate', function(req, res) {
   const json = {
     campaign: req.query.campaign,
     amount: req.query.amount,
-    donateRef: req.query.donateRef
+    donateRef: req.query.donateRef,
   };
   res.render('donate', json);
 });
