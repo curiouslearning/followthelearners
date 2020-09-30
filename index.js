@@ -705,7 +705,7 @@ function assignInitialLearners(donorID, donationID, country) {
       });
 }
 
-function findObjectIndexWithProperty (arr, prop, val) {
+function findObjectIndexWithProperty(arr, prop, val) {
   for (let i=0; i < arr.length; i++) {
     if (arr[i].hasOwnProperty(prop) && arr[i][prop] === val) {
       return i;
