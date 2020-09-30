@@ -90,15 +90,15 @@ function OnGenerateStreetViewsClick() {
               //       svData.location.latLng.lng(), svData.location.pano);
               //   panoramaRef.setVisible(true);
               svRegionParent.innerHTML +=
-                '<div class="columns" style="font-size: 1rem"><h2 class="subtitle column is-two-thirds" style="margin-left: 1rem">Street View ' +
-                l + '<span> <a href="https://maps.google.com/maps/search/' +
+                '<div class="columns" id=sv'+ region.region.split(' ').join('_') + svIndex +' style="font-size: 1rem"><h2 class="subtitle column is-two-thirds" style="margin-left: 1rem">Street View ' +
+                svIndex + '<span> <a href="https://maps.google.com/maps/search/' +
                 svData.location.latLng.lat() + ', ' + svData.location.latLng.lng() +
                 '" target="_blank">[ ' + svData.location.latLng.lat() +
                 ', ' + svData.location.latLng.lng() + ' ]</a></span></h2><span class="column"><button class="button"' +
                 'onclick="showGeneratedStreetView(\'' + region.region + '\', ' + svIndex + ')"> Open Street View </button></span>' +
                 '<span class="column"><button class="button" onclick="saveStreetView(\'' +
                 region.region + '\', ' + svIndex + ')"> Save in DB </button></span>' +
-                '<span class="column"><button class="button is-danger" disabled onclick="removeGeneratedSV()"> X </button><span></div>';
+                '<span class="column"><button class="button is-danger" onclick="removeGeneratedSV(\'' + region.region + '\', ' + svIndex + ')"> X </button><span></div>';
               svIndex++;
             } else {
               generatedStreetViews[region.region].push({
@@ -292,6 +292,14 @@ function showGeneratedStreetView(region, streetViewIndex) {
           pitch: 10,
         },
       });
+}
+
+function removeGeneratedSV(region, streetViewIndex) {
+  if (generatedStreetViews.hasOwnProperty(region)) {
+    generatedStreetViews[region][streetViewIndex] = null;
+    const svElement = document.getElementById('sv' + region.split(' ').join('_') + streetViewIndex);
+    svElement.parentNode.removeChild(svElement);
+  }
 }
 
 function saveStreetView(region, streetViewIndex) {
