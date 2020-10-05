@@ -151,7 +151,7 @@ html
       .modal-card
         header.modal-card-head(style='border: none')
           p.modal-card-title.hast-text-grey-dark Login
-          button.delete(aria-label='close' onclick="document.getElementById('donor-email-modal').classList.remove('is-active');")
+          button.delete(aria-label='close' onclick="document.getElementById('donor-email-modal').classList.remove('is-active'); document.getElementById('modal-instruction-text').classList.remove('is-hidden');")
         .modal-card-body
           p.has-text-info.is-hidden#new-donor-info-text
             span.icon.is-small.is-left
@@ -160,8 +160,10 @@ html
             span
               br
               br
-          p.has-text-grey-dark Enter your e-mail address to sign and see your learners
-          p.has-text-grey-dark Or make a donation to create your account and start following your learners!
+          p.has-text-grey-dark#modal-instruction-text
+            span Enter your e-mail address to sign and see your learners
+            br
+            span Or make a donation to create your account and start following your learners!
           form(onsubmit='checkForDonorSignIn(); return false;')
             //- .help Go to your Donor Summary
             //- br

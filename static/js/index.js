@@ -25,6 +25,7 @@ const dntYourLearnersCountElementId = 'your-learners-no-region-user-count';
 const allLearnersResetMapButtonId = 'btn-reset-map';
 
 const newDonorInfoTextId = '#new-donor-info-text';
+const modalInstructionTextId = '#modal-instruction-text';
 const newDonorInfoContentId = '#new-donor-info-content';
 const donorEmailModal = '#donor-email-modal';
 const donorEmailSubmit = '#donor-email-submit'
@@ -490,6 +491,7 @@ function checkForDonorSignIn() {
       currentDonorEmail = null;
       $(newDonorInfoTextId).removeClass('is-hidden');
       $(newDonorInfoTextId).text(data.displayText);
+      $(modalInstructionTextId).addClass('is-hidden');
     }
   });
 }
