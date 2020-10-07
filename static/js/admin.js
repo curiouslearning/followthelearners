@@ -129,7 +129,7 @@ function OnGenerateStreetViewsClick() {
 
               svRegionParent.innerHTML +=
                 '<div class="columns" id=sv'+ region.region.split(' ').join('_') + svIndex +' style="font-size: 1rem"><h2 class="subtitle column is-two-thirds" style="margin-left: 1rem">Street View ' +
-                svIndex + '<span> <a href="https://maps.google.com/maps/search/' +
+                (svIndex + 1).toString() + '<span> <a href="https://maps.google.com/maps/search/' +
                 svData.location.latLng.lat() + ', ' + svData.location.latLng.lng() +
                 '" target="_blank">[ ' + svData.location.latLng.lat() +
                 ', ' + svData.location.latLng.lng() + ' ]</a></span></h2><span class="column"><button class="button"' +
