@@ -69,9 +69,10 @@ function OnGenerateStreetViewsClick() {
         {position: new google.maps.LatLng(
             loadedRegionData[i].pin.lat,
             loadedRegionData[i].pin.lng), map: pinMap,
-        icon: {url: '/static/imgs/2.png', size: new google.maps.Size(52, 52)},
+        icon: {url: '/static/imgs/2.png', size: new google.maps.Size(56, 55)},
         origin: new google.maps.Point(0, 0),
-        anchor: new google.maps.Point(26, 26),
+        anchor: new google.maps.Point(28, 28),
+        label: {text: (i + 1).toString()},
         });
 
     loadedPins.push(regionPin);
