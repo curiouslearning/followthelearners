@@ -93,8 +93,8 @@ function OnGenerateStreetViewsClick() {
           '<h1 class="title">' + (i + 1).toString() + ' ' + region.region +
           '&nbsp;<span style="font-size: 1rem">(Pin: <a href="https://maps.google.com/maps/search/' +
           region.pin.lat + ',' + region.pin.lng + '" target="_blank">[' +
-          region.pin.lat + ', ' + region.pin.lng + '])' +
-          '</h1>';
+          region.pin.lat + ', ' + region.pin.lng + ']' +
+          '</a>)</h1>';
         regionsParent.innerHTML += '<br></div>';
         generatedStreetViews[region.region] = [];
         let svIndex = 0;
@@ -128,7 +128,7 @@ function OnGenerateStreetViewsClick() {
               bounds.extend(newMarker.position);
 
               svRegionParent.innerHTML +=
-                '<div class="columns" id=sv'+ region.region.split(' ').join('_') + svIndex +' style="font-size: 1rem"><h2 class="subtitle column is-two-thirds" style="margin-left: 1rem">Street View ' +
+                '<div class="columns" id=sv'+ region.region.split(' ').join('_') + svIndex +' style="font-size: 1rem"><h2 class="subtitle column is-two-fifths" style="margin-left: 1rem">Street View ' +
                 (svIndex + 1).toString() + '<span> <a href="https://maps.google.com/maps/search/' +
                 svData.location.latLng.lat() + ', ' + svData.location.latLng.lng() +
                 '" target="_blank">[ ' + svData.location.latLng.lat() +
