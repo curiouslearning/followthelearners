@@ -5,6 +5,8 @@ let loadedRegionData = null;
 let loadedRandomGeoPoints = null;
 let generatedStreetViews = null;
 let streetViewService = null;
+let pinMap = null;
+let loadedPins = [];
 
 const toastType = {
   primary: 'primary',
@@ -22,6 +24,11 @@ function initializeMaps() {
   streetViewService = new google.maps.StreetViewService();
   panoramaRef = new google.maps.StreetViewPanorama(
       document.getElementById(panoramaId));
+  pinMap = new google.maps.Map(document.getElementById('map-pins'), {
+    streetViewControl: false,
+    mapTypeControl: false,
+    maxZoom: 14,
+  });
 }
 
 /**
@@ -34,6 +41,13 @@ function OnGenerateStreetViewsClick() {
   if (countrySelectElement.options.length < 2) {
     showToast(toastType.danger, 'Error, no countries loaded.');
     return;
+  }
+  if (loadedPins.length > 0) {
+    for (let i = 0; i < loadedPins.length; i++) {
+      loadedPins[i].setMap(null);
+      loadedPins[i] = null;
+    }
+    loadedPins = [];
   }
   const countrySelection = countrySelectElement.
       options[countrySelectElement.selectedIndex].value;
@@ -49,6 +63,21 @@ function OnGenerateStreetViewsClick() {
     showToast(toastType.danger, 'Please fill in radius and count values.');
     return;
   }
+  const bounds = new google.maps.LatLngBounds();
+  for (let i = 0; i < loadedRegionData.length; i++) {
+    const regionPin = new google.maps.Marker(
+        {position: new google.maps.LatLng(
+            loadedRegionData[i].pin.lat,
+            loadedRegionData[i].pin.lng), map: pinMap,
+        icon: {url: '/static/imgs/2.png', size: new google.maps.Size(52, 52)},
+        origin: new google.maps.Point(0, 0),
+        anchor: new google.maps.Point(26, 26),
+        });
+
+    loadedPins.push(regionPin);
+    bounds.extend(regionPin.position);
+  }
+
   $.post('/generateRandomGeoPoints', {country: countrySelection,
     radius: radiusValue, svCount: countValue}, function(data, status) {
     if (data) {
@@ -85,6 +114,18 @@ function OnGenerateStreetViewsClick() {
                 lng: svData.location.latLng.lng(),
                 h: parseFloat(svData.tiles['centerHeading'].toFixed(2)),
               });
+
+              const newMarker = new google.maps.Marker(
+                  {position: svData.location.latLng, map: pinMap,
+                    icon: {url: '/static/imgs/1.png', size: new google.maps.Size(52, 52)},
+                    origin: new google.maps.Point(0, 0),
+                    anchor: new google.maps.Point(26, 26),
+                    label: {text: (svIndex + 1).toString()},
+                  });
+
+              loadedPins.push(newMarker);
+              bounds.extend(newMarker.position);
+
               svRegionParent.innerHTML +=
                 '<div class="columns" id=sv'+ region.region.split(' ').join('_') + svIndex +' style="font-size: 1rem"><h2 class="subtitle column is-two-thirds" style="margin-left: 1rem">Street View ' +
                 svIndex + '<span> <a href="https://maps.google.com/maps/search/' +
@@ -106,12 +147,20 @@ function OnGenerateStreetViewsClick() {
               svIndex++;
               console.log("Street View data not found." + svData);
             }
+            if (loadedPins.length !== 0) {
+              pinMap.fitBounds(bounds);
+              pinMap.panToBounds(bounds);
+            }
           });
         }
       }
       showToast(toastType.success, 'Street view generation complete.');
     }
   });
+}
+
+function OnToggleMapClick() {
+  $('#map-view-parent').toggle();
 }
 
 /**
