@@ -90,7 +90,7 @@ function OnGenerateStreetViewsClick() {
       for (let i = 0; i < loadedRegionData.length; i++) {
         const region = loadedRegionData[i];
         regionsParent.innerHTML += '<div id="streetView' + i + '">' +
-          '<h1 class="title">' + region.region +
+          '<h1 class="title">' + (i + 1).toString() + ' ' + region.region +
           '&nbsp;<span style="font-size: 1rem">(Pin: <a href="https://maps.google.com/maps/search/' +
           region.pin.lat + ',' + region.pin.lng + '" target="_blank">[' +
           region.pin.lat + ', ' + region.pin.lng + '])' +
