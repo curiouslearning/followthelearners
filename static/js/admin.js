@@ -160,6 +160,9 @@ function OnGenerateStreetViewsClick() {
   });
 }
 
+/**
+ * Called when the user attempts to toggle the map that displays pins
+ */
 function OnToggleMapClick() {
   $('#map-view-parent').toggle();
 }
