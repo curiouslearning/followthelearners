@@ -5,6 +5,8 @@ let loadedRegionData = null;
 let loadedRandomGeoPoints = null;
 let generatedStreetViews = null;
 let streetViewService = null;
+let pinMap = null;
+let loadedPins = [];
 
 const toastType = {
   primary: 'primary',
@@ -22,6 +24,11 @@ function initializeMaps() {
   streetViewService = new google.maps.StreetViewService();
   panoramaRef = new google.maps.StreetViewPanorama(
       document.getElementById(panoramaId));
+  pinMap = new google.maps.Map(document.getElementById('map-pins'), {
+    streetViewControl: false,
+    mapTypeControl: false,
+    maxZoom: 14,
+  });
 }
 
 /**
@@ -34,6 +41,13 @@ function OnGenerateStreetViewsClick() {
   if (countrySelectElement.options.length < 2) {
     showToast(toastType.danger, 'Error, no countries loaded.');
     return;
+  }
+  if (loadedPins.length > 0) {
+    for (let i = 0; i < loadedPins.length; i++) {
+      loadedPins[i].setMap(null);
+      loadedPins[i] = null;
+    }
+    loadedPins = [];
   }
   const countrySelection = countrySelectElement.
       options[countrySelectElement.selectedIndex].value;
@@ -49,6 +63,22 @@ function OnGenerateStreetViewsClick() {
     showToast(toastType.danger, 'Please fill in radius and count values.');
     return;
   }
+  const bounds = new google.maps.LatLngBounds();
+  for (let i = 0; i < loadedRegionData.length; i++) {
+    const regionPin = new google.maps.Marker(
+        {position: new google.maps.LatLng(
+            loadedRegionData[i].pin.lat,
+            loadedRegionData[i].pin.lng), map: pinMap,
+        icon: {url: '/static/imgs/2.png', size: new google.maps.Size(56, 55)},
+        origin: new google.maps.Point(0, 0),
+        anchor: new google.maps.Point(28, 28),
+        label: {text: (i + 1).toString()},
+        });
+
+    loadedPins.push(regionPin);
+    bounds.extend(regionPin.position);
+  }
+
   $.post('/generateRandomGeoPoints', {country: countrySelection,
     radius: radiusValue, svCount: countValue}, function(data, status) {
     if (data) {
@@ -60,11 +90,11 @@ function OnGenerateStreetViewsClick() {
       for (let i = 0; i < loadedRegionData.length; i++) {
         const region = loadedRegionData[i];
         regionsParent.innerHTML += '<div id="streetView' + i + '">' +
-          '<h1 class="title">' + region.region +
+          '<h1 class="title">' + (i + 1).toString() + ' ' + region.region +
           '&nbsp;<span style="font-size: 1rem">(Pin: <a href="https://maps.google.com/maps/search/' +
           region.pin.lat + ',' + region.pin.lng + '" target="_blank">[' +
-          region.pin.lat + ', ' + region.pin.lng + '])' +
-          '</h1>';
+          region.pin.lat + ', ' + region.pin.lng + ']' +
+          '</a>)</h1>';
         regionsParent.innerHTML += '<br></div>';
         generatedStreetViews[region.region] = [];
         let svIndex = 0;
@@ -85,9 +115,21 @@ function OnGenerateStreetViewsClick() {
                 lng: svData.location.latLng.lng(),
                 h: parseFloat(svData.tiles['centerHeading'].toFixed(2)),
               });
+
+              const newMarker = new google.maps.Marker(
+                  {position: svData.location.latLng, map: pinMap,
+                    icon: {url: '/static/imgs/1.png', size: new google.maps.Size(52, 52)},
+                    origin: new google.maps.Point(0, 0),
+                    anchor: new google.maps.Point(26, 26),
+                    label: {text: (svIndex + 1).toString()},
+                  });
+
+              loadedPins.push(newMarker);
+              bounds.extend(newMarker.position);
+
               svRegionParent.innerHTML +=
-                '<div class="columns" id=sv'+ region.region.split(' ').join('_') + svIndex +' style="font-size: 1rem"><h2 class="subtitle column is-two-thirds" style="margin-left: 1rem">Street View ' +
-                svIndex + '<span> <a href="https://maps.google.com/maps/search/' +
+                '<div class="columns" id=sv'+ region.region.split(' ').join('_') + svIndex +' style="font-size: 1rem"><h2 class="subtitle column is-two-fifths" style="margin-left: 1rem">Street View ' +
+                (svIndex + 1).toString() + '<span> <a href="https://maps.google.com/maps/search/' +
                 svData.location.latLng.lat() + ', ' + svData.location.latLng.lng() +
                 '" target="_blank">[ ' + svData.location.latLng.lat() +
                 ', ' + svData.location.latLng.lng() + ' ]</a></span></h2><span class="column"><button class="button"' +
@@ -106,12 +148,23 @@ function OnGenerateStreetViewsClick() {
               svIndex++;
               console.log("Street View data not found." + svData);
             }
+            if (loadedPins.length !== 0) {
+              pinMap.fitBounds(bounds);
+              pinMap.panToBounds(bounds);
+            }
           });
         }
       }
       showToast(toastType.success, 'Street view generation complete.');
     }
   });
+}
+
+/**
+ * Called when the user attempts to toggle the map that displays pins
+ */
+function OnToggleMapClick() {
+  $('#map-view-parent').toggle();
 }
 
 /**

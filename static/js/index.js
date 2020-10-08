@@ -28,7 +28,7 @@ const newDonorInfoTextId = '#new-donor-info-text';
 const modalInstructionTextId = '#modal-instruction-text';
 const newDonorInfoContentId = '#new-donor-info-content';
 const donorEmailModal = '#donor-email-modal';
-const donorEmailSubmit = '#donor-email-submit'
+const donorEmailSubmit = '#donor-email-submit';
 
 let loadedMarkers = [];
 let loadedYourLearnersMarkers = [];
