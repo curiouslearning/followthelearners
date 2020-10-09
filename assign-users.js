@@ -82,18 +82,22 @@ function matchLearnersToDonors(learners, donations) {
         // only assign users to donations from matching campaigns
         continue;
       }
+      console.log('found potential match');
       if (!donation.percentFilled) {
         let denominator = donation.amount/donation.costPerLearner
         donation['percentFilled'] = (donation.learnerCount/denominator)*100;
       }
-      const cap = calculateLearnerCap(donation.amount, donation.costPerLearner);
+      const cap = calculateLearnerCap(donation);
+      console.log('cap is ', cap);
       if (donation.percentFilled < cap) {
+        console.log('found donor: ', donation.sourceDonor);
         foundDonor = true;
         if (!donation.hasOwnProperty('learners')) {
           donation['learners'] = [];
         }
         data.sourceDonor = donation.sourceDonor;
         data.userStatus = 'assigned';
+        data.sourceDonation = donation.donationID;
         data['assignedOn'] = admin.firestore.Timestamp.now();
         donation['learners'].push(data);
         learners.splice(0, 1);
@@ -115,11 +119,14 @@ function matchLearnersToDonors(learners, donations) {
   }
 }
 
-function calculateLearnerCap(learnerCount, costPerLearner, amount) {
+function calculateLearnerCap(donation) {
+  const learnerCount = donation.learnerCount;
+  const amount = donation.amount;
+  const costPerLearner = donation.costPerLearner;
   const maxLearners = Math.round(amount/costPerLearner);
   const maxDailyIncrease = Math.round(maxLearners/DONATIONFILLTIMELINE);
   const rawCap = learnerCount + maxDailyIncrease;
-  return Math.round(rawCap/maxLearners) *100;
+  return Math.round((rawCap/maxLearners) *100);
 }
 
 /**
@@ -262,6 +269,7 @@ function checkBatch() {
 * @param {Object} donation the donation object to compare
 */
 function checkForMatch(learner, donation) {
+  console.log('learner.country: ', learner.country, ', donation.country: ', donation.country);
   if (donation.country === 'any') return true;
   if (donation.country === learner.country) return true;
   if (CONTINENTS.includes(donation.country)) {

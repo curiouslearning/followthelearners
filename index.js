@@ -206,6 +206,7 @@ app.post('/getAllCountriesList', function(req, res) {
 app.post('/getAllCountryRegions', function(req, res) {
   if (!req.session.loggedin) {
     res.redirect('/admin');
+    return;
   }
   const country = req.body.country;
   const dbRef = firestore.collection('loc_ref').doc(country);
