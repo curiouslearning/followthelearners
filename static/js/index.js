@@ -1211,8 +1211,9 @@ function constructCountryLevelInfoWindow(country, randomFact) {
   const contentString = '<div style=\'text-align: left;\'>' +
     '<span style=\'font-size: 18px; color: #606060\'><b>' +
     country + ' </b></span>' +
-    '<br><br> <p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
-    randomFact + '<br><br><div style="text-align: center">' +
+    // '<br><br> <p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
+    // randomFact + '<br><br>' +
+    '<br><br><br><div style="text-align: center">' +
     '<button onclick="onAllLearnersCountryZoomInClick(\''+ country + '\')" class=\'button is-link is-outlined \'>' +
     ' <i class="fas fa-search-plus"></i>&nbsp;&nbsp;Take Me There ' +
     '</button>&nbsp;' +
@@ -1233,9 +1234,9 @@ function constructRegionPinWindow(country, region, randomFact) {
     '<span style=\'font-size: 18px; color: #606060\'><b>' +
     region + ' </b></span>' +
     '<span style=\'font-size: 16px; color: #909090\'><b>(' +
-    country + ')</b></span>' +
-    '<br><br> <p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
-    randomFact + '<br><br>';
+    country + ')</b></span>';
+    // '<br><br> <p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
+    // randomFact + '<br><br>';
   return contentString;
 }
 
@@ -1257,9 +1258,9 @@ function constructInfoWindowContent(country, region, randomFact, latitude,
     region + ' </b></span>' +
     '<span style=\'font-size: 16px; color: #909090\'><b>(' +
     country + ')</b></span>' +
-    '<br><br> <p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
-    randomFact +
-    '</p> <br> <form action=\'https://google.com/maps/@?\' method=\'get\' ' +
+    // '<br><br> <p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
+    // randomFact + '</p> ' +
+    '<br><br><br> <form action=\'https://google.com/maps/@?\' method=\'get\' ' +
     'target=\'_blank\' style=\'text-align: center;\'>' +
     '<input type=\'hidden\' name=\'api\' value=\'1\'></input>' +
     '<input type=\'hidden\' name=\'map_action\' value=\'pano\'></input>' +
