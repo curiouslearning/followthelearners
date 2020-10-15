@@ -2,10 +2,11 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const nodemailer = require('nodemailer');
 const cors = require('cors')({origin: true});
-const mailConfig = require('../keys/nodemailerConfig.json');
+const mailConfig = require('./keys/nodemailerConfig.json');
 const {Client, Status} = require('@googlemaps/google-maps-services-js');
 const {exampleDocumentSnapshot} = require(
     'firebase-functions-test/lib/providers/firestore');
+const emailOptions = require('./email-options.json');
 
 admin.initializeApp();
 const transporter = nodemailer.createTransport(mailConfig);
@@ -177,21 +178,7 @@ function writeDonation(params) {
       }
       return assignInitialLearners(donorID, donationID, params.country);
     }).then((promise)=>{
-      const actionCodeSettings = {
-        url: 'http://localhost:3000/campaigns',
-        handleCodeInApp: true,
-      };
-      return admin.auth()
-          .generateSignInWithEmailLink(params.email, actionCodeSettings)
-          .then((link)=>{
-            return generateNewLearnersEmail(
-                params.firstName,
-                params.email,
-                link,
-            );
-          }).catch((err)=>{
-            console.error(err);
-          });
+      return sendEmail(donorID, 'donationStart');
     }).catch((err)=>{
       console.error(err);
     });
@@ -212,28 +199,6 @@ function updateOldDonorAccount(email, uid) {
     }
     return undefined;
   })
-}
-
-function generateNewLearnersEmail(name, email, url) {
-  const capitalized = name.charAt(0).toUpperCase();
-  const formattedName = capitalized + name.slice(1);
-
-
-  const mailOptions = {
-    from: 'notifications@curiouslearning.org',
-    to: email,
-    subject: 'Follow The Learners -- Your Learners are Ready!',
-    text: 'Hi '+formattedName+', thank you for helping support Follow the Learners! Click the link below, navigate to the "Your Learners" section, and enter your email to view how we\'re using your donation to bring reading into the lives of children!\n\n'+url+'\n\nFollow the Learners is currently in beta, and we\'re still ironing out some of the wrinkles! If you don\'t see your learners appear after about 5 minutes, please contact support@curiouslearning.org and we will be happy to assist you. ',
-  };
-  return transporter.sendMail(mailOptions, (error, info)=>{
-    if (error) {
-      console.error(error);
-      promise.reject(error);
-    } else {
-      console.log('email sent: ' + info.response);
-      return;
-    }
-  });
 }
 
 function getCostPerLearner(campaignID) {
@@ -850,6 +815,25 @@ exports.updateCampaignLearnerCount = functions.firestore
       return updateCountForCampaign(campaignId);
     });
 
+exports.onPercentFillUpdate = functions.firestore
+    .document('donor_master/{donorId}/donations/{donationId}')
+    .onUpdate((change, context)=>{
+      const before = change.before.data();
+      const after =change.after.data();
+      if (before.percentFilled < after.percentFilled) {
+        if (after.percentFilled >= 50 &&
+          (!after.halfwayMark && !after.endDate)) {
+          sendEmail(context.params.donorId, 'halfwayMark');
+          return change.after.ref.update({halfwayMark: true});
+        } else if (after.percentFilled >= 100 && !after.endDate) {
+          return sendEmail(context.params.donorId, 'donationCompleted');
+        }
+      }
+      return new Promise((resolve)=>{
+        resolve('resolved');
+      });
+    });
+
 exports.addNewLearnersToCampaign = functions.firestore
     .document('user_pool/{documentId}')
     .onCreate((snap, context)=>{
@@ -882,9 +866,57 @@ exports.reEnableMonthlyDonation = functions.firestore
       if (before.percentFilled > after.percentFilled) {
         // removing the end date is the final step to allowing a monthly
         // donation to receive users again.
-        after.ref.update({endDate: admin.firestore.FieldValue.delete()});
+        change.after.ref.update({endDate: admin.firestore.FieldValue.delete()});
       }
     });
+
+function sendEmail(uid, emailType) {
+  const usrRef = admin.firestore().collection('donor_master').doc(uid);
+  return usrRef.get().then((doc)=>{
+    const data = doc.data();
+    const firstName = data.firstName;
+    const capitalized = firstName.charAt(0).toUpperCase();
+    const formattedName = capitalized + firstName.slice(1);
+    const email = data.email;
+    const actionCodeSettings = {
+      url: 'http://localhost:3000/campaigns',
+      handleCodeInApp: true,
+    };
+    return admin.auth().generateSignInWithEmailLink(email, actionCodeSettings)
+        .then((link)=>{
+          const emailConfig = emailOptions[emailType];
+          const textConfigOptions = {
+            url: link,
+            formattedName: formattedName,
+          };
+          emailText = customizeText(emailConfig.text, textConfigOptions);
+          const mailOptions = {
+            from: emailConfig.from,
+            to: email,
+            subject: emailConfig.subject,
+            text: emailText,
+          };
+          return transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+              console.error(error);
+              return;
+            } else {
+              console.log('email sent: ' + info.response);
+              return;
+            }
+          });
+        });
+  });
+}
+
+function customizeText(text, configOptions) {
+  for (prop in configOptions) {
+    if (configOptions[prop]) {
+      text = text.replace('${'+prop+'}', configOptions[prop]);
+    }
+  }
+  return text;
+}
 
 function updatePercentFilled(snap, context) {
   let data = snap.data();
