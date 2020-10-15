@@ -158,7 +158,7 @@ function getTodaysLearners(pivotDate, now) {
 }
 
 function getTodaysAssignments(pivotDate, now) {
-  return firestore.collectionGroup('users')
+  return firestore.collection('user_pool')
       .where('assignedOn', '>=', pivotDate)
       .where('assignedOn', '<=', now).get().then((snap)=>{
         if (snap.empty) return [];
@@ -177,7 +177,7 @@ function getTodaysAssignments(pivotDate, now) {
 }
 
 function getTodaysExpirations(pivotDate, now) {
-  return firestore.collection('unassigned_users')
+  return firestore.collection('user_pool')
       .where('expiredOn', '>=', pivotDate)
       .where('expiredOn', '<=', now).get().then((snap)=>{
         if (snap.empty) return [];
