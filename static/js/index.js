@@ -488,7 +488,7 @@ function checkForDonorSignIn() {
   $.get('/isUser', {email: currentDonorEmail}, function(data, status) {
     if (data.isUser) {
       const actionCodeSettings = {
-        url: 'http://localhost:3000/campaigns',
+        url: 'https://followthelearners.org/campaigns',
         handleCodeInApp: true,
       };
       firebase.auth()
