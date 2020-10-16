@@ -1234,7 +1234,8 @@ function constructRegionPinWindow(country, region, randomFact) {
     '<span style=\'font-size: 18px; color: #606060\'><b>' +
     region + ' </b></span>' +
     '<span style=\'font-size: 16px; color: #909090\'><b>(' +
-    country + ')</b></span>';
+    country + ')</b></span>' +
+    '<br><br> <p>Street views are coming soon!</p>';
     // '<br><br> <p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
     // randomFact + '<br><br>';
   return contentString;
