@@ -70,10 +70,10 @@ class TabSelector {
           tabIndex = i;
           this.preToggleListeners.forEach((listener) => {
             listener(tabs[i].id);
-          })
+          });
         }
       }
-      
+
       if (!this.preventDefaultAction) {
         for (let i = 0; i < tabButtons.length; i++) {
           if (i === tabIndex) {
