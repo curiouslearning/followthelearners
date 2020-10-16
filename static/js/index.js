@@ -488,7 +488,7 @@ function checkForDonorSignIn() {
   $.get('/isUser', {email: currentDonorEmail}, function(data, status) {
     if (data.isUser) {
       const actionCodeSettings = {
-        url: 'https://followthelearners.org/campaigns',
+        url: 'https://followthelearners.curiouslearning.org/campaigns',
         handleCodeInApp: true,
       };
       firebase.auth()
