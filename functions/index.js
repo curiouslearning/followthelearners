@@ -2,10 +2,8 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const nodemailer = require('nodemailer');
 const cors = require('cors')({origin: true});
-const mailConfig = require('../keys/nodemailerConfig.json');
+const mailConfig = require('./keys/nodemailerConfig.json');
 const {Client, Status} = require('@googlemaps/google-maps-services-js');
-const {exampleDocumentSnapshot} = require(
-    'firebase-functions-test/lib/providers/firestore');
 
 admin.initializeApp();
 const transporter = nodemailer.createTransport(mailConfig);
@@ -178,7 +176,7 @@ function writeDonation(params) {
       return assignInitialLearners(donorID, donationID, params.country);
     }).then((promise)=>{
       const actionCodeSettings = {
-        url: 'http://localhost:3000/campaigns',
+        url: 'https://followthelearners.curiouslearning.org/campaigns',
         handleCodeInApp: true,
       };
       return admin.auth()
