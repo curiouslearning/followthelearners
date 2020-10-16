@@ -10,15 +10,27 @@ const firestore = admin.firestore();
 const DAYINMS = 86400000;
 const PRUNEDATE = 7;
 
-function main() {
-  const pivotDate = getPivot(PRUNEDATE);
-  const today = getPivot(1);
+const args = process.argv.slice(2);
+let parsedDate = new Date();
+console.log('args[0] is: ', args[0]);
+console.log('substrings: ');
+console.log('year: ', args[0].substring(0,4));
+console.log('month: ', args[0].substring(4,6));
+console.log('day: ', args[0].substring(6,8));
+parsedDate.setFullYear(Number(args[0].substring(0,4)));
+parsedDate.setMonth(Number(args[0].substring(4,6)) -1);
+parsedDate.setDate(Number(args[0].substring(6,8)));
+
+function main(date) {
+  console.log('date is: ', date);
+  const pivotDate = getPivot(PRUNEDATE, date);
+  const today = getPivot(1, date);
   let learners = getLearnersPerCountry();
-  let latestLearners = getTodaysLearners(today);
-  let assignments = getTodaysAssignments(today);
-  let expirations = getTodaysExpirations(today);
-  let demand = getDemand();
-  let amounts = getDonationsByCountry(pivotDate);
+  let latestLearners = getTodaysLearners(today, date);
+  let assignments = getTodaysAssignments(today, date);
+  let expirations = getTodaysExpirations(today, date);
+  let demand = checkDemand(date);
+  let amounts = getDonationsByCountry(pivotDate, date);
   Promise.all([
     learners,
     demand,
@@ -27,20 +39,22 @@ function main() {
     assignments,
     expirations,
   ]).then((vals)=>{
-    let curDate = new Date(Date.now());
-    let dateString = curDate.getFullYear() + '-' + (curDate.getMonth()+1) + '-' + curDate.getDate();
+    let dateString = date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate();
+    console.log('datestring: ', dateString)
     let data = generateCountryReport(vals, dateString);
-    fs.writeFileSync('dashboard_metrics.json', data, function(err) {
+    let filename = 'dashboard_metrics_'+dateString+'.json';
+    fs.writeFileSync(filename, data, function(err) {
       if (err) throw err;
       console.log('Successfully wrote file');
     });
-  }).then(()=>{
-    return loadIntoBigQuery('dashboard_metrics.json');
+    return filename;
+  }).then((filename)=>{
+    return loadIntoBigQuery(filename);
   }).catch((err)=>{
     console.error(err);
   })
 }
-main();
+main(parsedDate);
 
 async function loadIntoBigQuery(filename) {
   const bigQueryClient = new BigQuery();
@@ -124,9 +138,10 @@ function generateCountryReport(vals, dateString) {
   return result;
 }
 
-function getTodaysLearners(pivotDate) {
+function getTodaysLearners(pivotDate, now) {
   return firestore.collection('user_pool')
-      .where('dateIngested', '>=', pivotDate).get().then((snap)=>{
+      .where('dateIngested', '>=', pivotDate)
+      .where('dateIngested', '<=', now).get().then((snap)=>{
         if (snap.empty) return [];
         let countries = {};
         snap.forEach((doc)=>{
@@ -142,9 +157,10 @@ function getTodaysLearners(pivotDate) {
       });
 }
 
-function getTodaysAssignments(pivotDate) {
-  return firestore.collectionGroup('users')
-      .where('assignedOn', '>=', pivotDate).get().then((snap)=>{
+function getTodaysAssignments(pivotDate, now) {
+  return firestore.collection('user_pool')
+      .where('assignedOn', '>=', pivotDate)
+      .where('assignedOn', '<=', now).get().then((snap)=>{
         if (snap.empty) return [];
         let countries = {};
         snap.forEach((doc)=>{
@@ -160,9 +176,10 @@ function getTodaysAssignments(pivotDate) {
       });
 }
 
-function getTodaysExpirations(pivotDate) {
-  return firestore.collection('unassigned_users')
-      .where('expiredOn', '>=', pivotDate).get().then((snap)=>{
+function getTodaysExpirations(pivotDate, now) {
+  return firestore.collection('user_pool')
+      .where('expiredOn', '>=', pivotDate)
+      .where('expiredOn', '<=', now).get().then((snap)=>{
         if (snap.empty) return [];
         let countries = {};
         console.log('expirations: ', snap.size);
@@ -197,6 +214,35 @@ function getLearnersPerCountry() {
   });
 }
 
+function checkDemand(date) {
+  if (date < new Date(Date.now)) {
+    return getHistoricalDemand(date);
+  } else {
+    return getDemand();
+  }
+}
+
+function getHistoricalDemand(date) {
+  const dbRef = firestore.collectionGroup('donations');
+  return dbRef.where('startDate', '<=', date).get().then((snap)=>{
+    if (snap.empty) return {};
+    let countries = {};
+    snap.forEach((doc)=>{
+      let data = doc.data();
+      if (data.endDate && data.endDate > date) {
+        if ((countries[data.country]) === undefined) {
+          countries[data.country] = 0;
+        }
+        const demand = data.amount / data.costPerLearner;
+        countries[data.country] += demand;
+      }
+    });
+    return countries;
+  }).catch((err)=>{
+    console.error(err);
+  });
+}
+
 function getDemand() {
   const dbRef = firestore.collectionGroup('donations');
   return dbRef.where('percentFilled', '<', 100).get().then((snap)=>{
@@ -207,7 +253,7 @@ function getDemand() {
       if (countries[data.country] === undefined) {
         countries[data.country] = 0;
       }
-      const demand = data.amount / data.costPerLearner
+      const demand = data.amount / data.costPerLearner;
       countries[data.country] += demand;
     });
     return countries;
@@ -216,9 +262,9 @@ function getDemand() {
   });
 }
 
-function getDonationsByCountry(pivotDate) {
+function getDonationsByCountry(pivotDate, now) {
   const dbRef = firestore.collectionGroup('donations');
-  return dbRef.get().then((snapshot)=>{
+  return dbRef.where('startDate', '<=', pivotDate).get().then((snapshot)=>{
     if (snapshot.empty) return 0;
     let countries = {};
     snapshot.forEach((doc)=>{
@@ -232,7 +278,7 @@ function getDonationsByCountry(pivotDate) {
         };
       }
       let remainder = data.amount - (data.amount * (data.percentFilled/100));
-      if (isNaN(remainder)) {
+      if (isNaN(remainder) || remainder < 0) {
         remainder = 0;
       }
       countries[data.country].totalValue += data.amount;
@@ -245,8 +291,8 @@ function getDonationsByCountry(pivotDate) {
   });
 }
 
-function getPivot(interval = 0) {
-  const pivot = Date.now() - (DAYINMS * interval);
+function getPivot(interval = 0, startDate = new Date(Date.now)) {
+  const pivot = startDate.getTime() - (DAYINMS * interval);
   const timestamp = admin.firestore.Timestamp.fromMillis(pivot);
   return timestamp;
 }

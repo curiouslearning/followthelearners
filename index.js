@@ -1,18 +1,25 @@
 const express = require('express');
+const session = require('express-session');
 const http = require('http');
 const Memcached = require('memcached');
-const fireStoreAdmin = require('firebase-admin');
+const admin = require('firebase-admin');
 const serviceAccount = require('./keys/firestore-key.json');
 const bodyParser = require('body-parser');
 const dateFormat = require('date-format');
+const randLoc = require('random-location');
+const fs = require('fs');
 const app = express();
 const CACHETIMEOUT = 720; // the cache timeout in minutes
 
-fireStoreAdmin.initializeApp({
-  credential: fireStoreAdmin.credential.cert(serviceAccount),
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
 });
 
-const firestore = fireStoreAdmin.firestore();
+// TODO: get more info on the cookie secure param
+app.use(session({secret: 'ftl-secret', resave: true, saveUninitialized: true,
+  cookie: {secure: false, maxAge: 10 * 60000}}));
+
+const firestore = admin.firestore();
 const memcached = new Memcached('127.0.0.1:11211');
 const memcachedMiddleware = (duration) => {
   return (req, res, next) => {
@@ -85,7 +92,7 @@ app.get('/donate', function(req, res) {
   const json = {
     campaign: req.query.campaign,
     amount: req.query.amount,
-    donateRef: req.query.donateRef
+    donateRef: req.query.donateRef,
   };
   res.render('donate', json);
 });
@@ -140,12 +147,194 @@ app.post('/donate', function(req, res) {
 });
 
 app.post('/giveAgain', function(req, res) {
-  let email = req.body.email;
-  let countrySelection = req.body.countrySelection;
-  let donorCountries = req.body.donorCountries;
+  const email = req.body.email;
+  const countrySelection = req.body.countrySelection;
+  const donorCountries = req.body.donorCountries;
 
   console.log(email, countrySelection, donorCountries);
   res.json({action: 'switch-to-regions'});
+});
+
+app.get('/admin', function(req, res) {
+  if (req.session.loggedin) {
+    res.render('admin');
+  } else {
+    res.render('admin-login');
+  }
+});
+
+app.post('/auth', function(req, res) {
+  const username = req.body.username;
+  const password = req.body.password;
+  if (username && password) {
+    const fileContent = fs.readFileSync('./keys/admin.json');
+    const adminObj = JSON.parse(fileContent);
+    if (adminObj.hasOwnProperty(username) && adminObj[username] === password) {
+      req.session.loggedin = true;
+      req.session.username = username;
+      res.redirect('/admin');
+    } else {
+      res.send('Incorrect Username and/or Password!');
+    }
+    res.end();
+  } else {
+    res.send('Please enter Username and Password');
+    res.end();
+  }
+});
+
+app.post('/getAllCountriesList', function(req, res) {
+  if (!req.session.loggedin) {
+    res.redirect('/admin');
+  }
+  const dbRef = firestore.collection('loc_ref');
+  let countryNames = [];
+  dbRef.get().then((querySnapshot)=>{
+    if (!querySnapshot) {
+      res.end();
+      return undefined;
+    }
+    querySnapshot.forEach(function(doc) {
+      countryNames.push(doc.data().country);
+    });
+    res.json({countryNames: countryNames});
+  }).catch((err)=>{
+    console.error(err);
+  });
+});
+
+app.post('/getAllCountryRegions', function(req, res) {
+  if (!req.session.loggedin) {
+    res.redirect('/admin');
+    return;
+  }
+  const country = req.body.country;
+  const dbRef = firestore.collection('loc_ref').doc(country);
+  let regionData = [];
+  dbRef.get().then((doc)=>{
+    if (!doc.exists) {
+      res.end();
+      return undefined;
+    }
+    for (let i = 0; i < doc.data().regions.length; i++) {
+      const region = doc.data().regions[i];
+      if (region.region === 'no-region') {
+        continue;
+      }
+      if (!region.hasOwnProperty('pin') ||
+        region.pin.lat === 0 && region.pin.lng === 0) {
+        continue;
+      }
+      regionData.push({
+        region: region.hasOwnProperty('region') ? region.region : null,
+        streetViews: region.hasOwnProperty('streetViews') ?
+          region.streetViews : null,
+        pin: region.hasOwnProperty('pin') ? region.pin : null,
+      });
+    }
+    res.json({regionData: regionData});
+  }).catch((err)=>{
+    console.error(err);
+  });
+});
+
+app.post('/generateRandomGeoPoints', function(req, res) {
+  if (!req.session.loggedin) {
+    res.redirect('/admin');
+  }
+  const country = req.body.country;
+  const radius = req.body.radius * 1.60934; // Convert to metric
+  const svCount = parseFloat(req.body.svCount);
+  const dbRef = firestore.collection('loc_ref').doc(country);
+  const svGenData = {};
+
+  dbRef.get().then((doc)=>{
+    if (!doc.exists) {
+      res.end();
+      return undefined;
+    }
+    const regionPins = [];
+    for (let i = 0; i < doc.data().regions.length; i++) {
+      const region = doc.data().regions[i];
+      if (region.region === 'no-region') {
+        continue;
+      }
+      if (!region.hasOwnProperty('pin') ||
+        region.pin.lat === 0 && region.pin.lng === 0) {
+        continue;
+      }
+      regionPins.push({region: region.region, pin: region.pin});
+    }
+    for (let i = 0; i < regionPins.length; i++) {
+      svGenData[regionPins[i].region] = [];
+      const pin = {latitude: regionPins[i].pin.lat,
+        longitude: regionPins[i].pin.lng};
+      for (let j = 0; j < svCount; j++) {
+        const randomPoint = randLoc.randomCirclePoint(pin, radius * 1000);
+        svGenData[regionPins[i].region].push({lat: randomPoint.latitude,
+          lng: randomPoint.longitude});
+      }
+    }
+    res.json({streetViewGenData: svGenData});
+  }).catch((err)=>{
+    console.error(err);
+  });
+
+  // console.log('https://maps.google.com/maps/search/' + randomPoint.latitude + ',' + randomPoint.longitude);
+});
+
+app.post('/saveStreetView', function(req, res) {
+  if (!req.session.loggedin) {
+    res.redirect('/admin');
+  }
+  const sv = req.body.sv;
+  const country = req.body.sv[0].country;
+
+  const dbRef = firestore.collection('loc_ref').doc(country);
+  dbRef.get().then((doc)=>{
+    const countryObj = doc.data();
+    if (!doc.exists) {
+      res.json({message: 'failure'});
+      return undefined;
+    }
+
+    for (let i = 0; i < sv.length; i++) {
+      const svData = sv[i].svData;
+      const svRegion = sv[i].region;
+      let regionIndex = 0;
+      for (let r = 0; r < countryObj.regions.length; r++) {
+        if (countryObj.regions[r].region === svRegion) {
+          regionIndex = r;
+        }
+      }
+
+      for (let loc = 0; loc < svData.length; loc++) {
+        if (!countryObj.regions[regionIndex].streetViews
+            .hasOwnProperty('locations')) {
+          countryObj.regions[regionIndex].streetViews['locations'] = [];
+        }
+        if (!countryObj.regions[regionIndex].streetViews
+            .hasOwnProperty('headingValues')) {
+          countryObj.regions[regionIndex].streetViews['headingValues'] = [];
+        }
+        if (countryObj.regions[regionIndex].streetViews
+            .hasOwnProperty('headingValue')) {
+          delete countryObj.regions[regionIndex].streetViews['headingValue'];
+        }
+        countryObj.regions[regionIndex].streetViews['headingValues'].push(
+            parseFloat(svData[loc].h));
+        countryObj.regions[regionIndex].streetViews['locations'].push(
+            new admin.firestore.GeoPoint(parseFloat(svData[loc].lat),
+                parseFloat(svData[loc].lng)),
+        );
+      }
+    }
+
+    dbRef.set({
+      regions: countryObj.regions,
+    }, {merge: true});
+    res.json({message: 'success'});
+  });
 });
 
 app.get('/getDonorCampaigns', function(req, res) {
@@ -172,21 +361,25 @@ app.get('/getDonorCampaigns', function(req, res) {
   });
 });
 
-app.get('/yourLearners', function(req, res) {
-  if (!validateEmail(req.query.email)) {
-    res.json({err: 'please enter a valid email address.'});
-    res.end();
-    return;
-  }
-  console.log('Getting learner data for donor: ', req.query.email);
-  let donorID = '';
-  getDonorID(req.query.email).then((result)=>{
-    donorID = result;
-    console.log('found donorID: ', donorID);
-    if (donorID === null || donorID === undefined || donorID === '') {
-      return undefined;
+app.get('/isUser', function(req, res) {
+  let email = req.query.email;
+  admin.auth().getUserByEmail(email).then((user)=>{
+    res.status(200).json({isUser:true});
+  }).catch((err)=>{
+    if (err.code === 'auth/user-not-found') {
+      res.status(200).send({err: err, isUser: false, displayText: 'Oops! We couldn\'t find that email in our database. If you\'d like to make an account with us, pick a region to support!\n If you\'ve already made an account and cannot access your learners, please email support@curiouslearning.org.'});
+    } else {
+      next(err);
     }
-    return getDonations(donorID);
+  });
+});
+
+app.get('/yourLearners', function(req, res) {
+  let donorID = '';
+  admin.auth().verifyIdToken(req.query.token).then((decodedToken)=>{
+    return decodedToken.uid;
+  }).then((uid)=>{
+    return getDonations(uid);
   }).then((donations)=>{
     if (donations !== undefined) {
       const promises = [];
@@ -211,6 +404,8 @@ app.get('/yourLearners', function(req, res) {
     }
   }).catch((err)=>{
     console.error(err);
+    res.json({err: err});
+    res.end();
   });
 });
 
@@ -512,7 +707,7 @@ function assignInitialLearners(donorID, donationID, country) {
       });
 }
 
-function findObjectIndexWithProperty (arr, prop, val) {
+function findObjectIndexWithProperty(arr, prop, val) {
   for (let i=0; i < arr.length; i++) {
     if (arr[i].hasOwnProperty(prop) && arr[i][prop] === val) {
       return i;
@@ -526,5 +721,5 @@ function generateGooglePlayURL(appID, source, campaignID, donorID) {
 }
 
 function getDateTime() {
-  return fireStoreAdmin.firestore.Timestamp.now();
+  return admin.firestore.Timestamp.now();
 }

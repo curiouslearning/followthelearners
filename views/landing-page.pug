@@ -4,47 +4,54 @@ html
     script(src="https://www.gstatic.com/firebasejs/7.14.3/firebase-app.js")
     script(src="https://www.gstatic.com/firebasejs/7.14.3/firebase-analytics.js")
     script(src="/static/js/hj.js")
+    meta(name="viewport" content="width=device-width, initial-scale=1")
     link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css')
+    link(rel='manifest', href='/static/manifest.webmanifest')
     script(src="https://kit.fontawesome.com/89be96593a.js" crossorigin="anonymous")
     script(
         src="https://code.jquery.com/jquery-3.5.0.min.js"
         integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
         crossorigin="anonymous")
+    style(type='text/css').
+      html,body
+      {
+          width: 100%;
+          margin: 0px;
+          padding: 0px;
+      }
 
   body
-    .hero.is-large.is-info(style="background-image: url('/static/imgs/hero-cover.jpg'); background-position: center -100; background-size: cover; background-repeat:  no-repeat;")
+    .hero.is-large(style="color: white; background-image: url('/static/imgs/hero-cover.jpg'); background-position: center -100; background-size: cover; background-repeat: no-repeat;")
       .hero-head
         .navbar
           .section
             .navbar-brand
               a(href='/')
                 img(src="/static/imgs/cl_white_logo.png", alt='logo' style='width: 196px; height: auto;')
-              a.navbar-burger(data-target="navbarHeroMenu" role="button" aria-label="menu" aria-expanded="false" style="background-color: #8CCDC9")
-                span(aria-hidden="true" style="color: white")
-                span(aria-hidden="true" style="color: white")
-                span(aria-hidden="true" style="color: white")
+              a.navbar-burger.is-large(data-target="navbarHeroMenu" role="button" aria-label="menu" aria-expanded="false" style="background-color: #8CCDC9;")
+                span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
+                span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
+                span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
           .navbar-menu#navbarHeroMenu
-            .navbar-end(style='align-items: center; padding-right: 1.5rem; padding-left: 1.5rem')
-              a.button.is-rounded.navbar-item.is-active.is-primary.is-large(href="/campaigns" style='color: white; background-color: #8CCDC9')
+            .navbar-end(style='align-items: center; padding-right: 1.5rem')
+              a.button.is-rounded.navbar-item.is-active.is-primary(href="/campaigns" style='color: white; background-color: #8CCDC9; font-size: 1.8rem;')
                 span Get Started
       .hero-body(style='padding: 0')
-        .container.has-text-centered(style="margin-bottom: 18rem; margin-top: 4rem")
-          h1.title(style='font-size: 5.5rem;') Follow The Learners™ 
-            span(style='font-size: 3rem') (Beta)
-          h3.subtitle.is-size-3 Use our Follow the Learners™ tool to track the impact of your donation
+        .container.has-text-centered(style="margin-bottom: 12rem; margin-top: 4rem")
+          h1.title(style='color: white; font-size: 4.5rem;') Follow The Learners™ 
+            span(style='color: white; font-size: 2.5rem') (Beta)
+          h3.subtitle.is-size-4(style='color: white;') Use our Follow the Learners™ tool to track the impact of your donation
 
-        .columns.is-desktop#learners-parent(style="margin-bottom: 4rem; opacity: 0")
+        .columns.is-desktop#learners-parent(style="margin-bottom: 8rem; margin-left: 0; margin-top: 0; margin-right: 0; opacity: 0")
           .column.is-half(style="background-color: rgba(140, 205, 201, 0.7);")
-            .columns
-              .column.is-two-thirds
-                h1.title.has-text-right#learners-count(style='font-size: 4rem;') &nbsp;
-              .column(style='display: flex; align-items: flex-end')
-                h3.subtitle(style="font-size: 2rem") Learners
+            h1.title.has-text-centered(style='color: white;')
+                span#learners-count(style='font-size: 4rem;')
+                span(style='font-size: 1.8rem;') &nbsp;Learners
           .column
 
     .section
       .container
-        h1.title.has-text-centered(style='font-size: 3.6rem;')
+        h1.title.has-text-centered(style='font-size: 3rem;')
           span Every dollar you give puts literacy
           br
           span apps in the hands of 2-4 children.
@@ -53,7 +60,7 @@ html
     br
     br
     
-    .columns.is-desktop
+    .columns.is-desktop(style='margin: 0;')
       .column
         .rows
           .row(style="background-color: rgba(140, 205, 201, 0.7); font-size: 4rem;") &nbsp;
@@ -83,7 +90,7 @@ html
         .columns
           .column
           .column.has-text-centered
-            a.button.is-rounded.is-active.is-primary.is-large(href="/campaigns" style='color: white; background-color: #8CCDC9')
+            a.button.is-rounded.is-active.is-primary(href="/campaigns" style='color: white; background-color: #8CCDC9; font-size: 1.8rem;')
               span Get Started
           .column
     
@@ -105,7 +112,7 @@ html
         .columns
           .column
           .column.has-text-centered
-            a.button.is-rounded.is-active.is-primary.is-large(href="/campaigns" style='color: white; background-color: #8CCDC9')
+            a.button.is-rounded.is-active.is-primary(href="/campaigns" style='color: white; background-color: #8CCDC9; font-size: 1.8rem;')
               span Get Started
           .column
 

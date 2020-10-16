@@ -1,5 +1,6 @@
 const {BigQuery} = require('@google-cloud/bigquery');
 const fireStoreAdmin = require('firebase-admin');
+const {Client, Status} = require('@googlemaps/google-maps-services-js');
 // const firebase = require('firebase/app');
 const serviceAccount = require('./keys/firestore-key.json');
 const PRUNEDATE = 7;
@@ -17,6 +18,8 @@ fireStoreAdmin.initializeApp({
   credential: fireStoreAdmin.credential.cert(serviceAccount),
 });
 const firestore = fireStoreAdmin.firestore();
+const gmaps = new Client({});
+
 /**
 * main function
 */
@@ -92,6 +95,7 @@ function main() {
       let commitCounter = 0;
       const batches = [];
       const usedIDs = [];
+      let counter = 0;
       let doubleCounter = 0;
       batches[commitCounter] = firestore.batch();
       rows.forEach((row)=>{
@@ -101,6 +105,7 @@ function main() {
           batches[commitCounter] = firestore.batch();
         }
         if (!usedIDs.includes(row.user_pseudo_id)) {
+          counter++;
           usedIDs.push(row.user_pseudo_id);
           addUserToPool(createUser(row), batches[commitCounter]);
           insertLocation(row);
@@ -109,6 +114,7 @@ function main() {
           doubleCounter++;
         }
       });
+      console.log('created ', counter, ' new users');
       writeToDb(batches);
       console.log('doubleCounter: ' + doubleCounter);
     } catch (err) {
@@ -156,21 +162,57 @@ function insertLocation(row) {
     const locationRef = firestore.collection('loc_ref').doc(row.country);
     locationRef.get().then((doc)=>{
       if (!doc.exists) {
-        locationRef.set({
-          country: row.country,
-          continent: row.continent,
-          learnerCount: 0,
-          pin: {
-            lat: 0,
-            lng: 0,
-          },
-          regions: [],
-        }, {merge: true});
+        getPinForAddress(row.country, (markerLoc) => {
+          locationRef.set({
+            country: row.country,
+            continent: row.continent,
+            learnerCount: 0,
+            pin: {
+              lat: markerLoc.lat,
+              lng: markerLoc.lng,
+            },
+            regions: [],
+          }, {merge: true});
+        });
+      } else if (doc.exists && !doc.data().hasOwnProperty('pin') ||
+          (doc.exists && doc.data().pin.lat === 0 && doc.data().pin.lng === 0)) {
+        getPinForAddress(row.country, (markerLoc) => {
+          locationRef.set({
+            pin: {
+              lat: markerLoc.lat,
+              lng: markerLoc.lng,
+            },
+          }, {merge: true});
+        });
       }
     }).catch((err)=>{
       console.log(err);
     });
   }
+}
+
+/**
+ * Returns a [lat, lng] pair of values for the given address
+ * @param {String} address is the address in string format
+ * @param {Function} callback is a function that's called after getting a marker
+ */
+async function getPinForAddress(address, callback) {
+  if (address === 'Georgia') address = 'Country of Georgia';
+  await gmaps.geocode({
+    params: {
+      address: address,
+      key: "AIzaSyDEl20cTMsc72W_TasuK5PlWYIgMrzyuAU",
+    },
+    timeout: 1000, // milliseconds
+  }).then((r) => {
+    if (r.data.results[0]) {
+      // console.log(r.data.results[0]);
+      const markerLoc = r.data.results[0].geometry.location;
+      callback(markerLoc);
+    }
+  }).catch((e) => {
+    console.log(e.response.data.error_message);
+  });
 }
 
 /**
@@ -201,8 +243,9 @@ function createUser(row) {
     country: row.country,
     continent: row.continent,
     learnerLevel: row.event_name,
+    userStatus: 'unassigned'
   };
-  console.log('created user: ' + user.userID);
+  console.log('created user: ' + user.userID + ' ' + row.country + ' / ' + row.region);
   return user;
 }
 
@@ -237,6 +280,7 @@ function addUserToPool(user, batch) {
     region: user.region,
     country: user.country,
     learnerLevel: user.learnerLevel,
+    userStatus: user.userStatus,
   }, {merge: true});
 }
 main();

@@ -14,6 +14,7 @@ let mapAllLearners = null;
 
 const mapYourLearnersParentElementId = 'map-display-your-learners';
 const mapAllLearnersParentElementId = 'map-display-all-learners';
+const allCountriesValue = 'all-countries';
 let mapsSharedInfoWindow = null;
 const mapZoomFullView = 3;
 const mapZoomCountryView = 7;
@@ -21,11 +22,13 @@ const mapZoomCountryView = 7;
 const allLearnersCountElementId = 'all-learners-count';
 const dntLearnersCountElementId = 'no-region-user-count';
 const dntYourLearnersCountElementId = 'your-learners-no-region-user-count';
+const allLearnersResetMapButtonId = 'btn-reset-map';
 
 const newDonorInfoTextId = '#new-donor-info-text';
+const modalInstructionTextId = '#modal-instruction-text';
 const newDonorInfoContentId = '#new-donor-info-content';
 const donorEmailModal = '#donor-email-modal';
-const donorEmailSubmit = '#donor-email-submit'
+const donorEmailSubmit = '#donor-email-submit';
 
 let loadedMarkers = [];
 let loadedYourLearnersMarkers = [];
@@ -37,46 +40,151 @@ let yourLearnersData = null;
 
 const COSTPERLEARNER = 0.25;
 
+// Auth data
+let signInButton = '#sign-in-out'
+let signInTextElement = '#sign-in-text';
+let signInText = 'Sign In';
+let signOutText = 'Sign Out';
+let uid = '';
+let email = '';
+let emailVerified = false;
+let token = undefined;
+const TOKENTIMEOUT = 3600001;
+let lastRefresh = Date.now();
+
+firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
+    .then(()=>{
+      return true;
+    }).catch((err)=>{
+      console.error(err);
+    });
+
+
 $(document).ready(function() {
+  const $navbarBurgers = Array.prototype.slice.call(
+      document.querySelectorAll('.navbar-burger'), 0);
+
+  if ($navbarBurgers.length > 0) {
+    $navbarBurgers.forEach((el) => {
+      el.addEventListener('click', () => {
+        const target = el.dataset.target;
+        const $target = document.getElementById(target);
+
+        el.classList.toggle('is-active');
+        $target.classList.toggle('is-active');
+        $target.style.backgroundColor =
+          $target.classList.contains('is-active') ? '#FFF' : 'rgba(0,0,0,0)';
+      });
+    });
+  }
+
+  firebase.auth().onAuthStateChanged((user) =>{
+    if (user) {
+      uid = user.uid;
+      email = user.email;
+      emailVerified = user.emailVerified;
+      $(signInButton).click(function() {
+        firebase.auth().signOut();
+        tabSelector.ToggleTab('tab-campaigns');
+      });
+      $(signInTextElement).text(signOutText);
+      firebase.auth().currentUser.getIdToken(true).then((newToken) =>{
+        token = newToken;
+        console.log('token: ', token);
+        GetDataAndSwitchToDonorLearners();
+        lastRefresh = Date.now();
+        return;
+      }).catch((err)=>{
+        console.error(err);
+      });
+    } else {
+      $(signInButton).click(function() {
+        tabSelector.ToggleTab('tab-your-learners');
+      });
+      $(signInTextElement).text(signInText);
+      currentDonorEmail = null;
+      uid = '';
+      email = '';
+      emailVerified = false;
+      token = undefined;
+    }
+  });
   donorModal = document.getElementById('donor-email-modal');
   if (tabSelector) {
     tabSelector.addEventListener('preTabToggle', (tabId) => {
-      if (tabId === 'tab-your-learners' && currentDonorEmail === null &&
+      if (tabId === 'tab-your-learners'&& currentDonorEmail === null &&
         donorModal) {
-        $(newDonorInfoTextId).addClass('is-hidden');
-        tabSelector.preventDefault();
-        donorModal.classList.add('is-active');
-      } else if (tabId === 'tab-your-learners' && yourLearnersData) {
-        // clearYourLearnersMarkers();
-        // displayYourLearnersData(yourLearnersData);
-      } else if (tabId === 'tab-all-learners' && allLearnersData === null
-        && !loadingAllLearnersData) {
+        if (token !== undefined) {
+          tabSelector.preventDefault();
+          CheckTokenAndSwitchToDonorLearners(email);
+        } else {
+          $(newDonorInfoTextId).addClass('is-hidden');
+          tabSelector.preventDefault();
+          donorModal.classList.add('is-active');
+        }
+      } else if (tabId === 'tab-all-learners' && allLearnersData === null &&
+        !loadingAllLearnersData) {
         loadingAllLearnersData = true;
-        tabSelector.preventDefault();
+        // tabSelector.preventDefault();
         GetDataAndSwitchToAllLearners();
-      } else if (tabId === 'tab-all-learners' && allLearnersData === null
-        && loadingAllLearnersData) {
+      } else if (tabId === 'tab-all-learners' && allLearnersData === null &&
+          loadingAllLearnersData) {
         tabSelector.preventDefault();
       } else if (tabId === 'tab-all-learners' && allLearnersData !== null) {
         clearAllMarkers();
         createCountUpTextInElement('all-learners-count',
-          getTotalCountForAllLearners(allLearnersData));
+            getTotalCountForAllLearners(allLearnersData));
         displayAllLearnersData(allLearnersData, true);
-        for (var key in allLearnersData.campaignData) {
-          if (allLearnersData.campaignData[key].country == "no-country") {
+        for (let key in allLearnersData.campaignData) {
+          if (allLearnersData.campaignData[key].country == 'no-country') {
             createCountUpTextInElement(dntLearnersCountElementId,
-              allLearnersData.campaignData[key].learnerCount);
+                allLearnersData.campaignData[key].learnerCount);
           }
         }
-        countrySelectElement.value = 'all-learners';
+        countrySelectElement.value = allCountriesValue;
       }
     });
     tabSelector.addEventListener('tabToggle', (tabId) => {
       // console.log(tabId);
     });
   }
-
+  if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
+    let email = window.localStorage.getItem('emailForSignIn');
+    if (!email) {
+      email = window.prompt('please enter your email to finish signing in');
+    }
+    firebase.auth().signInWithEmailLink(email, window.location.href)
+        .then((result)=>{
+          currentDonorEmail = email;
+          window.localStorage.removeItem('emailForSignIn');
+          window.history.replaceState({}, document.title, '/campaigns');
+        }).catch((err)=>{
+          window.localStorage.removeItem('emailForSignIn');
+          window.history.replaceState({}, document.title, '/campaigns');
+          console.error(err);
+        });
+  } else if (token) {
+    CheckTokenAndSwitchToDonorLearners(email);
+  }
 });
+
+function CheckTokenAndSwitchToDonorLearners(email) {
+  if (!token) {
+    return;
+  }
+  currentDonorEmail = email;
+  if (lastRefresh <= (Date.now() - TOKENTIMEOUT)) {
+    firebase.auth().currentUser.getIdToken(true).then((newToken)=>{
+      token = newToken;
+      lastRefresh = Date.now();
+      GetDataAndSwitchToDonorLearners();
+    }).catch((err)=>{
+      console.error(err);
+    });
+  } else {
+    GetDataAndSwitchToDonorLearners();
+  }
+}
 
 /**
  * Callback for Google Maps deferred load that initializes the map
@@ -97,7 +205,7 @@ function initializeMaps() {
     mapYourLearners = new google.maps.Map(mapYourLearnersParent, {
       streetViewControl: false,
       mapTypeControl: false,
-      maxZoom: 10
+      maxZoom: 10,
     });
   }
 
@@ -105,14 +213,13 @@ function initializeMaps() {
     mapAllLearners = new google.maps.Map(mapAllLearnersParent, {
       streetViewControl: false,
       mapTypeControl: false,
-      maxZoom: 10
+      maxZoom: 10,
     });
   }
 
   const targetEmail = getURLParam('email');
-  if (targetEmail) {
-    currentDonorEmail = targetEmail;
-    GetDataAndSwitchToDonorLearners();
+  if (targetEmail && token) {
+    CheckTokenAndSwitchToDonorLearners(targetEmail);
   }
 }
 
@@ -128,28 +235,43 @@ function GetDataAndSwitchToAllLearners() {
 
     allLearnersData = data.data;
     createCountUpTextInElement(allLearnersCountElementId,
-      getTotalCountForAllLearners(allLearnersData));
+        getTotalCountForAllLearners(allLearnersData));
 
-    for (var key in allLearnersData.campaignData) {
-      if (allLearnersData.campaignData[key].country == "no-country") {
+    for (const key in allLearnersData.campaignData) {
+      if (allLearnersData.campaignData[key].country == 'no-country') {
         createCountUpTextInElement(dntLearnersCountElementId,
-          allLearnersData.campaignData[key].learnerCount);
+            allLearnersData.campaignData[key].learnerCount);
       }
     }
 
     initializeCountrySelect(allLearnersData);
     clearAllMarkers();
-    tabSelector.ToggleTab('tab-all-learners');
+    // tabSelector.ToggleTab('tab-all-learners');
+
+    updateResetMapButtonState();
+
+    clearAllMarkers();
+    createCountUpTextInElement('all-learners-count',
+        getTotalCountForAllLearners(allLearnersData));
+    displayAllLearnersData(allLearnersData, true);
+    for (const key in allLearnersData.campaignData) {
+      if (allLearnersData.campaignData[key].country == 'no-country') {
+        createCountUpTextInElement(dntLearnersCountElementId,
+            allLearnersData.campaignData[key].learnerCount);
+      }
+    }
+    countrySelectElement.value = allCountriesValue;
   });
 }
 
 /**
  * Gets aggregate data for all learners from all countries
  * @param {Object} countryLearnersData country learner data
+ * @return {Number} aggregate learners count for all countries
  */
 function getTotalCountForAllLearners(countryLearnersData) {
   let totalCount = 0;
-  for (let key in countryLearnersData.campaignData) {
+  for (const key in countryLearnersData.campaignData) {
     if ( countryLearnersData.campaignData[key] !== undefined) {
       totalCount += countryLearnersData.campaignData[key].learnerCount;
     }
@@ -167,8 +289,9 @@ function initializeCountrySelect(locationData) {
     return;
   }
   countrySelectElement.options = [];
-  countrySelectElement.options[0] = new Option('All Learners', 'all-learners');
-  for (var key in locationData.campaignData) {
+  countrySelectElement.options[0] =
+    new Option('All Countries', allCountriesValue);
+  for (const key in locationData.campaignData) {
     let country = locationData.campaignData[key].country;
     if (country !== "no-country") {
       countrySelectElement.options.add(new Option(
@@ -212,36 +335,33 @@ function onGiveNowButtonClick() {
     return;
   }
 
-  let countrySelection = yourLearnersCountrySelectElement.
-    options[yourLearnersCountrySelectElement.selectedIndex].value;
-  
-  let donorCountries = [];
-  if (yourLearnersCountrySelectElement.options.length > 0 && 
-    countrySelection === 'all-countries') {
+  const countrySelection = yourLearnersCountrySelectElement.
+      options[yourLearnersCountrySelectElement.selectedIndex].value;
+
+  const donorCountries = [];
+  if (yourLearnersCountrySelectElement.options.length > 0 &&
+    countrySelection === allCountriesValue) {
     for (let i = 1; i < yourLearnersCountrySelectElement.options.length; i++) {
       donorCountries.push(yourLearnersCountrySelectElement.options[i].value);
     }
   }
-  
-  $.post('/giveAgain', {
-    email: currentDonorEmail, 
+
+  $.post('/giveAgain', {email: currentDonorEmail,
     countrySelection: countrySelection,
-    donorCountries: donorCountries},
-    function(data, status) {
-      if (data) {
-        if (data.hasOwnProperty('action')) {
-          if (data.action === 'switch-to-regions') {
-            tabSelector.ToggleTab('tab-campaigns');
-          }
+    donorCountries: donorCountries}, function(data, status) {
+    if (data) {
+      if (data.hasOwnProperty('action')) {
+        if (data.action === 'switch-to-regions') {
+          tabSelector.ToggleTab('tab-campaigns');
         }
-      } 
+      }
     }
-  );
-  
+  });
 }
 
 function validateEmail(email) {
   if (email === null || email === undefined) return false;
+  console.log('validating email: ', email);
   const result = email.match(/[[\w\d-\.]+\@]?[[\w\d-]*[\.]+[\w\d-\.]+]*/);
   if (result !== null && result !== undefined && result !== ['']) {
     return true;
@@ -249,23 +369,27 @@ function validateEmail(email) {
   return false;
 }
 
+function isSpecial(keyCode) {
+  switch (keyCode) {
+    case 9: return true;
+    case 13: return true;
+    case 18: return true;
+    case 20: return true;
+    default: return false;
+  }
+}
+
 /**
  * Called from the donor email form
  */
 function GetDataAndSwitchToDonorLearners() {
-  if ($(donorEmailSubmit).prop('disabled') === true) {
-    return;
-  }
-  if (currentDonorEmail === null) {
-    currentDonorEmail = document.getElementById(donorEmailElementId).value;
-  }
-  $.get('/yourLearners', {email: currentDonorEmail}, function(data, status) {
+  $.get('/yourLearners', {email: currentDonorEmail, token: token}, function(data, status) {
     if (data.err) {
       $(newDonorInfoContentId).text(data.err);
       $(newDonorInfoTextId).removeClass('is-hidden');
       currentDonorEmail = null;
     }
-    if (data === "" || data === null || data === undefined) {
+    if (data === '' || data === null || data === undefined) {
       $(newDonorInfoTextId).removeClass('is-hidden');
       setTimeout(() => {
         $(newDonorInfoTextId).addClass('is-hidden');
@@ -280,20 +404,21 @@ function GetDataAndSwitchToDonorLearners() {
     if (yourLearnersCountrySelectElement) {
       yourLearnersCountrySelectElement.options = [];
       yourLearnersCountrySelectElement.options[0] =
-        new Option('All Countries', 'all-countries');
+        new Option('All Countries', allCountriesValue);
       for (let i = 0; i < data.locationData.length; i++) {
         yourLearnersCountrySelectElement.options[i + 1] =
           new Option(data.locationData[i].country + ' - ' +
             getTotalCountryLearnerCountFromDonations(
-              yourLearnersData.campaignData,
-              data.locationData[i].country),
-            data.locationData[i].country);
+                yourLearnersData.campaignData,
+                data.locationData[i].country),
+          data.locationData[i].country
+          );
       }
     }
     // TODO: expand this  to cover campaigns with varying cost/learner
     let allCountriesAggregateAmount = 0;
     let tempDonationStartDate = null;
-    let allCountriesDonationStartDate = "";
+    let allCountriesDonationStartDate = '';
     let allCountriesLearnersCount = 0;
     let allCountriesDNTUsersCount = 0;
     let percentFilled = 0;
@@ -319,29 +444,98 @@ function GetDataAndSwitchToDonorLearners() {
     setDonationPercentage(
         allCountriesAggregateAmount,
         allCountriesLearnersCount,
-        COSTPERLEARNER
+        COSTPERLEARNER,
     );
     document.getElementById('donation-amount').innerText =
       allCountriesAggregateAmount;
 
-    if (allCountriesDonationStartDate !== "") {
+    if (allCountriesDonationStartDate !== '') {
       document.getElementById('donation-date').innerText =
         allCountriesDonationStartDate.toString();
     }
 
-    createCountUpTextInElement('learner-count', allCountriesLearnersCount);
+    createCountUpTextInElement('learner-count',
+        allCountriesLearnersCount);
 
     if (donorModal) {
       donorModal.classList.remove('is-active');
     }
 
     createCountUpTextInElement(dntYourLearnersCountElementId,
-      allCountriesDNTUsersCount);
+        allCountriesDNTUsersCount);
 
     tabSelector.ToggleTab('tab-your-learners');
 
     displayYourLearnersData(yourLearnersData, true);
+
   });
+
+}
+
+function checkForDonorSignIn() {
+  console.log('token: ', token);
+  if (token !== undefined) {
+    let email = currentDonorEmail;
+    if (email === undefined) {
+      email = document.getElementById(donorEmailElementId).value;
+    }
+    CheckTokenAndSwitchToDonorLearners(email);
+    return;
+  } else if ($(donorEmailSubmit).prop('disabled') === true) {
+    return;
+  }
+  currentDonorEmail = document.getElementById(donorEmailElementId).value;
+  $.get('/isUser', {email: currentDonorEmail}, function(data, status) {
+    if (data.isUser) {
+      const actionCodeSettings = {
+        url: 'http://localhost:3000/campaigns',
+        handleCodeInApp: true,
+      };
+      firebase.auth()
+          .sendSignInLinkToEmail(currentDonorEmail, actionCodeSettings)
+          .then(function() {
+            window.localStorage.setItem('emailForSignIn', currentDonorEmail);
+            $(newDonorInfoTextId).text('please follow the link we sent to your email to complete the sign in process! You can now safely close this browser tab.');
+            $(newDonorInfoTextId).removeClass('is-hidden');
+            currentDonorEmail = null;
+            $(donorEmailElementId).value = null;
+          }).catch((err) =>{
+            console.error(err.code);
+          });
+    } else {
+      currentDonorEmail = null;
+      $(newDonorInfoTextId).removeClass('is-hidden');
+      $(newDonorInfoTextId).text(data.displayText);
+      $(modalInstructionTextId).addClass('is-hidden');
+    }
+  });
+}
+
+/**
+ * Updates the visibility of the reset button based on country selection
+ */
+function updateResetMapButtonState() {
+  if (!countrySelectElement) {
+    console.error("Unable to find country select element.");
+    return;
+  }
+  let countrySelection = countrySelectElement.
+    options[countrySelectElement.selectedIndex].value;
+
+
+  if (countrySelection === allCountriesValue) {
+    $('#' + allLearnersResetMapButtonId).hide();
+  } else {
+    $('#' + allLearnersResetMapButtonId).show();
+  }
+}
+
+/**
+ * Called on reset map button click event
+ */
+function OnResetMapButtonClick() {
+  countrySelectElement.value = allCountriesValue;
+  onCountrySelectionChanged();
 }
 
 /**
@@ -376,7 +570,7 @@ function onCountrySelectionChanged() {
 
   clearAllMarkers();
 
-  if (countrySelection === 'all-learners') {
+  if (countrySelection === allCountriesValue) {
     displayAllLearnersData(allLearnersData, true);
     createCountUpTextInElement(allLearnersCountElementId,
       getTotalCountForAllLearners(allLearnersData));
@@ -399,6 +593,8 @@ function onCountrySelectionChanged() {
       createCountUpTextInElement(dntLearnersCountElementId, 0);
     }
   }
+
+  updateResetMapButtonState();
 }
 
 /**
@@ -415,7 +611,7 @@ function onYourLearnersCountrySelectionChanged() {
 
   clearYourLearnersMarkers();
 
-  if (countrySelection === 'all-countries') {
+  if (countrySelection === allCountriesValue) {
     let allCountriesAggregateAmount = 0;
     let tempDonationStartDate = null;
     let allCountriesDonationStartDate = "";
@@ -516,11 +712,11 @@ function onYourLearnersCountrySelectionChanged() {
 }
 
 function setDonationPercentage(fullAmount, learnerCount, costPerLearner) {
-  let learnerMax = fullAmount/costPerLearner;
+  let learnerMax = Math.round(fullAmount/costPerLearner);
   if (isNaN(learnerMax)) {
     learnerMax = 0;
   }
-  let decimal = learnerCount/learnerMax;
+  let decimal = Math.round(learnerCount/learnerMax);
   if (isNaN(decimal)) {
     decimal = 0;
   }
@@ -1030,10 +1226,13 @@ function constructCountryLevelInfoWindow(country, randomFact) {
   const contentString = '<div style=\'text-align: left;\'>' +
     '<span style=\'font-size: 18px; color: #606060\'><b>' +
     country + ' </b></span>' +
-    '<br><br> <p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
-    randomFact + '<br><br><div style="text-align: center">' +
+    // '<br><br> <p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
+    // randomFact + '<br><br>' +
+    '<br><br><br><div style="text-align: center">' +
     '<button onclick="onAllLearnersCountryZoomInClick(\''+ country + '\')" class=\'button is-link is-outlined \'>' +
     ' <i class="fas fa-search-plus"></i>&nbsp;&nbsp;Take Me There ' +
+    '</button>&nbsp;' +
+    '<button onclick="GiveNow()" type=\'button\' class=\'button is-primary \'> Give Now ' +
     '</button></div>';
   return contentString;
 }
@@ -1043,6 +1242,7 @@ function constructCountryLevelInfoWindow(country, randomFact) {
  * @param {String} country country
  * @param {String} region region
  * @param {String} randomFact fact
+ * @return {String} HTML content string
  */
 function constructRegionPinWindow(country, region, randomFact) {
   const contentString = '<div style=\'text-align: left;\'>' +
@@ -1050,8 +1250,9 @@ function constructRegionPinWindow(country, region, randomFact) {
     region + ' </b></span>' +
     '<span style=\'font-size: 16px; color: #909090\'><b>(' +
     country + ')</b></span>' +
-    '<br><br> <p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
-    randomFact + '<br><br>';
+    '<br><br> <p>Street views are coming soon!</p>';
+    // '<br><br> <p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
+    // randomFact + '<br><br>';
   return contentString;
 }
 
@@ -1073,9 +1274,9 @@ function constructInfoWindowContent(country, region, randomFact, latitude,
     region + ' </b></span>' +
     '<span style=\'font-size: 16px; color: #909090\'><b>(' +
     country + ')</b></span>' +
-    '<br><br> <p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
-    randomFact +
-    '</p> <br> <form action=\'https://google.com/maps/@?\' method=\'get\' ' +
+    // '<br><br> <p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
+    // randomFact + '</p> ' +
+    '<br><br><br> <form action=\'https://google.com/maps/@?\' method=\'get\' ' +
     'target=\'_blank\' style=\'text-align: center;\'>' +
     '<input type=\'hidden\' name=\'api\' value=\'1\'></input>' +
     '<input type=\'hidden\' name=\'map_action\' value=\'pano\'></input>' +
@@ -1085,8 +1286,19 @@ function constructInfoWindowContent(country, region, randomFact, latitude,
     heading + '\'></input>' +
     '<button type=\'submit\' class=\'button is-link is-outlined \'>' +
     ' <i class="fas fa-street-view"></i>&nbsp;&nbsp;Take Me There ' +
-    '</button></form></div>';
+    '</button> ' +
+    '<button onclick="GiveNow()" type=\'button\' class=\'button is-primary \'> Give Now ' +
+    '</button>' +
+    '</form></div>';
   return contentString;
+}
+
+/**
+ * Function that's called when clicking the give now button on the map pin info
+ * window
+ */
+function GiveNow() {
+  tabSelector.ToggleTab('regions');
 }
 
 /**

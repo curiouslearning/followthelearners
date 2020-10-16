@@ -1,7 +1,8 @@
 const admin = require('firebase-admin');
 // const firebase = require('firebase/app');
 const serviceAccount = require('./keys/firestore-key.json');
-const PRUNEDATE = 7;
+const DONATIONFILLTIMELINE = 7; // The min number of days to fill a donation
+const PRUNEDATE = 7; // the number of days before a new user expires
 const DAYINMS = 86400000;
 const CONTINENTS = [
   'Africa',
@@ -81,16 +82,22 @@ function matchLearnersToDonors(learners, donations) {
         // only assign users to donations from matching campaigns
         continue;
       }
+      console.log('found potential match');
       if (!donation.percentFilled) {
         let denominator = donation.amount/donation.costPerLearner
         donation['percentFilled'] = (donation.learnerCount/denominator)*100;
       }
-      if (donation.percentFilled < 100) {
+      const cap = calculateLearnerCap(donation);
+      console.log('cap is ', cap);
+      if (donation.percentFilled < cap) {
+        console.log('found donor: ', donation.sourceDonor);
         foundDonor = true;
         if (!donation.hasOwnProperty('learners')) {
           donation['learners'] = [];
         }
         data.sourceDonor = donation.sourceDonor;
+        data.userStatus = 'assigned';
+        data.sourceDonation = donation.donationID;
         data['assignedOn'] = admin.firestore.Timestamp.now();
         donation['learners'].push(data);
         learners.splice(0, 1);
@@ -112,6 +119,16 @@ function matchLearnersToDonors(learners, donations) {
   }
 }
 
+function calculateLearnerCap(donation) {
+  const learnerCount = donation.learnerCount;
+  const amount = donation.amount;
+  const costPerLearner = donation.costPerLearner;
+  const maxLearners = Math.round(amount/costPerLearner);
+  const maxDailyIncrease = Math.round(maxLearners/DONATIONFILLTIMELINE);
+  const rawCap = learnerCount + maxDailyIncrease;
+  return Math.round((rawCap/maxLearners) *100);
+}
+
 /**
 * @param{Object[]} priorityQueue the list of donations to update in firestore
 */
@@ -123,9 +140,6 @@ function batchLearnerAssignment(priorityQueue) {
   batches[batchCount] = firestore.batch();
   const poolRef = firestore.collection('user_pool');
   priorityQueue.forEach((donation, i)=>{
-    const msgRef = firestore.collection('donor_master')
-        .doc(donation.sourceDonor)
-        .collection('donations').doc(donation.id).collection('users');
     if (donation.hasOwnProperty('learners')) {
       donation.learners.forEach((learner) =>{
         if (batchSize >= BATCHMAX) {
@@ -133,11 +147,9 @@ function batchLearnerAssignment(priorityQueue) {
           batchCount++;
           batches[batchCount] = firestore.batch();
         }
-        const docRef = msgRef.doc(learner.userID);
-        batches[batchCount].set(docRef, learner);
-        const deleteRef = poolRef.doc(learner.userID);
-        batches[batchCount].delete(deleteRef);
-        batchSize += 2;
+        const docRef = poolRef.doc(learner.userID);
+        batches[batchCount].set(docRef, learner, {merge: true});
+        batchSize++;
       });
     }
   });
@@ -153,6 +165,7 @@ function batchLearnerAssignment(priorityQueue) {
 async function getLearnerQueue(donationCount, interval) {
   const pivotDate = new Date(Date.now()-(DAYINMS*interval));
   return firestore.collection('user_pool')
+      .where('userStatus', '==', 'unassigned')
       .orderBy('dateCreated', 'asc').get().then((snap)=>{
         console.log('fetched snap of size ', snap.size);
         return snap;
@@ -201,8 +214,8 @@ function getPriorityQueue() {
 function sweepExpiredLearners() {
   const pivot = getPivot();
   const poolRef = firestore.collection('user_pool');
-  const expiredRef = firestore.collection('unassigned_users');
-  poolRef.where('dateCreated', '<=', pivot).get()
+  poolRef.where('userStatus', '==', 'unassigned')
+      .where('dateCreated', '<=', pivot).get()
       .then((snap)=>{
         if (snap.empty) {
           console.log('empty snap');
@@ -220,10 +233,10 @@ function sweepExpiredLearners() {
           }
           let data = doc.data();
           let id = doc.id;
+          data.userStatus = 'expired';
           data['expiredOn'] = admin.firestore.Timestamp.now();
-          batches[batchCount].set(expiredRef.doc(id), data);
-          batches[batchCount].delete(poolRef.doc(id));
-          batchSize +=2;
+          batches[batchCount].set(poolRef.doc(id), data, {merge: true});
+          batchSize ++;
         });
         return batches;
       }).then((batches)=>{
@@ -256,6 +269,7 @@ function checkBatch() {
 * @param {Object} donation the donation object to compare
 */
 function checkForMatch(learner, donation) {
+  console.log('learner.country: ', learner.country, ', donation.country: ', donation.country);
   if (donation.country === 'any') return true;
   if (donation.country === learner.country) return true;
   if (CONTINENTS.includes(donation.country)) {

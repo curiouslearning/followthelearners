@@ -1,0 +1,13 @@
+html
+  include mixins/_campaign
+  head
+    link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css')
+  body(style='background-color: #d9e0ff; padding: 10rem')
+    h1.title.has-text-centered.has-text-grey Dashboard Login
+    section.has-text-centered(style='margin-top: 10rem')
+        form(action='/auth' method='post' style='width: 30%; display: inline-block')
+            input.input(type='text' name='username' placeholder="Username" style='margin-bottom: 1rem')
+            input.input(type='password' name='password' placeholder='Password' style='margin-bottom: 1rem')
+            input.button.is-primary(type='submit' value='Submit')
+    
+    
