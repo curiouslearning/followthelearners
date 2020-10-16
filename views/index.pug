@@ -111,9 +111,10 @@ html
                 btn.innerText = 'Read More';
               }
             }
+
       .section.is-hidden#tab-your-learners
-        .section(style='margin-top: -2rem; padding-top: 0.5rem; padding-bottom: 0.2rem; margin-bottom: none;')
-          h1.title.has-text-grey-dark(style='font-size: 4rem;') Your Learners
+        //- .section(style='margin-top: -2rem; padding-top: 0.5rem; padding-bottom: 0.2rem; margin-bottom: none;')
+        //-   h1.title.has-text-grey-dark(style='font-size: 4rem;') Your Learners
         .columns.is-large(style='align-items: center; margin-left: 0.2rem; margin-top: 0.2rem; margin-bottom: 0')
           .select.is-large(style='font-size: 2.4rem')
             select#yourLearnersCountrySelect(onchange='onYourLearnersCountrySelectionChanged()' style='border: none; width: auto; -webkit-appearance: none; -moz-appearance: none; appearance:none;' name='campaignSelection')
@@ -140,7 +141,7 @@ html
 
       .section.is-hidden#tab-all-learners
         .section(style='margin-top: -2rem; padding-top: 0.5rem; padding-bottom: 0.2rem; margin-bottom: none;')
-          h1.title.has-text-grey-dark(style='font-size: 4rem;') All Learners
+          //- h1.title.has-text-grey-dark(style='font-size: 4rem;') All Learners
           .select.is-large
             select#countrySelection(onchange='onCountrySelectionChanged()' style='width: auto; -webkit-appearance: none; -moz-appearance: none; appearance:none;' name='campaignSelection')
           button.button.is-large#btn-reset-map(style='display: inline-block; margin-left: 1rem' onclick='OnResetMapButtonClick()') All Countries
