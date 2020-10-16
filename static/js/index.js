@@ -188,7 +188,7 @@ function initializeMaps() {
     mapYourLearners = new google.maps.Map(mapYourLearnersParent, {
       streetViewControl: false,
       mapTypeControl: false,
-      maxZoom: 10
+      maxZoom: 10,
     });
   }
 
@@ -196,7 +196,7 @@ function initializeMaps() {
     mapAllLearners = new google.maps.Map(mapAllLearnersParent, {
       streetViewControl: false,
       mapTypeControl: false,
-      maxZoom: 10
+      maxZoom: 10,
     });
   }
 
@@ -218,12 +218,12 @@ function GetDataAndSwitchToAllLearners() {
 
     allLearnersData = data.data;
     createCountUpTextInElement(allLearnersCountElementId,
-      getTotalCountForAllLearners(allLearnersData));
+        getTotalCountForAllLearners(allLearnersData));
 
-    for (var key in allLearnersData.campaignData) {
-      if (allLearnersData.campaignData[key].country == "no-country") {
+    for (const key in allLearnersData.campaignData) {
+      if (allLearnersData.campaignData[key].country == 'no-country') {
         createCountUpTextInElement(dntLearnersCountElementId,
-          allLearnersData.campaignData[key].learnerCount);
+            allLearnersData.campaignData[key].learnerCount);
       }
     }
 
@@ -237,7 +237,7 @@ function GetDataAndSwitchToAllLearners() {
     createCountUpTextInElement('all-learners-count',
         getTotalCountForAllLearners(allLearnersData));
     displayAllLearnersData(allLearnersData, true);
-    for (let key in allLearnersData.campaignData) {
+    for (const key in allLearnersData.campaignData) {
       if (allLearnersData.campaignData[key].country == 'no-country') {
         createCountUpTextInElement(dntLearnersCountElementId,
             allLearnersData.campaignData[key].learnerCount);
@@ -250,10 +250,11 @@ function GetDataAndSwitchToAllLearners() {
 /**
  * Gets aggregate data for all learners from all countries
  * @param {Object} countryLearnersData country learner data
+ * @return {Number} aggregate learners count for all countries
  */
 function getTotalCountForAllLearners(countryLearnersData) {
   let totalCount = 0;
-  for (let key in countryLearnersData.campaignData) {
+  for (const key in countryLearnersData.campaignData) {
     if ( countryLearnersData.campaignData[key] !== undefined) {
       totalCount += countryLearnersData.campaignData[key].learnerCount;
     }
@@ -271,8 +272,9 @@ function initializeCountrySelect(locationData) {
     return;
   }
   countrySelectElement.options = [];
-  countrySelectElement.options[0] = new Option('All Countries', allCountriesValue);
-  for (var key in locationData.campaignData) {
+  countrySelectElement.options[0] =
+    new Option('All Countries', allCountriesValue);
+  for (const key in locationData.campaignData) {
     let country = locationData.campaignData[key].country;
     if (country !== "no-country") {
       countrySelectElement.options.add(new Option(
@@ -316,10 +318,10 @@ function onGiveNowButtonClick() {
     return;
   }
 
-  let countrySelection = yourLearnersCountrySelectElement.
-    options[yourLearnersCountrySelectElement.selectedIndex].value;
+  const countrySelection = yourLearnersCountrySelectElement.
+      options[yourLearnersCountrySelectElement.selectedIndex].value;
 
-  let donorCountries = [];
+  const donorCountries = [];
   if (yourLearnersCountrySelectElement.options.length > 0 &&
     countrySelection === allCountriesValue) {
     for (let i = 1; i < yourLearnersCountrySelectElement.options.length; i++) {
@@ -327,21 +329,17 @@ function onGiveNowButtonClick() {
     }
   }
 
-  $.post('/giveAgain', {
-    email: currentDonorEmail,
+  $.post('/giveAgain', {email: currentDonorEmail,
     countrySelection: countrySelection,
-    donorCountries: donorCountries},
-    function(data, status) {
-      if (data) {
-        if (data.hasOwnProperty('action')) {
-          if (data.action === 'switch-to-regions') {
-            tabSelector.ToggleTab('tab-campaigns');
-          }
+    donorCountries: donorCountries}, function(data, status) {
+    if (data) {
+      if (data.hasOwnProperty('action')) {
+        if (data.action === 'switch-to-regions') {
+          tabSelector.ToggleTab('tab-campaigns');
         }
       }
     }
-  );
-
+  });
 }
 
 function validateEmail(email) {
