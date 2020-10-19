@@ -686,9 +686,10 @@ exports.updateSummary = functions.firestore.document('/loc_ref/{documentId}')
 
 exports.updateDonationLearnerCount = functions.firestore
     .document('/user_pool/{documentId}')
-    .onWrite((change, context)=>{
+    .onUpdate((change, context)=>{
       const before = change.before.data();
       const after = change.after.data();
+      if (!before || !after) return;
       if (before.userStatus === 'unassigned'&&
           after.userStatus === 'assigned') {
         console.log('assigning');
@@ -718,7 +719,7 @@ function updateMasterLearnerCount(country) {
 
 exports.onNewUser = functions.firestore
     .document('user_pool/{docId}').onCreate((snap, context)=>{
-      const newDoc = doc.data();
+      const newDoc = snap.data();
       if (!newDoc.countedInMasterCount) {
         updateMasterLearnerCount(newDoc.country);
       } if (!newDoc.countedInRegion) {
@@ -889,12 +890,12 @@ function updateCountForRegion(country, region) {
             if (!regions[regionIndex].hasOwnProperty('pin') ||
               (regions[regionIndex]['pin'].lat === 0 &&
               regions[regionIndex]['pin'].lng === 0)) {
-              getPinForAddress(country + ', ' + region).then((markerLoc) => {
+              return getPinForAddress(country + ', ' + region).then((markerLoc) => {
                 regions[regionIndex]['pin'] = {
                   lat: markerLoc.lat,
                   lng: markerLoc.lng,
                 };
-                doc.ref.set({
+                return doc.ref.set({
                   learnerCount: newCount,
                   regions: regions,
                 }, {merge: true}).catch((err)=>{
@@ -905,7 +906,7 @@ function updateCountForRegion(country, region) {
           }
         }
         if (!foundRegion) {
-          getPinForAddress(country + ', ' + region).then((markerLoc) => {
+          return getPinForAddress(country + ', ' + region).then((markerLoc) => {
             console.log('--------------------- FOUND LOCATION: ' + markerLoc);
             regions.push({
               region: region,
@@ -920,7 +921,7 @@ function updateCountForRegion(country, region) {
                 ],
               },
             });
-            doc.ref.set({
+            return doc.ref.set({
               learnerCount: newCount,
               regions: regions,
             }, {merge: true}).catch((err)=>{
@@ -928,6 +929,12 @@ function updateCountForRegion(country, region) {
             });
           });
         }
+        doc.ref.set({
+          learnerCount: newCount,
+          regions: regions,
+        }, {merge: true}).catch((err)=>{
+          console.error(err);
+        });
         return newCount;
       }).catch((err) => {
         console.error(err);
