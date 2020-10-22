@@ -9,6 +9,7 @@ admin.initializeApp();
 const transporter = nodemailer.createTransport(mailConfig);
 const gmaps = new Client({});
 
+const BATCHMAX = 495;
 const DEFAULTCPL = 0.25;
 const CONTINENTS = [
   'Africa',
@@ -97,6 +98,21 @@ exports.clearLearnerPool = functions.https.onRequest(async (req, res)=>{
     console.error(err);
   });
   res.json({status: 200, message: 'cleared user pool'}).end();
+});
+
+exports.updateAggregates = functions.https.onRequest(async (req, res) =>{
+  console.log('hello');
+  const masterCount = req.body.masterCount;
+  const countries = req.body.countries;
+  const campaigns = req.body.campaigns;
+  console.log('update master count');
+  updateMasterCount(masterCount);
+  console.log('update campaigns');
+  updateCampaignCounts(campaigns);
+  console.log('update countries');
+  updateLocationCounts(countries);
+  console.log('successfully updated all counts');
+  return res.status(200).send({masterCount: masterCount});
 });
 
 exports.logDonation = functions.https.onRequest(async (req, res) =>{
@@ -468,41 +484,124 @@ function delayOneSecond(callback) {
 }
 
 exports.forceUpdateAggregates = functions.https.onRequest(async (req, res) =>{
-  let dbRef = admin.firestore().collection('loc_ref');
-  dbRef.get().then((snapshot)=>{
-    let countries = [];
-    snapshot.forEach((doc)=>{
-      const regions = doc.data().regions;
-      const country = doc.data().country;
-      let learnerCounts = [];
-      let countrySum = 0;
-      regions.forEach((region)=>{
-        if (region.hasOwnProperty('learnerCount') && region.learnerCount >=0) {
-          learnerCounts.push({region: region.region,
-            learnerCount: region.learnerCount
-          });
-          countrySum += region.learnerCount;
-        }
-      });
-      countries.push({
-        country: country,
-        learnerCount: countrySum,
-        regions: learnerCounts
-      });
+  try {
+    forceUpdateLocations();
+    forceUpdateCampaigns();
+    forceUpdateMasterCounts();
+    res.status(200).send({msg: 'Successfully forced an update'});
+  } catch (e) {
+    res.status(400).send({
+      msg: 'Did not successfully update! Encountered an error',
+      err: e,
     });
-    return admin.firestore().collection('aggregate_data').doc('RegionSummary')
-        .update({
-          countries: countries
-        }, {merge: false});
-  }).then((result)=>{
-    res.json({result: 'updated region aggregates for all countries'});
-    return 'resolved';
+  }
+});
+
+function forceUpdateLocations() {
+  const dbRef = admin.firestore().collection('loc_ref');
+  return dbRef.get().then((snap)=>{
+    snap.forEach((doc)=> {
+      const data = doc.data();
+      setCountsForCountry(data);
+    });
+    return 'Success!';
   }).catch((err)=>{
     console.error(err);
-    const errString = 'failed to update, encountered error: ' + err;
-    res.json({result: errString});
   });
-});
+}
+
+async function setCountsForCountry(countryDoc) {
+  const countryName = countryDoc.country;
+  const dbRef = admin.firestore().collection('user_pool')
+      .where('country', '==', countryName);
+  const msgRef = admin.firestore().collection('loc_ref').doc(countryName);
+  let regions = countryDoc.regions;
+  for (const region in regions) {
+    if (regions[region]) {
+      regions[region].learnerCount = 0;
+    }
+  }
+  try {
+    const res = await admin.firestore().runTransaction(async (t)=>{
+      const snap = await t.get(dbRef);
+      const totalCount = snap.size;
+      snap.forEach((doc)=>{
+        const index = hasObjWithProperty(regions, 'region', doc.data().region);
+        if (index <0) {
+          regions.push({
+            region: doc.data().region,
+            learnerCount: 1,
+          });
+        } else {
+          regions[index].learnerCount++;
+        }
+      });
+      await t.set(msgRef, {
+        learnerCount: totalCount,
+        regions: regions,
+      }, {merge: true});
+      return 'set counts for '+ countryName+ ', new total is '+ totalCount;
+    });
+    console.log('Transaction Success: ', res);
+  } catch (e) {
+    console.log('Transaction Failed: ', e);
+  }
+}
+
+function forceUpdateCampaigns() {
+  const dbRef = admin.firestore().collection('campaigns');
+  return dbRef.get().then((snap)=>{
+    snap.forEach((doc)=>{
+      const data = doc.data();
+      setCountForCampaign(data);
+    });
+    return 'Success!';
+  }).catch((err)=>{
+    console.error(err);
+  });
+}
+
+async function setCountForCampaign(campaignDoc) {
+  const campaignID = campaignDoc.campaignID;
+  const dbRef = admin.firestore().collection('user_pool')
+      .where('sourceCampaign', '==', campaignID);
+  const msgRef = admin.firestore().collection('campaigns').doc(campaignID);
+  try {
+    const res = await admin.firestore().runTransaction(async (t)=>{
+      const newTotal = await t.get(dbRef).then((snap)=>{
+        return snap.size;
+      });
+      await t.update(msgRef, {learnerCount: newTotal});
+      return 'Set learner count of ' +campaignID + ' to '+newTotal;
+    });
+    console.log('Transaction Success: ', res);
+  } catch (e) {
+    console.log('Transaction Failed: ', e);
+  }
+}
+async function forceUpdateMasterCounts() {
+  const dbRef = admin.firestore().collection('user_pool');
+  const dnt = dbRef.where('country', '==', 'no-country');
+  try {
+    const res = await admin.firestore().runTransaction(async (t)=>{
+      const totalCount = await t.get(dbRef).then((snap)=>{
+        return snap.size;
+      });
+      const newDNTCount = await t.get(dnt).then((snap)=>{
+        return snap.size;
+      });
+      const msgRef = admin.firestore().collection('aggregate_data').doc('data');
+      await t.update(msgRef, {
+        allLearnersCount: totalCount,
+        allLearnersWithDoNotTrack: newDNTCount,
+      });
+      return 'Counted '+totalCount+' learners with '+newDNTCount+' using DNT';
+    });
+    console.log( 'Transaction Success: ', res);
+  } catch (e) {
+    console.log('Transaction Failed: ', e);
+  }
+}
 
 exports.checkForDonationEndDate = functions.firestore
     .document('/donor_master/{donorId}/donations/{documentId}')
@@ -643,53 +742,16 @@ exports.addCountryToSummary = functions.firestore
       });
     });
 
-exports.updateSummary = functions.firestore.document('/loc_ref/{documentId}')
-    .onUpdate(async (change, context)=>{
-      const before = change.before.data();
-      const after = change.after.data();
-      if (before.learnerCount === after.learnerCount) return;
-      const country = change.after.id;
-      const originalValue = change.after.data().regions;
-      await admin.firestore().collection('aggregate_data')
-          .doc('RegionSummary').get().then((summary)=>{
-            let sums = summary.data().countries;
-            let countryIndex = findObjWithProperty(sums, 'country', country);
-            console.log('country index is ' + countryIndex);
-            if (countryIndex === undefined){
-              sums.push({country: country, learnerCount: 0, regions: []});
-              countryIndex = sums.length - 1;
-            }
-            let countrySum = 0;
-            let regionCounts = [];
-            originalValue.forEach((region)=>{
-              if (region.hasOwnProperty('learnerCount') &&
-              region.learnerCount >= 0) {
-                regionCounts.push({
-                  region: region.region,
-                  learnerCount: region.learnerCount,
-                });
-                countrySum += region.learnerCount;
-              }
-            });
-            sums[countryIndex].regions = regionCounts;
-            sums[countryIndex]['learnerCount'] = countrySum;
-            admin.firestore().collection('loc_ref').doc(country).update({
-              learnerCount: sums[countryIndex].learnerCount
-            });
-            return admin.firestore().collection('aggregate_data')
-                .doc('RegionSummary')
-                .update({countries: sums}, {merge: true});
-          }).catch((err)=>{
-            console.error(err);
-          });
-    });
-
 exports.updateDonationLearnerCount = functions.firestore
     .document('/user_pool/{documentId}')
     .onUpdate((change, context)=>{
       const before = change.before.data();
       const after = change.after.data();
-      if (!before || !after) return;
+      if (!before) {
+        return new Promise((resolve)=>{
+          resolve('resolved');
+        });
+      }
       if (before.userStatus === 'unassigned'&&
           after.userStatus === 'assigned') {
         console.log('assigning');
@@ -758,10 +820,9 @@ exports.updateAggregateData = functions.firestore
         });
       }
       return new Promise((resolve)=>{
-        resolve('no change in learner count');
+        resolve('resolved');
       });
     });
-
 
 exports.onDonationIncrease = functions.firestore
     .document('donor_master/{uid}/donations/{donationId}')
@@ -789,6 +850,114 @@ exports.reEnableMonthlyDonation = functions.firestore
         after.ref.update({endDate: admin.firestore.FieldValue.delete()});
       }
     });
+
+async function updateMasterCount(count) {
+  const docRef = admin.firestore().collection('aggregate_data').doc('data');
+  try {
+    const res = await admin.firestore().runTransaction(async (t)=>{
+      const doc = await t.get(docRef);
+      const newCount = doc.data().allLearnersCount + count;
+      await t.update(docRef, {allLearnersCount: newCount});
+      return 'Added ' + count + ' new users to database';
+    });
+    console.log('Transaction Success: ', res);
+  } catch (e) {
+    console.log('Transaction Failed: ', e);
+  }
+}
+
+async function updateDNTLearners(count) {
+  const docRef = admin.firestore().collection('aggregate_data').doc('data');
+  try {
+    const res = await admin.firestore().runTransaction(async (t)=>{
+      doc = await t.get(docRef);
+      const newCount = doc.data().allLearnersWithDoNotTrack + count;
+      await t.update(docRef, {allLearnersWithDoNotTrack: newCount});
+      return 'Added ' + count + ' new users with Do Not Track';
+    });
+    console.log('Transaction Success: ', res);
+  } catch (e) {
+    console.log('Transaction Failed: ', e);
+  }
+}
+
+async function updateCampaignCounts(campaigns) {
+  const dbRef = admin.firestore().collection('campaigns');
+  for (const campaign in campaigns) {
+    if (campaigns[campaign]) {
+      const docRef = dbRef.doc(campaigns[campaign].campaign);
+      const campaignName = campaigns[campaign].campaign;
+      try {
+        const res = await admin.firestore().runTransaction(async (t)=>{
+          const doc = await t.get(docRef);
+          if (!doc.exists) return 'No campaign document for '+campaignName;
+          const oldCount = doc.data().learnerCount;
+          const newUsers = campaigns[campaign].count;
+          const newCount = oldCount + newUsers;
+          await t.update(docRef, {learnerCount: newCount});
+          return 'Added ' + newUsers + ' users to ' + campaignName;
+        });
+        console.log('Transaction Success: ', res);
+      } catch (e) {
+        console.log('Transaction Failed: ', e);
+      }
+    }
+  }
+}
+
+function updateLocationCounts(countries) {
+  const dbRef = admin.firestore().collection('loc_ref');
+  for (const i in countries) {
+    if (countries[i]) {
+      if (countries[i].country === 'no-country') {
+        updateDNTLearners(countries[i].count);
+      } else {
+        docRef = dbRef.doc(countries[i].country);
+        updateCountForCountry(countries[i], docRef);
+      }
+    }
+  }
+}
+
+async function updateCountForCountry(country, docRef) {
+  console.log('updating count for ', country.country);
+  try {
+    const res = await admin.firestore().runTransaction(async (t) =>{
+      const doc = await t.get(docRef);
+      if (!doc.exists) return 'No document for '+ country.country;
+      let regions = doc.data().regions;
+      const newCount = doc.data().learnerCount + country.count;
+      for (const region in regions) {
+        if (regions[region]) {
+          const regName = regions[region].region;
+          const newCounts = country.regions;
+          const index = hasObjWithProperty(newCounts, 'region', regName);
+          if (index !== -1) {
+            regions[region].learnerCount += newCounts[index].count;
+          }
+        }
+      }
+      await t.set(docRef, {
+        learnerCount: newCount,
+        regions: regions,
+      }, {merge: true});
+      return 'updated counts for ' + country.country;
+    });
+    console.log('Transaction Success: ', res);
+  } catch (e) {
+    console.log('Transaction Failure');
+    console.error(e);
+  }
+}
+
+function hasObjWithProperty(arr, prop, val) {
+  for (let i=0; i < arr.length; i++) {
+    if (arr[i].hasOwnProperty(prop) && arr[i][prop] === val) {
+      return i;
+    }
+  }
+  return -1;
+}
 
 function updatePercentFilled(snap, context) {
   let data = snap.data();

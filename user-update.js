@@ -1,3 +1,4 @@
+const http = require('http');
 const {BigQuery} = require('@google-cloud/bigquery');
 const fireStoreAdmin = require('firebase-admin');
 const {Client, Status} = require('@googlemaps/google-maps-services-js');
@@ -95,6 +96,7 @@ function main() {
       let commitCounter = 0;
       const batches = [];
       const usedIDs = [];
+      let aggregates = {};
       let counter = 0;
       let doubleCounter = 0;
       batches[commitCounter] = firestore.batch();
@@ -108,6 +110,9 @@ function main() {
           counter++;
           usedIDs.push(row.user_pseudo_id);
           addUserToPool(createUser(row), batches[commitCounter]);
+          aggregates = updateMasterCount(aggregates);
+          aggregates = updateCampaignCount(aggregates, row.name);
+          aggregates = updateRegionCount(aggregates, row.country, row.region);
           insertLocation(row);
           batchCounter++;
         } else {
@@ -116,6 +121,7 @@ function main() {
       });
       console.log('created ', counter - doubleCounter, ' new users');
       writeToDb(batches);
+      uploadAggregates(aggregates);
       console.log('doubleCounter: ' + doubleCounter);
     } catch (err) {
       console.error('ERROR', err);
@@ -286,5 +292,110 @@ function addUserToPool(user, batch) {
     countedInRegion: false,
     countedInCampaign: false,
   }, {merge: true});
+}
+
+function uploadAggregates(countObj) {
+  const data = JSON.stringify(countObj);
+  const options = {
+    hostname: 'localhost',
+    port: 5001,
+    path: '/follow-the-learners/us-central1/updateAggregates',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': data.length,
+    },
+  };
+
+  const req = http.request(options, (res)=> {
+    console.log(`statusCode: ${res.statusCode}`);
+    res.on('data', (d) => {
+      process.stdout.write(d+'\n');
+    });
+  });
+
+  req.on('error', (error) =>{
+    console.error(error);
+  });
+
+  req.write(data);
+  req.end();
+}
+
+function hasObjWithProperty(arr, prop, val) {
+  for (let i=0; i < arr.length; i++) {
+    if (arr[i].hasOwnProperty(prop) && arr[i][prop] === val) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+function updateMasterCount(countObj) {
+  if (!countObj.hasOwnProperty('masterCount')) {
+    countObj['masterCount'] = 0;
+  }
+  countObj.masterCount++;
+  return countObj;
+}
+
+function updateCampaignCount(countObj, campaign) {
+  if (!countObj.hasOwnProperty('campaigns')) {
+    countObj['campaigns'] = [{campaign: campaign, count: 0}];
+    return countObj;
+  }
+  const index = hasObjWithProperty(countObj.campaigns, 'campaign', campaign);
+  if (index === -1) {
+    countObj.campaigns.push({campaign: campaign, count: 1});
+  } else {
+    countObj.campaigns[index].count++;
+  }
+  return countObj;
+}
+
+function updateRegionCount(countObj, country, region) {
+  if (!countObj.hasOwnProperty('countries')) {
+    countObj['countries'] = [{
+      country: country,
+      count: 1,
+      regions: [{
+        region: region,
+        count: 1,
+      }],
+    }];
+    console.log('added ', region, ', ', country, ' to object');
+    return countObj;
+  }
+  let countries = countObj.countries;
+  const countryIndex = hasObjWithProperty(countries, 'country', country);
+  if (countryIndex < 0) {
+    countObj.countries.push({
+      country: country,
+      count: 1,
+      regions: [{
+        region: region,
+        count: 1,
+      }],
+    });
+    console.log('added ', region, ', ', country, ' to object');
+  } else {
+    return updateRegion(countObj, countryIndex, region);
+  }
+  return countObj;
+}
+
+function updateRegion(countObj, index, region) {
+  let regions = countObj.countries[index].regions;
+  const regionIndex = hasObjWithProperty(regions, 'region', region);
+  if (regionIndex < 0) {
+    countObj.countries[index].regions.push({
+      region: region,
+      count: 1,
+    });
+    console.log('added ', region, ', ', countObj.countries[index].country, ' to object');
+  } else {
+    countObj.countries[index].regions[regionIndex].count++;
+  }
+  return countObj;
 }
 main();
