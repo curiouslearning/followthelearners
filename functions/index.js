@@ -497,6 +497,7 @@ exports.forceUpdateAggregates = functions.https.onRequest(async (req, res) =>{
   }
 });
 
+// Recalculate the learner counts for each country and region in the database
 function forceUpdateLocations() {
   const dbRef = admin.firestore().collection('loc_ref');
   return dbRef.get().then((snap)=>{
@@ -510,6 +511,10 @@ function forceUpdateLocations() {
   });
 }
 
+/**
+* Recalculate the learner counts for the provided country and its regions
+* @param {Object} countryDoc the data from the country's DocumentSnapshot
+*/
 async function setCountsForCountry(countryDoc) {
   const countryName = countryDoc.country;
   const dbRef = admin.firestore().collection('user_pool')
@@ -526,7 +531,7 @@ async function setCountsForCountry(countryDoc) {
       const snap = await t.get(dbRef);
       const totalCount = snap.size;
       snap.forEach((doc)=>{
-        const index = hasObjWithProperty(regions, 'region', doc.data().region);
+        const index = findObjWithProperty(regions, 'region', doc.data().region);
         if (index <0) {
           regions.push({
             region: doc.data().region,
@@ -548,6 +553,7 @@ async function setCountsForCountry(countryDoc) {
   }
 }
 
+// Recalculate the learner count for each campaign document
 function forceUpdateCampaigns() {
   const dbRef = admin.firestore().collection('campaigns');
   return dbRef.get().then((snap)=>{
@@ -561,6 +567,10 @@ function forceUpdateCampaigns() {
   });
 }
 
+/**
+* Recalculate the learner count for the given campaign
+* @param {Object} campaignDoc the data from this campaign's DocumentSnapshot
+*/
 async function setCountForCampaign(campaignDoc) {
   const campaignID = campaignDoc.campaignID;
   const dbRef = admin.firestore().collection('user_pool')
@@ -579,6 +589,8 @@ async function setCountForCampaign(campaignDoc) {
     console.log('Transaction Failed: ', e);
   }
 }
+
+// Recalculate the master count of learners in the database
 async function forceUpdateMasterCounts() {
   const dbRef = admin.firestore().collection('user_pool');
   const dnt = dbRef.where('country', '==', 'no-country');
@@ -851,6 +863,7 @@ exports.reEnableMonthlyDonation = functions.firestore
       }
     });
 
+// increment the master learner count by the value provided
 async function updateMasterCount(count) {
   const docRef = admin.firestore().collection('aggregate_data').doc('data');
   try {
@@ -866,6 +879,7 @@ async function updateMasterCount(count) {
   }
 }
 
+// increment the master count of learners with no Geo data by the count provided
 async function updateDNTLearners(count) {
   const docRef = admin.firestore().collection('aggregate_data').doc('data');
   try {
@@ -881,6 +895,7 @@ async function updateDNTLearners(count) {
   }
 }
 
+// increment the learner counts for the listed campaigns by the counts provided
 async function updateCampaignCounts(campaigns) {
   const dbRef = admin.firestore().collection('campaigns');
   for (const campaign in campaigns) {
@@ -905,6 +920,7 @@ async function updateCampaignCounts(campaigns) {
   }
 }
 
+// increment the counts for the country documents provided
 function updateLocationCounts(countries) {
   const dbRef = admin.firestore().collection('loc_ref');
   for (const i in countries) {
@@ -919,6 +935,8 @@ function updateLocationCounts(countries) {
   }
 }
 
+// increment the provided country document's learner count (total and by region)
+// by the amounts provided
 async function updateCountForCountry(country, docRef) {
   console.log('updating count for ', country.country);
   try {
@@ -931,7 +949,7 @@ async function updateCountForCountry(country, docRef) {
         if (regions[region]) {
           const regName = regions[region].region;
           const newCounts = country.regions;
-          const index = hasObjWithProperty(newCounts, 'region', regName);
+          const index = findObjWithProperty(newCounts, 'region', regName);
           if (index !== -1) {
             regions[region].learnerCount += newCounts[index].count;
           }
@@ -950,7 +968,15 @@ async function updateCountForCountry(country, docRef) {
   }
 }
 
-function hasObjWithProperty(arr, prop, val) {
+/**
+* find the index of an element in arr that contains
+* a property matching prop with a value matching val
+* @param{Array[]} arr the array to iterate through
+* @param{string} prop the name of the property to search for
+* @param{Object} val the value of {prop}
+* @return {int} the index of the matching element, -1 otherwise
+*/
+function findObjWithProperty(arr, prop, val) {
   for (let i=0; i < arr.length; i++) {
     if (arr[i].hasOwnProperty(prop) && arr[i][prop] === val) {
       return i;
@@ -996,14 +1022,14 @@ function updateLocationBreakdownForDonation(donorID, donationID) {
     snap.forEach((doc)=>{
       let data = doc.data();
       let index = findObjWithProperty(countries, 'country', data.country)
-      if (index ===undefined) {
+      if (index <0) {
         countries.push({country: data.country, learnerCount: 1, regions: []});
       } else {
         countries[index].learnerCount++;
       }
       let regions = countries[index].regions;
       let regIndex = findObjWithProperty(regions, 'region', data.region);
-      if (regIndex === undefined) {
+      if (regIndex <0) {
         countries[index].regions.push({region: data.region, learnerCount: 1});
       } else {
         countries[index].regions[regIndex].learnerCount++;
