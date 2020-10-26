@@ -1,0 +1,22 @@
+{
+  "name": "Follow the Learners",
+  "background_color": "#fff",
+  "theme_color": "#8CCDC9",
+  "description": "Follow the Learners description",
+  "display": "fullscreen",
+  "icons": [
+    {
+      "src": "/static/imgs/1.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "purpose": "any maskable",
+      "src": "/static/imgs/4.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "short_name": "FTL",
+  "start_url": "/"
+}
