@@ -8,6 +8,7 @@ const bodyParser = require('body-parser');
 const dateFormat = require('date-format');
 const randLoc = require('random-location');
 const fs = require('fs');
+const path = require('path')
 const app = express();
 const CACHETIMEOUT = 720; // the cache timeout in minutes
 
@@ -53,6 +54,15 @@ const memcachedDeleteKey = (req)=> {
 app.use('/static', express.static(__dirname + '/static'));
 app.set('view engine', 'pug');
 app.use(bodyParser.urlencoded({extended: true}));
+
+app.get('/robots.txt', function(req, res) {
+  res.type('text/plain');
+  res.send('User-agent: *\nAllow: /');
+});
+
+app.get('/sw.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'sw.js'));
+});
 
 app.get('/', function(req, res) {
   res.render('landing-page');
