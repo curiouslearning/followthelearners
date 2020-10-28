@@ -2,10 +2,8 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const nodemailer = require('nodemailer');
 const cors = require('cors')({origin: true});
-const mailConfig = require('../keys/nodemailerConfig.json');
+const mailConfig = require('./keys/nodemailerConfig.json');
 const {Client, Status} = require('@googlemaps/google-maps-services-js');
-const {exampleDocumentSnapshot} = require(
-    'firebase-functions-test/lib/providers/firestore');
 
 admin.initializeApp();
 const transporter = nodemailer.createTransport(mailConfig);
@@ -178,7 +176,7 @@ function writeDonation(params) {
       return assignInitialLearners(donorID, donationID, params.country);
     }).then((promise)=>{
       const actionCodeSettings = {
-        url: 'http://localhost:3000/campaigns',
+        url: 'https://followthelearners.curiouslearning.org/campaigns',
         handleCodeInApp: true,
       };
       return admin.auth()
@@ -324,7 +322,8 @@ function assignInitialLearners(donorID, donationID, country) {
 // special assignment case that matches learners from any country
 function assignAnyLearner(donorID, donationID) {
   const donorRef = getDonation(donorID, donationID);
-  const poolRef = admin.firestore().collection('user_pool').get()
+  const poolRef = admin.firestore().collection('user_pool')
+      .where('userStatus', '==', 'unassigned').get()
       .then((snapshot)=>{
         return snapshot;
       }).catch((err)=>{
@@ -365,7 +364,8 @@ function assignAnyLearner(donorID, donationID) {
 async function assignLearnersByContinent(donorID, donationID, continent) {
   const donorRef = getDonation(donorID, donationID)
   const poolRef = admin.firestore().collection('user_pool')
-      .where('continent', '==', continent).get().then((snapshot)=>{
+      .where('continent', '==', continent)
+      .where('userStatus', '==', 'unassigned').get().then((snapshot)=>{
         return snapshot;
       }).catch((err)=>{
         console.error(err);
@@ -387,7 +387,7 @@ async function assignLearnersByContinent(donorID, donationID, continent) {
     }
     const amount = vals[0].data.amount;
     const costPerLearner = vals[2].data.costPerLearner;
-    const cap = calculateUserCount(amount, poolSize, costPerLearner);
+    const cap = calculateUserCount(amount, 0, costPerLearner);
     return batchWriteLearners(vals[1], 0, cap);
   });
 }
@@ -441,6 +441,7 @@ function batchWriteLearners(snapshot, donation, learnerCount) {
     }
     let learnerID = snapshot.docs[i].id;
     let data = snapshot.docs[i].data();
+    if (data === undefined) continue;
     data.sourceDonor = donorID;
     data['sourceDonation'] = donation.id;
     data.userStatus = 'assigned';
@@ -587,98 +588,6 @@ exports.disableCampaign = functions.firestore.document('/user_pool/{docID}')
       });
     });
 
-exports.updateRegion = functions.firestore.document('/user_pool/{documentId}')
-    .onCreate((snap, context)=>{
-      if (snap.data() === undefined) return;
-      const country = snap.data().country;
-      const region = snap.data().region;
-      console.log(country, region);
-      if (country === undefined || region === undefined) return;
-      let sum = updateCountForRegion(country, region);
-      let docRef = admin.firestore().collection('loc_ref').doc(country);
-      let docSnapshot = getRegionsForCountry(docRef);
-      let regions = [];
-      let countrySum = 0;
-      Promise.all([sum, docSnapshot]).then((vals) => {
-        regions = vals[1].data().regions;
-        let foundRegion = false;
-        let regionIndex = -1;
-        for (let i=0; i < regions.length; i++) {
-          if (!regions[i].hasOwnProperty('learnerCount') ||
-            typeof regions[i].learnerCount !== 'number' ||
-            regions[i].learnerCount < 0) {
-            continue; // only add positive numbers to learnerCount
-          }
-          if (regions[i].region === region) {
-            regions[i].learnerCount = vals[0];
-            foundRegion = true;
-            regionIndex = i;
-          }
-          countrySum += regions[i].learnerCount;
-        }
-        return {
-          foundRegion: foundRegion,
-          regionIndex: regionIndex,
-          sum: vals[0],
-        };
-      }).then((vals) => {
-        if (!vals.foundRegion) {
-          getPinForAddress(country + ', ' + region).then((markerLoc) => {
-            console.log('--------------------- FOUND LOCATION: ' + markerLoc);
-            regions.push({
-              region: region,
-              pin: {
-                lat: markerLoc.lat,
-                lng: markerLoc.lng,
-              },
-              learnerCount: vals.sum,
-              streetViews: {
-                headingValues: [0],
-                locations: [
-                ],
-              },
-            });
-            countrySum += vals.sum;
-
-            docRef.set({
-              regions: regions,
-              learnerCount: countrySum,
-            }, {merge: true});
-
-            return;
-          }).catch((err) => {
-            console.error(err);
-          });
-        } else if (vals.foundRegion && vals.regionIndex !== -1) {
-          if (!regions[vals.regionIndex].hasOwnProperty('pin') ||
-            (regions[vals.regionIndex]['pin'].lat === 0 &&
-            region[vals.regionIndex]['pin'].lng === 0)) {
-            getPinForAddress(country + ', ' + region).then((markerLoc) => {
-              regions[vals.regionIndex]['pin'] = {
-                lat: markerLoc.lat,
-                lng: markerLoc.lng,
-              };
-
-              countrySum += vals.sum;
-
-              // Update the loc_ref country regions with new data
-              docRef.set({
-                regions: regions,
-                learnerCount: countrySum,
-              }, {merge: true});
-
-              return;
-            }).catch((err) => {
-              console.error(err);
-            });
-          }
-        }
-        return null;
-      }).catch((err) => {
-        console.error(err);
-      });
-    });
-
 function getPinForAddress(address) {
   let markerLoc = {lat: 0, lng: 0};
   return gmaps.geocode({
@@ -777,9 +686,10 @@ exports.updateSummary = functions.firestore.document('/loc_ref/{documentId}')
 
 exports.updateDonationLearnerCount = functions.firestore
     .document('/user_pool/{documentId}')
-    .onWrite((change, context)=>{
+    .onUpdate((change, context)=>{
       const before = change.before.data();
       const after = change.after.data();
+      if (!before || !after) return;
       if (before.userStatus === 'unassigned'&&
           after.userStatus === 'assigned') {
         console.log('assigning');
@@ -790,22 +700,37 @@ exports.updateDonationLearnerCount = functions.firestore
       return;
     });
 
-exports.updateMasterLearnerCount = functions.firestore
-    .document('/user_pool/{userId}').onCreate((snap, context)=>{
-      const msgRef = admin.firestore().collection('aggregate_data').doc('data');
-      return admin.firestore().collection('user_pool').get().then((snapshot)=>{
-        const total = snapshot.size;
-        let dntSum = 0;
-        snapshot.forEach((doc)=>{
-          if (doc.data().country === 'no-country') {
-            dntSum++;
-          }
-        });
-        return {allLearnersCount: total, allLearnersWithDoNotTrack: dntSum};
-      }).then((data)=>{
-        return msgRef.set(data, {merge: true}).catch((err)=>{
-          console.error(err);
-        });
+function updateMasterLearnerCount(country) {
+  const msgRef = admin.firestore().collection('aggregate_data').doc('data');
+  return msgRef.get().then((doc)=>{
+    let count = doc.data().allLearnersCount + 1;
+    let noCountry = doc.data().allLearnersWithDoNotTrack;
+    if (country === 'no-country') {
+      noCountry++;
+    }
+    return msgRef.update({
+      allLearnersCount: count,
+      allLearnersWithDoNotTrack: noCountry,
+    });
+  }).catch((err)=>{
+    console.error(err);
+  });
+}
+
+exports.onNewUser = functions.firestore
+    .document('user_pool/{docId}').onCreate((snap, context)=>{
+      const newDoc = snap.data();
+      if (!newDoc.countedInMasterCount) {
+        updateMasterLearnerCount(newDoc.country);
+      } if (!newDoc.countedInRegion) {
+        updateCountForRegion(newDoc.country, newDoc.region);
+      } if (!newDoc.countedInCampaign) {
+        updateCountForCampaign(newDoc.sourceCampaign);
+      }
+      return snap.ref.update({
+        countedInMasterCount: true,
+        countedInRegion: true,
+        countedInCampaign: true,
       }).catch((err)=>{
         console.error(err);
       });
@@ -837,27 +762,6 @@ exports.updateAggregateData = functions.firestore
       });
     });
 
-exports.updateCampaignLearnerCount = functions.firestore
-    .document('donor_master/{donorId}/donations/{donationId}')
-    .onUpdate((change, context)=>{
-      const before = change.before.data();
-      const after = change.after.data();
-      if (before.learnerCount === after.learnerCount) {
-        return 0;
-      }
-      const campaignId = change.after.data().campaignID;
-      updatePercentFilled(change.after, context);
-      return updateCountForCampaign(campaignId);
-    });
-
-exports.addNewLearnersToCampaign = functions.firestore
-    .document('user_pool/{documentId}')
-    .onCreate((snap, context)=>{
-      if (snap.data() === undefined) return;
-      let campaignID = snap.data().sourceCampaign;
-      if (campaignID === undefined) return;
-      updateCountForCampaign(campaignID);
-    });
 
 exports.onDonationIncrease = functions.firestore
     .document('donor_master/{uid}/donations/{donationId}')
@@ -949,38 +853,15 @@ function updateLocationBreakdownForDonation(donorID, donationID) {
 
 async function updateCountForCampaign(campaignID) {
   let dbRef = admin.firestore().collection('campaigns');
-  const id = dbRef.where('campaignID', '==', campaignID).get()
-      .then((snapshot)=> {
-        if (snapshot.empty) {
-          return undefined;
-        }
-        return snapshot.docs[0];
-      }).then((doc)=>{
-        if (doc === undefined) {
-          return '';
-        }
-        return doc.id;
-      }).catch((err)=>{
-        console.error(err);
-      });
-  const poolSums = admin.firestore().collection('user_pool')
-      .where('sourceCampaign', '==', campaignID)
-      .get().then((snapshot)=>{
-        return snapshot.size;
-      }).catch((err)=>{
-        console.error(err);
-      });
-  Promise.all([id, poolSums]).then((vals)=>{
-    if (vals[0] !== '') {
-      let sum = 0;
-      if (!isNaN(vals[1])) {
-        sum = vals[1];
-      }
-      admin.firestore().collection('campaigns').doc(vals[0]).update({
-        learnerCount: sum,
-      }, {merge: true});
+  return dbRef.where('campaignID', '==', campaignID).get().then((snap)=>{
+    if (snap.empty) {
+      throw new Error('could not find campaign with id: ', campaignID);
     }
-    return;
+    const doc = snap.docs[0];
+    let count = doc.data().learnerCount + 1;
+    return doc.ref.update({learnerCount: count}).catch((err)=>{
+      console.error(err);
+    })
   }).catch((err)=>{
     console.error(err);
   });
@@ -996,10 +877,65 @@ function updateCountForRegion(country, region) {
   if (region === undefined) {
     region = 'no-region';
   }
-  return admin.firestore().collection('user_pool')
-      .where('country', '==', country).where('region', '==', region)
-      .get().then((snapshot)=>{
-        return snapshot.size;
+  return admin.firestore().collection('loc_ref').doc(country)
+      .get().then((doc)=>{
+        const data = doc.data();
+        const newCount = data.learnerCount + 1;
+        let regions = data.regions;
+        let foundRegion = false;
+        for (const regionIndex in regions) {
+          if (regions[regionIndex] && regions[regionIndex].region === region) {
+            foundRegion = true;
+            regions[regionIndex].learnerCount++;
+            if (!regions[regionIndex].hasOwnProperty('pin') ||
+              (regions[regionIndex]['pin'].lat === 0 &&
+              regions[regionIndex]['pin'].lng === 0)) {
+              return getPinForAddress(country + ', ' + region).then((markerLoc) => {
+                regions[regionIndex]['pin'] = {
+                  lat: markerLoc.lat,
+                  lng: markerLoc.lng,
+                };
+                return doc.ref.set({
+                  learnerCount: newCount,
+                  regions: regions,
+                }, {merge: true}).catch((err)=>{
+                  console.error(err);
+                });
+              });
+            }
+          }
+        }
+        if (!foundRegion) {
+          return getPinForAddress(country + ', ' + region).then((markerLoc) => {
+            console.log('--------------------- FOUND LOCATION: ' + markerLoc);
+            regions.push({
+              region: region,
+              pin: {
+                lat: markerLoc.lat,
+                lng: markerLoc.lng,
+              },
+              learnerCount: 1,
+              streetViews: {
+                headingValues: [0],
+                locations: [
+                ],
+              },
+            });
+            return doc.ref.set({
+              learnerCount: newCount,
+              regions: regions,
+            }, {merge: true}).catch((err)=>{
+              console.error(err);
+            });
+          });
+        }
+        doc.ref.set({
+          learnerCount: newCount,
+          regions: regions,
+        }, {merge: true}).catch((err)=>{
+          console.error(err);
+        });
+        return newCount;
       }).catch((err) => {
         console.error(err);
       });

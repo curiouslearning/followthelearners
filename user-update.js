@@ -114,7 +114,7 @@ function main() {
           doubleCounter++;
         }
       });
-      console.log('created ', counter, ' new users');
+      console.log('created ', counter - doubleCounter, ' new users');
       writeToDb(batches);
       console.log('doubleCounter: ' + doubleCounter);
     } catch (err) {
@@ -279,8 +279,12 @@ function addUserToPool(user, batch) {
     sourceCampaign: user.sourceCampaign,
     region: user.region,
     country: user.country,
+    continent: user.continent,
     learnerLevel: user.learnerLevel,
     userStatus: user.userStatus,
+    countedInMasterCount: false,
+    countedInRegion: false,
+    countedInCampaign: false,
   }, {merge: true});
 }
 main();
