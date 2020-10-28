@@ -1,7 +1,7 @@
 const admin = require('firebase-admin');
 const fs = require('fs');
 const {BigQuery} = require('@google-cloud/bigquery');
-const serviceAccount = require('../keys/firestore-key.json');
+const serviceAccount = require('./keys/firestore-key.json');
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
