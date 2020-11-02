@@ -6,17 +6,13 @@
   "display": "fullscreen",
   "icons": [
     {
-      "src": "/static/imgs/1.png",
+      "src": "/static/imgs/icon.webp",
       "sizes": "512x512",
-      "type": "image/png"
-    },
-    {
-      "purpose": "any maskable",
-      "src": "/static/imgs/4.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/webp",
+      "purpose": "any maskable"
     }
   ],
   "short_name": "FTL",
-  "start_url": "/"
+  "start_url": "/",
+  "scope": "/"
 }

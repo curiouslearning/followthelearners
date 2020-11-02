@@ -1,19 +1,14 @@
-html
+<!Doctype html>
   include mixins/_campaign
   head
-    script(src="https://www.gstatic.com/firebasejs/7.14.3/firebase-app.js")
-    script(src="https://www.gstatic.com/firebasejs/7.14.3/firebase-analytics.js")
-    script(src="/static/js/hj.js")
+    title Follow The Learners™ (Beta)
+    meta(name="description" content="Follow The Learners™ (Beta)")
+    meta(name="viewport" content="width=device-width, initial-scale=1")
     meta(name="theme-color" content="#8CCDC9")
     link(rel="apple-touch-icon" href="/static/imgs/2.png")
-    meta(name="viewport" content="width=device-width, initial-scale=1")
-    link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css')
     link(rel='manifest', href='/static/manifest.webmanifest')
-    script(src="https://kit.fontawesome.com/89be96593a.js" crossorigin="anonymous")
-    script(
-        src="https://code.jquery.com/jquery-3.5.0.min.js"
-        integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
-        crossorigin="anonymous")
+    script(src="/static/js/sw-loader.js")
+    link(rel='stylesheet', href='/static/css/bulma-0.9.1.min.css')
     style(type='text/css').
       html,body
       {
@@ -23,13 +18,13 @@ html
       }
 
   body
-    .hero.is-large(style="color: white; background-image: url('/static/imgs/hero-cover.jpg'); background-position: center -100; background-size: cover; background-repeat: no-repeat;")
+    .hero.is-large(style="color: white; background-image: url('/static/imgs/hero-cover.webp'); background-position: center -100; background-size: cover; background-repeat: no-repeat;")
       .hero-head
         .navbar
           .section
             .navbar-brand
               a(href='/')
-                img(src="/static/imgs/cl_white_logo.png", alt='logo' style='width: 196px; height: auto;')
+                img(src="/static/imgs/cl_white_logo.webp", alt='CL Logo' style='width: 196px; height: auto;')
               a.navbar-burger.is-large(data-target="navbarHeroMenu" role="button" aria-label="menu" aria-expanded="false" style="background-color: #8CCDC9;")
                 span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
                 span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
@@ -70,7 +65,7 @@ html
             .columns
               .column.is-half
               .column(style="margin-right: 10rem")
-                img(src="/static/imgs/streetview_phone.png")
+                img(src="/static/imgs/streetview_phone.webp" alt="Streetview Display")
       .column
         h1.title(style='font-size: 2.8rem; margin-bottom: 4rem; padding-left: 2rem; padding-right: 2rem;')
           span Follow the Learners™ takes you on a virtual visit to our service locations and lets you watch literacy take root day by day—changing lives forever.
@@ -80,9 +75,9 @@ html
           .row(style="margin-top: -12rem")
             .columns(style="margin-left: 1rem")
               .column
-                img(src="/static/imgs/gdl_phone_screen.png")
+                img(src="/static/imgs/gdl_phone_screen.webp" alt="GDL Phone")
               .column
-                img(src="/static/imgs/ftm_phone_screen.png")
+                img(src="/static/imgs/ftm_phone_screen.webp" alt="FTM Phone")
               .column
               .column
     br
@@ -107,7 +102,7 @@ html
 
     .section
       .container
-        img(src="/static/imgs/landingpage-infographic.png")
+        img(src="/static/imgs/landingpage-infographic.png" alt="Landing Page Infographic")
 
     .section
       .container
@@ -120,6 +115,11 @@ html
 
     button.button.add-button.is-primary Add to home screen
 
+    script(src="/static/js/jquery-3.5.0.min.js")
+    script(src="/static/js/firebase-app-7.14.3.js")
+    script(src="/static/js/firebase-analytics-7.14.3.js")
+    script(src='/static/js/font-awesome-89be965993a.js')
+    script(src="/static/js/hj.js")
     script(src='/static/js/fbc.js')
-    script(src="/static/js/countUp.js")
+    script(src='/static/js/countUp.js')
     script(src='/static/js/landing-page.js')

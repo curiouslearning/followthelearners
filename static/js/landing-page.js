@@ -1,7 +1,7 @@
 const learnersCountElementId = 'learners-count';
 const learnersCountParentId = 'learners-parent';
 
-$(document).ready(function() {
+window.addEventListener('load', function() {
   const $navbarBurgers = Array.prototype.slice.call(
       document.querySelectorAll('.navbar-burger'), 0);
 
