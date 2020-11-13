@@ -68,6 +68,10 @@ app.get('/', function(req, res) {
   res.render('landing-page');
 });
 
+app.get('/faq', function(req, res) {
+  res.render('faq');
+});
+
 app.get('/campaigns', function(req, res) {
   const dbRef = firestore.collection('campaigns');
   const campaigns =[];
