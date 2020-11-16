@@ -1,4 +1,4 @@
-<!Doctype html>
+<!Doctype html lang="en">
   include mixins/_campaign
   head
     title Follow The Learners™ (Beta) - FAQ
@@ -16,10 +16,11 @@
       }
 
   body
+    - const utmValue = utmSource ? "/?utm_source=" + utmSource : '/';
     header
         nav.navbar(role="navigation" style='z-index: 100; padding-left: 1.5rem; padding-right: 1.5rem; padding-top: 2rem; padding-bottom: 2rem;')
           .navbar-brand
-            a.title.has-text-grey-dark.is-large(href="/") Follow The Learners™
+            a.title.has-text-grey-dark.is-large(href=utmValue) Follow The Learners™
               span.is-small.subtitle (Beta)
     .container
       h2.is-size-2.has-text-centered Frequently Asked Questions
@@ -96,11 +97,11 @@
       .container.has-text-centered
         .columns
           .column
-            a(href='/') Back to Landing Page
+            a(href=utmValue) Back to Landing Page
           .column
             a(href='mailto:support@curiouslearning.org?Subject=FTL%20Support%20Request') Support
           .column
-            a(href='/') Privacy Policy
+            a(href=utmValue) Privacy Policy
         h5.is-size-5 Follow The Learners™ 2020
 
   script(src="/static/js/firebase-app-7.14.3.js")
