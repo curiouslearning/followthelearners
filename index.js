@@ -65,14 +65,17 @@ app.get('/sw.js', (req, res) => {
 });
 
 app.get('/', function(req, res) {
-  res.render('landing-page');
+  const utmSource = req.query.utm_source;
+  res.render('landing-page', {utmSource: utmSource});
 });
 
 app.get('/faq', function(req, res) {
-  res.render('faq');
+  const utmSource = req.query.utm_source;
+  res.render('faq', {utmSource: utmSource});
 });
 
 app.get('/campaigns', function(req, res) {
+  const utmSource = req.query.utm_source;
   const dbRef = firestore.collection('campaigns');
   const campaigns =[];
   dbRef.where('isActive', '==', true).where('isVisible', '==', true)
@@ -98,7 +101,7 @@ app.get('/campaigns', function(req, res) {
         });
         return campaigns;
       }).then((snapshot)=>{
-        res.render('index', {campaigns: campaigns});
+        res.render('index', {campaigns: campaigns, utmSource: utmSource});
       }).catch((err)=> console.error(err));
 });
 
