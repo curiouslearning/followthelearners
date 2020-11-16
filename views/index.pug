@@ -1,4 +1,4 @@
-html
+<!Doctype html lang="en">
   include mixins/_campaign
   include mixins/_link
   head
@@ -59,10 +59,11 @@ html
       }
 
   body(style="padding-top: 8rem !important;")
+    - const utmValue = utmSource ? "/?utm_source=" + utmSource : '/';
     header
       nav.navbar.is-fixed-top(role="navigation" style='z-index: 100; padding-left: 1.5rem; padding-right: 1.5rem; padding-top: 2rem; padding-bottom: 2rem;')
         .navbar-brand
-          a.title.has-text-grey-dark.is-large(href="/") Follow The Learners™
+          a.title.has-text-grey-dark.is-large(href=utmValue) Follow The Learners™
             span.is-small.subtitle (Beta)
           a.navbar-burger.is-large(data-target="navbarHeroMenu" role="button" aria-label="menu" aria-expanded="false" style="background-color: #404040;")
             span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
@@ -103,7 +104,7 @@ html
                 - for (var j = i; j < (3 + i); j++)
                   - if (j >= campaigns.length) break;
                     - let campaign = campaigns[j];
-                    +campaign(campaign.country, campaign.imgRef, campaign.body, campaign.campaignID, campaign.amount, campaign.country, campaign.donateRef, campaign.isFeatured)
+                    +campaign(campaign.country, campaign.imgRef, campaign.body, campaign.campaignID, campaign.amount, campaign.country, utmSource, campaign.donateRef, campaign.isFeatured)
           script.
             function goToDonate(campaign, amount, donateRef) {
               window.open("/donate?campaign=" + campaign + "&amount=" + amount + "&donateRef=" + donateRef, '_blank');
@@ -220,11 +221,11 @@ html
       .container.has-text-centered
         .columns
           .column
-            a(href='/faq' target='_blank') FAQ
+            a(href='/faq' + utmValue target='_blank') FAQ
           .column
             a(href='mailto:support@curiouslearning.org?Subject=FTL%20Support%20Request' target='_blank') Support
           .column
-            a(href='/' target='_blank') Privacy Policy
+            a(href=utmValue target='_blank') Privacy Policy
         h5.is-size-5 Follow The Learners™ 2020
         
   script(src="/static/js/fbc.js")
