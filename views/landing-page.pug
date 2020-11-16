@@ -1,4 +1,4 @@
-<!Doctype html>
+<!Doctype html lang="en">
   include mixins/_campaign
   head
     title Follow The Learners™ (Beta)
@@ -25,12 +25,14 @@
       }
 
   body
+    - const utmValue = utmSource ? "/?utm_source=" + utmSource : '';
+    - const utmValueFAQ = utmSource ? "/?utm_source=" + utmSource : '?';
     .hero.is-large(style="color: white; background-image: url('/static/imgs/hero-cover.webp'); background-position: center -100; background-size: cover; background-repeat: no-repeat;")
       .hero-head
         .navbar
           .section
             .navbar-brand
-              a(href='/')
+              a(href=utmValue)
                 img(src="/static/imgs/cl_white_logo.webp" width="196px" height="100%" alt='CL Logo')
               a.navbar-burger.is-large(data-target="navbarHeroMenu" role="button" aria-label="menu" aria-expanded="false" style="background-color: #8CCDC9;")
                 span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
@@ -38,7 +40,7 @@
                 span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
           .navbar-menu#navbarHeroMenu
             .navbar-end(style='align-items: center; padding-right: 1.5rem')
-              a.button.is-rounded.navbar-item.is-active.is-primary(href="/campaigns" style='color: white; background-color: #8CCDC9; font-size: 1.8rem;')
+              a.button.is-rounded.navbar-item.is-active.is-primary(href="/campaigns" + utmValue style='color: white; background-color: #8CCDC9; font-size: 1.8rem;')
                 span Get Started
       .hero-body(style='padding: 0')
         .container.has-text-centered(style="margin-bottom: 12rem; margin-top: 4rem")
@@ -73,7 +75,7 @@
             .columns
               .column.is-half
               .column(style="margin-right: 10rem")
-                img(src="/static/imgs/streetview_phone.webp" width="100%" height="100%" loading="lazy" alt="Streetview Display")
+                img(src="/static/imgs/streetview_phone.webp" width="292px" height="auto" loading="lazy" alt="Streetview Display")
       .column
         h1.title(style='font-size: 2.8rem; margin-bottom: 4rem; padding-left: 2rem; padding-right: 2rem;')
           span Follow the Learners™ takes you on a virtual visit to the countries and regions of your learners.
@@ -83,9 +85,9 @@
           .row(style="margin-top: -12rem")
             .columns(style="margin-left: 1rem")
               .column
-                img(src="/static/imgs/gdl_phone_screen.webp" width="100%" height="100%" loading="lazy" alt="GDL Phone")
+                img(src="/static/imgs/gdl_phone_screen.webp" width="206px" height="auto" loading="lazy" alt="GDL Phone")
               .column
-                img(src="/static/imgs/ftm_phone_screen.webp" width="100%" height="100%" loading="lazy" alt="FTM Phone")
+                img(src="/static/imgs/ftm_phone_screen.webp" width="206px" height="auto" loading="lazy" alt="FTM Phone")
               .column
               .column
     br
@@ -100,7 +102,7 @@
         .columns
           .column
           .column.has-text-centered
-            a.button.is-active.is-light(href="/faq?#how-do-children-learn-from-the-apps" style='font-size: 1.8rem;')
+            a.button.is-active.is-light(href="/faq" + utmValueFAQ + "#how-do-children-learn-from-the-apps" style='font-size: 1.8rem;')
               span Learn More
           .column
     
@@ -109,7 +111,7 @@
         .rows
           .row(style="background-color: rgba(140, 205, 201, 0.7); font-size: 4rem;") &nbsp;
           .row.has-text-centered(style="margin-top: -12rem")
-            img(src="/static/imgs/feed_the_monster_screenshots.webp" width="auto" height="auto" loading="lazy" alt="FTM Screenshot")
+            img(src="/static/imgs/feed_the_monster_screenshots.webp" width="440px" height="auto" loading="lazy" alt="FTM Screenshot")
       .column.has-text-centered
         h1.is-size-1.has-text-weight-bold Feed the Monster reviews
 
@@ -131,7 +133,7 @@
         .rows
           .row(style="background-color: rgba(140, 205, 201, 0.7); font-size: 4rem;") &nbsp;
           .row.has-text-centered(style="margin-top: -12rem")
-            img(src="/static/imgs/rwa_phone.webp" width="auto" height="auto" loading="lazy" alt="RWA Phone")
+            img(src="/static/imgs/rwa_phone.webp" width="709px" height="auto" loading="lazy" alt="RWA Phone")
 
     .section
       .container
@@ -149,7 +151,7 @@
         .columns
           .column
           .column.has-text-centered
-            a.button.is-rounded.is-active.is-primary(href="/campaigns" style='color: white; background-color: #8CCDC9; font-size: 1.8rem;')
+            a.button.is-rounded.is-active.is-primary(href="/campaigns" + utmValue style='color: white; background-color: #8CCDC9; font-size: 1.8rem;')
               span Get Started
           .column
     
@@ -164,17 +166,17 @@
 
     .section
       .container
-        img(src="/static/imgs/landingpage-infographic.webp" width="100%" height="100%" loading="lazy" alt="Landing Page Infographic")
+        img(src="/static/imgs/landingpage-infographic.webp" width="auto" height="auto" loading="lazy" alt="Landing Page Infographic")
 
     .section
       .container
         .columns
           .column
           .column.has-text-centered
-            a.button.is-rounded.is-active.is-primary(href="/campaigns" style='color: white; background-color: #8CCDC9; font-size: 1.8rem;')
+            a.button.is-rounded.is-active.is-primary(href="/campaigns" + utmValue style='color: white; background-color: #8CCDC9; font-size: 1.8rem;')
               span Get Started
           .column.has-text-centered
-            a.button.is-rounded.is-active.is-light(href="/faq?#how-is-my-donation-used" style='font-size: 1.8rem;')
+            a.button.is-rounded.is-active.is-light(href="/faq" + utmValueFAQ + "#how-is-my-donation-used" style='font-size: 1.8rem;')
               span Learn More
           .column
 
@@ -209,11 +211,11 @@
       .container.has-text-centered
         .columns
           .column
-            a(href='/faq' target='_blank') FAQ
+            a(href='/faq' + utmValue target='_blank') FAQ
           .column
             a(href='mailto:support@curiouslearning.org?Subject=FTL%20Support%20Request' target='_blank') Support
           .column
-            a(href='/' target='_blank') Privacy Policy
+            a(href=utmValue target='_blank') Privacy Policy
         h5.is-size-5 Follow The Learners™ 2020
 
     script(src="/static/js/jquery-3.5.0.min.js")
