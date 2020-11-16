@@ -23,6 +23,7 @@ const allLearnersCountElementId = 'all-learners-count';
 const dntLearnersCountElementId = 'no-region-user-count';
 const dntYourLearnersCountElementId = 'your-learners-no-region-user-count';
 const allLearnersResetMapButtonId = 'btn-reset-map';
+const yourLearnersResetMapButtonId = 'btn-reset-map-yl';
 
 const newDonorInfoTextId = '#new-donor-info-text';
 const modalInstructionTextId = '#modal-instruction-text';
@@ -112,6 +113,7 @@ $(document).ready(function() {
   donorModal = document.getElementById('donor-email-modal');
   if (tabSelector) {
     tabSelector.addEventListener('preTabToggle', (tabId) => {
+      closeHamburgerMenu();
       if (tabId === 'tab-your-learners'&& currentDonorEmail === null &&
         donorModal) {
         if (token !== undefined) {
@@ -168,6 +170,23 @@ $(document).ready(function() {
   }
 });
 
+
+function closeHamburgerMenu() {
+  const $navbarBurgers = Array.prototype.slice.call(
+      document.querySelectorAll('.navbar-burger'), 0);
+
+  if ($navbarBurgers.length > 0) {
+    $navbarBurgers.forEach((el) => {
+      const target = el.dataset.target;
+      const $target = document.getElementById(target);
+      el.classList.toggle('is-active');
+      $target.classList.toggle('is-active');
+      $target.style.backgroundColor =
+        $target.classList.contains('is-active') ? '#FFF' : 'rgba(0,0,0,0)';
+    });
+  }
+}
+
 function CheckTokenAndSwitchToDonorLearners(email) {
   if (!token) {
     return;
@@ -205,6 +224,7 @@ function initializeMaps() {
     mapYourLearners = new google.maps.Map(mapYourLearnersParent, {
       streetViewControl: false,
       mapTypeControl: false,
+      fullscreenControl: false,
       maxZoom: 10,
     });
   }
@@ -213,6 +233,7 @@ function initializeMaps() {
     mapAllLearners = new google.maps.Map(mapAllLearnersParent, {
       streetViewControl: false,
       mapTypeControl: false,
+      fullscreenControl: false,
       maxZoom: 10,
     });
   }
@@ -468,8 +489,8 @@ function GetDataAndSwitchToDonorLearners() {
 
     displayYourLearnersData(yourLearnersData, true);
 
+    updateYourLearnersResetMapButtonState();
   });
-
 }
 
 function checkForDonorSignIn() {
@@ -531,11 +552,39 @@ function updateResetMapButtonState() {
 }
 
 /**
+ * Updates the visibility of the reset button based on country selection on
+ * your learners page
+ */
+function updateYourLearnersResetMapButtonState() {
+  if (!countrySelectElement) {
+    console.error('Unable to find country select element.');
+    return;
+  }
+  const countrySelection = yourLearnersCountrySelectElement.
+      options[yourLearnersCountrySelectElement.selectedIndex].value;
+
+
+  if (countrySelection === allCountriesValue) {
+    $('#' + yourLearnersResetMapButtonId).hide();
+  } else {
+    $('#' + yourLearnersResetMapButtonId).show();
+  }
+}
+
+/**
  * Called on reset map button click event
  */
-function OnResetMapButtonClick() {
+function onResetMapButtonClick() {
   countrySelectElement.value = allCountriesValue;
   onCountrySelectionChanged();
+}
+
+/**
+ * Called on reset map button click on your learners tab
+ */
+function onResetYLMapButtonClick() {
+  yourLearnersCountrySelectElement.value = allCountriesValue;
+  onYourLearnersCountrySelectionChanged();
 }
 
 /**
@@ -545,11 +594,11 @@ function OnResetMapButtonClick() {
  */
 function createCountUpTextInElement(elementId, finalCountValue) {
   let userCounter = new CountUp(elementId,
-    finalCountValue, {
-      useEasing: true,
-      useGrouping: true,
-      duration: 5
-  });
+      finalCountValue, {
+        useEasing: true,
+        useGrouping: true,
+        duration: 5,
+      });
   if (!userCounter.error) {
     userCounter.start();
   } else {
@@ -708,7 +757,7 @@ function onYourLearnersCountrySelectionChanged() {
       dntRegionLearnersForCountry);
   }
 
-  console.log(countrySelection);
+  updateYourLearnersResetMapButtonState();
 }
 
 function setDonationPercentage(fullAmount, learnerCount, costPerLearner) {
@@ -1207,12 +1256,18 @@ function getIconOptionsBasedOnCount(count) {
 function constructCountryLevelYourLearnersInfoWindow(country, randomFact) {
   const contentString = '<div style=\'text-align: left;\'>' +
     '<span style=\'font-size: 18px; color: #606060\'><b>' +
-    country + ' </b></span>' +
-    '<br><br> <p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
-    randomFact + '<br><br><div style="text-align: center">' +
+    country + ' </b></span><br><br>' +
+    // '<br><br> <p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
+    // randomFact + '<br><br>
+    '<div style="text-align: center">' +
     '<button onclick="onYourLearnersCountryZoomInClick(\''+ country + '\')" class=\'button is-link is-outlined \'>' +
-    ' <i class="fas fa-search-plus"></i>&nbsp;&nbsp;Take Me There ' +
+    ' <i class="fas fa-street-view"></i>&nbsp;&nbsp;Take Me There ' +
+    '</button> ' +
+    '<button onclick="GiveNow()" type=\'button\' class=\'button is-primary \'> Give Now ' +
     '</button></div>';
+    // '</form></div>'
+    // ' <i class="fas fa-search-plus"></i>&nbsp;&nbsp;Take Me There ' +
+    // '</button></div>';
   return contentString;
 }
 

@@ -2,23 +2,26 @@ html
   include mixins/_campaign
   include mixins/_link
   head
-    //- meta(name="viewport" content="width=device-width, initial-scale=1")
+    title Follow The Learners™ (Beta)
+    meta(name="description" content="Follow The Learners™ (Beta)")
+    meta(name="viewport" content="width=device-width, initial-scale=1")
+    script(
+        src="https://code.jquery.com/jquery-3.5.0.min.js"
+        integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
+        crossorigin="anonymous")
+    script(src="/static/js/sw-loader.js")
     script(src="https://www.gstatic.com/firebasejs/7.14.3/firebase-app.js")
     script(src="https://www.gstatic.com/firebasejs/7.14.3/firebase-analytics.js")
     script(src="https://www.gstatic.com/firebasejs/7.14.3/firebase-auth.js")
     script(src="/static/js/hj.js")
     link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css')
     script(src="https://kit.fontawesome.com/89be96593a.js" crossorigin="anonymous")
-    script(
-        src="https://code.jquery.com/jquery-3.5.0.min.js"
-        integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
-        crossorigin="anonymous")
     style(type='text/css').
-      html,body
+      body
       {
           width: 100%;
           margin: 0px;
-          padding: 0px;
+          //- padding: 0px;
       }
       .read-more-text {
         display: none;
@@ -37,14 +40,15 @@ html
         z-index: 100;
       }
       #give-again {
-        background: none!important;
-        border: none;
-        padding: 0!important;
-        text-decoration: underline;
-        cursor: pointer;
-        font-size: 1.4rem;
-        font-weight: bold;
-        color: #069;
+        margin-left: 1rem;
+        //- background: none!important;
+        //- border: none;
+        //- padding: 0!important;
+        //- text-decoration: underline;
+        //- cursor: pointer;
+        //- font-size: 1.4rem;
+        //- font-weight: bold;
+        //- color: #069;
       }
       #percent-filled {
         font-size: 1.4rem;
@@ -54,49 +58,48 @@ html
         font-weight: bold;
       }
 
-  body
+  body(style="padding-top: 8rem !important;")
     header
-      .navbar(style='padding-top: 2rem; padding-bottom: 0.5rem; padding-left: 1.5rem; padding-right: 1.5rem;')
+      nav.navbar.is-fixed-top(role="navigation" style='z-index: 100; padding-left: 1.5rem; padding-right: 1.5rem; padding-top: 2rem; padding-bottom: 2rem;')
         .navbar-brand
-          a.title.has-text-grey-dark(href="/" style='font-size: 3.5rem;') Follow The Learners™
-            span(style='font-size: 2.8rem') (Beta)
-          a.navbar-burger(data-target="navbarHeroMenu" role="button" aria-label="menu" aria-expanded="false" style="background-color: #404040; font-size: 2.5rem; width: 4rem; height: 4rem;")
+          a.title.has-text-grey-dark.is-large(href="/") Follow The Learners™
+            span.is-small.subtitle (Beta)
+          a.navbar-burger.is-large(data-target="navbarHeroMenu" role="button" aria-label="menu" aria-expanded="false" style="background-color: #404040;")
             span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
             span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
             span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
         .navbar-menu#navbarHeroMenu(style='background-color: #FFF')
-          .navbar-end(style='align-items: center; padding-right: 1.5rem; padding-left: 1.5rem')
-            div#tab-buttons(style='display: inline-block;')
-              // Campaigns Button
-              button.button.is-medium.is-dark(onclick="tabSelector.ToggleTab('tab-campaigns')" style='margin-right: 0.5rem;')
-                span.icon.is-small
-                  i.fas.fa-map-marker-alt(aria-hidden='true' style='pointer-events: none;')
-                span Donate
-              // Your Learners Button
-              button.button.is-medium(onclick="tabSelector.ToggleTab('tab-your-learners')" style='margin-right: 0.5rem;')
-                span.icon.is-small
-                  i.fas.fa-users(aria-hidden='true' style='pointer-events: none;')
-                span Your Learners
-              // All Learners Button
-              button.button.is-medium(onclick="tabSelector.ToggleTab('tab-all-learners')" style='margin-right: 0.5rem;')
-                span.icon.is-small
-                  i.fas.fa-globe(aria-hidden='true' style='pointer-events: none;')
-                span All Learners
+          .navbar-end#tab-buttons(style='align-items: center;  padding-left: 1.5rem')
+            // Campaigns Button
+            a.button.is-medium.is-dark.navbar-item(onclick="tabSelector.ToggleTab('tab-campaigns')" style='margin-right: 0.25rem; margin-left: 0.25rem; margin-bottom: 0.5rem;')
+              span.icon.is-small
+                i.fas.fa-map-marker-alt(aria-hidden='true' style='pointer-events: none;')
+              span Donate
+            // Your Learners Button
+            a.button.is-medium.navbar-item(onclick="tabSelector.ToggleTab('tab-your-learners')" style='margin-right: 0.25rem; margin-left: 0.25rem; margin-bottom: 0.5rem;')
+              span.icon.is-small
+                i.fas.fa-users(aria-hidden='true' style='pointer-events: none;')
+              span Your Learners
+            // All Learners Button
+            a.button.is-medium.navbar-item(onclick="tabSelector.ToggleTab('tab-all-learners')" style='margin-right: 0.25rem; margin-left: 0.25rem; margin-bottom: 0.5rem;')
+              span.icon.is-small
+                i.fas.fa-globe(aria-hidden='true' style='pointer-events: none;')
+              span All Learners
 
             // Sign In Button
-            button.button.is-medium.is-primary#sign-in-out(onclick= "tabSelector.ToggleTab('tab-your-learners')")
+            a.button.is-medium.is-primary.navbar-item#sign-in-out(onclick= "tabSelector.ToggleTab('tab-your-learners')" style='margin-right: 0.25rem; margin-left: 0.25rem; margin-bottom: 0.5rem')
               span#sign-in-text Sign In
 
-    .section#tabs-parent(style='z-index: 100; padding-top: 0;')
-      .section#tab-campaigns(style='padding-top: 0;')
-        h3.subtitle.is-3.has-text-grey(style='margin-top: 0.5rem') Pick a Region
-        .section(style="padding-top: 0px;")
-          h3.subtitle.has-text-grey.has-text-centered(style='font-size: 1rem; background-color: rgba(255, 217, 105, 0.5)')
+    .section#tabs-parent(style='z-index: 100; padding: 0;')
+      .section#tab-campaigns(style='padding: 0;')
+        //- h3.subtitle.is-3.has-text-grey(style='margin-top: 0.5rem') Pick a Region
+        .section(style="padding-top: 0.5rem;")
+          h3.has-text-grey.has-text-centered(style='background-color: rgba(255, 217, 105, 0.5)')
             p Follow The Learners is currently in beta testing.
             p If you have not received a beta testing invitation, please e-mail info@curiouslearning.org to log your interest in becoming a tester before donating.
           - for (let i = 0; i < campaigns.length; i++)
             if (i === 0 || i % 3 === 0)
-              .columns.is-desktop 
+              .columns.is-desktop(style='margin-top: 0.5rem')
                 - for (var j = i; j < (3 + i); j++)
                   - if (j >= campaigns.length) break;
                     - let campaign = campaigns[j];
@@ -118,18 +121,13 @@ html
               }
             }
 
-      .section.is-hidden#tab-your-learners
-        //- .section(style='margin-top: -2rem; padding-top: 0.5rem; padding-bottom: 0.2rem; margin-bottom: none;')
-        //-   h1.title.has-text-grey-dark(style='font-size: 4rem;') Your Learners
-        .columns.is-large(style='align-items: center; margin-left: 0.2rem; margin-top: 0.2rem; margin-bottom: 0')
-          .select.is-large(style='font-size: 2.4rem')
-            select#yourLearnersCountrySelect(onchange='onYourLearnersCountrySelectionChanged()' style='border: none; width: auto; -webkit-appearance: none; -moz-appearance: none; appearance:none;' name='campaignSelection')
-          p
-            h3.subtitle.is-3.has-text-grey(style='margin-top: 1.5rem') Amount Donated: 
-              span $
-              span#donation-amount
+      .section.is-hidden#tab-your-learners(style='margin-top: 0rem; padding-top: 0; padding-left: 0; padding-right: 0;')
         .section(style='margin-top: 0rem; padding-top: 0.2rem; padding-bottom: 0.2rem; margin-bottom: none;')
-          h3.subtitle.is-3.has-text-grey(style='margin-bottom: 0.5rem;')
+          h1.title.has-text-grey-dark.is-large(style='font-size: 2.2rem; margin: 0') Your Learners
+          h3.subtitle.is-3.has-text-grey(style='margin-top: 1rem') Amount Donated: 
+            span $
+            span#donation-amount
+          h3.subtitle.is-4.has-text-grey(style='margin-bottom: 1rem;')
             span#congrats
             span You've reached&nbsp;
             span#learner-count
@@ -138,27 +136,34 @@ html
             span(style='font-size: 1.4rem;') &nbsp;(
               span#your-learners-no-region-user-count
               span &nbsp;users have Do Not Track on.)
-          button.button.is-large#give-again(onclick="onGiveNowButtonClick()")
-            span Would you like to give again to reach more?
+          button.button.is-primary.is-large#give-again(onclick="onGiveNowButtonClick()" style="margin-left: 0") Give Again
+          
+            //- span Would you like to give again to reach more?
           h3.subtitle.is-3.has-text-grey
             span#percent-filled
-        .section(style='margin-top: none; padding-top: 0.5rem; margin-bottom: none; padding-bottom: 0.1rem')
+        .section(style='position: relative; margin: 1rem; padding: 0;')
           #map-display-your-learners(style="width: 100%; height: 640px;")
+          #map-overlay(style='width: 100%; height: 640px; position: absolute; top: 0; left: 0; z-index: 25; pointer-events: none;')
+            .select.is-medium(style='')
+              select#yourLearnersCountrySelect(onchange='onYourLearnersCountrySelectionChanged()' style='pointer-events: auto; margin: 4px;' name='campaignSelection')
+            button.button.is-medium#btn-reset-map-yl(onclick="onResetYLMapButtonClick()" style='pointer-events: auto; margin: 4px;') Reset Map
 
-      .section.is-hidden#tab-all-learners
-        .section(style='margin-top: -2rem; padding-top: 0.5rem; padding-bottom: 0.2rem; margin-bottom: none;')
-          //- h1.title.has-text-grey-dark(style='font-size: 4rem;') All Learners
-          .select.is-large
-            select#countrySelection(onchange='onCountrySelectionChanged()' style='width: auto; -webkit-appearance: none; -moz-appearance: none; appearance:none;' name='campaignSelection')
-          button.button.is-large#btn-reset-map(style='display: inline-block; margin-left: 1rem' onclick='OnResetMapButtonClick()') All Countries
+
+      .section.is-hidden#tab-all-learners(style="margin-top: 0rem; padding-top: 0;")
+        .section(style='margin: 0; padding: 0rem;')
+          h1.title.has-text-grey-dark.is-large(style='font-size: 2.2rem; margin: 0') All Learners
           h3.subtitle.is-3.has-text-grey(style='margin-top: 1rem;') We've reached&nbsp;
             span#all-learners-count
             span &nbsp;Learners
             span(style='font-size: 1.4rem;') &nbsp;(
               span#no-region-user-count
               span &nbsp;users have Do Not Track on.)
-        .section(style='margin-top: none; padding-top: 0.5rem; margin-bottom: none; padding-bottom: 0.1rem')
+        .section(style='position: relative; padding: 0; margin-top: 1rem;')
           #map-display-all-learners(style="width: 100%; height: 640px;")
+          #map-overlay(style='width: 100%; height: 640px; position: absolute; top: 0; left: 0; z-index: 25; pointer-events: none;')
+            .select.is-medium(style='')
+              select#countrySelection(onchange='onCountrySelectionChanged()' style='pointer-events: auto; margin: 4px;' name='campaignSelection')
+            button.button.is-medium#btn-reset-map(onclick="onResetMapButtonClick()" style='pointer-events: auto; margin: 4px;') Reset Map
     
     .modal#donor-email-modal
       .modal-background(onclick="document.getElementById('donor-email-modal').classList.remove('is-active');")
@@ -211,7 +216,17 @@ html
               });
             });
 
-
+    footer.footer
+      .container.has-text-centered
+        .columns
+          .column
+            a(href='/faq' target='_blank') FAQ
+          .column
+            a(href='mailto:support@curiouslearning.org?Subject=FTL%20Support%20Request' target='_blank') Support
+          .column
+            a(href='/' target='_blank') Privacy Policy
+        h5.is-size-5 Follow The Learners™ 2020
+        
   script(src="/static/js/fbc.js")
   script(src="/static/js/tab-selector.js")
   script(src="/static/js/countUp.js")
