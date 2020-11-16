@@ -221,7 +221,7 @@ function generateNewLearnersEmail(name, email, url) {
     from: 'notifications@curiouslearning.org',
     to: email,
     subject: 'Follow The Learners -- Your Learners are Ready!',
-    text: 'Hi '+formattedName+', thank you for helping support Follow the Learners! Click the link below, navigate to the "Your Learners" section, and enter your email to view how we\'re using your donation to bring reading into the lives of children!\n\n'+url+'\n\nFollow the Learners is currently in beta, and we\'re still ironing out some of the wrinkles! If you don\'t see your learners appear after about 5 minutes, please contact support@curiouslearning.org and we will be happy to assist you. ',
+    text: 'Hi '+formattedName+', thank you for helping support Follow the Learners! Click the link below, navigate to the "Your Learners" section, and enter your email to view how we\'re using your donation to bring reading into the lives of children!\n\n'+url+'\n\nFollow the Learners is currently in beta, and we\'re still ironing out some of the wrinkles! If you don\'t see your learners appear after about 5 minutes, please contact followthelearners@curiouslearning.org and we will be happy to assist you. ',
   };
   return transporter.sendMail(mailOptions, (error, info)=>{
     if (error) {
