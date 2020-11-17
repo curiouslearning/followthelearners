@@ -79,17 +79,17 @@
       .column
         h1.title(style='font-size: 2.8rem; margin-bottom: 4rem; padding-left: 2rem; padding-right: 2rem;')
           span Follow the Learners™ takes you on a virtual visit to the countries and regions of your learners.
-        .rows
-          .row(style="background-color: rgba(0, 0, 0, 0); font-size: 4rem;") &nbsp;
-          .row(style="background-color: rgba(140, 205, 201, 0.7); font-size: 4rem;") &nbsp;
-          .row(style="margin-top: -12rem")
-            .columns(style="margin-left: 1rem")
-              .column
-                img(src="/static/imgs/gdl_phone_screen.webp" width="206px" height="auto" loading="lazy" alt="GDL Phone")
-              .column
-                img(src="/static/imgs/ftm_phone_screen.webp" width="206px" height="auto" loading="lazy" alt="FTM Phone")
-              .column
-              .column
+        //- .rows
+        //-   .row(style="background-color: rgba(0, 0, 0, 0); font-size: 4rem;") &nbsp;
+        //-   .row(style="background-color: rgba(140, 205, 201, 0.7); font-size: 4rem;") &nbsp;
+        //-   .row(style="margin-top: -12rem")
+        //-     .columns(style="margin-left: 1rem")
+        //-       .column
+        //-         img(src="/static/imgs/gdl_phone_screen.webp" width="206px" height="auto" loading="lazy" alt="GDL Phone")
+        //-       .column
+        //-         img(src="/static/imgs/ftm_phone_screen.webp" width="206px" height="auto" loading="lazy" alt="FTM Phone")
+        //-       .column
+        //-       .column
     br
 
     .section
@@ -102,7 +102,7 @@
         .columns
           .column
           .column.has-text-centered
-            a.button.is-active.is-light(href="/faq" + utmValueFAQ + "#how-do-children-learn-from-the-apps" style='font-size: 1.8rem;')
+            a.button.is-active.is-light.is-rounded(href="/faq" + utmValueFAQ + "#how-do-children-learn-from-the-apps" style='font-size: 1.8rem;')
               span Learn More
           .column
     
@@ -216,7 +216,7 @@
             a(href='mailto:followthelearners@curiouslearning.org?Subject=FTL%20Support%20Request' target='_blank') Support
           .column
             a(href=utmValue target='_blank') Privacy Policy
-        h5.is-size-5 Follow The Learners™ 2020
+        h5.is-size-5 Copyright 2020 by Curious Learning.
 
     script(src="/static/js/jquery-3.5.0.min.js")
     script(src="/static/js/firebase-app-7.14.3.js")
