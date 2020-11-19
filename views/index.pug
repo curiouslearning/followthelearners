@@ -95,9 +95,9 @@
       .section#tab-campaigns(style='padding: 0;')
         //- h3.subtitle.is-3.has-text-grey(style='margin-top: 0.5rem') Pick a Region
         .section(style="padding-top: 0.5rem;")
-          h3.has-text-grey.has-text-centered(style='background-color: rgba(255, 217, 105, 0.5)')
-            p Follow The Learners is currently in beta testing.
-            p If you have not received a beta testing invitation, please e-mail info@curiouslearning.org to log your interest in becoming a tester before donating.
+          //- h3.has-text-grey.has-text-centered(style='background-color: rgba(255, 217, 105, 0.5)')
+            //- p Follow The Learners is currently in beta testing.
+            //- p If you have not received a beta testing invitation, please e-mail info@curiouslearning.org to log your interest in becoming a tester before donating.
           - for (let i = 0; i < campaigns.length; i++)
             if (i === 0 || i % 3 === 0)
               .columns.is-desktop(style='margin-top: 0.5rem')
@@ -121,6 +121,13 @@
                 btn.innerText = 'Read More';
               }
             }
+      
+        .container.has-text-centered
+          h5.is-size-5 Disclaimer
+          p(style="padding-left: 1rem; padding-right: 1rem; font-size: 0.7rem;") In accordance with the Internal Revenue Service guidelines, Curious Learning : A Global Literacy Project, Inc. maintains discretion and sole control over the use of all donated funds. All donations are non-refundable. In practice, Curious Learning : A Global Literacy Project, Inc. honors the giving preferences for any of our previously approved programs and projects whenever possible. In rare cases, when that is not possible, gifts will be used where needed. Therefore, donors explicitly release Curious Learning : A Global Literacy Project, Inc. from any restrictions on how those funds are spent.
+
+        br
+        br
 
       .section.is-hidden#tab-your-learners(style='margin-top: 0rem; padding-top: 0; padding-left: 0; padding-right: 0;')
         .section(style='margin-top: 0rem; padding-top: 0.2rem; padding-bottom: 0.2rem; margin-bottom: none;')
@@ -226,7 +233,7 @@
             a(href='mailto:followthelearners@curiouslearning.org?Subject=FTL%20Support%20Request' target='_blank') Support
           .column
             a(href=utmValue target='_blank') Privacy Policy
-        h5.is-size-5 Follow The Learners™ 2020
+        h5.is-size-5 Copyright 2020 by Curious Learning.
         
   script(src="/static/js/fbc.js")
   script(src="/static/js/tab-selector.js")
