@@ -177,23 +177,22 @@
       .modal-background(onclick="document.getElementById('donor-email-modal').classList.remove('is-active');")
       .modal-card
         header.modal-card-head(style='border: none')
-          p.modal-card-title.hast-text-grey-dark Login
+          p.modal-card-title.hast-text-grey-dark.has-text-centered Login to Follow The Learners™
           button.delete(aria-label='close' onclick="document.getElementById('donor-email-modal').classList.remove('is-active'); document.getElementById('modal-instruction-text').classList.remove('is-hidden');")
         .modal-card-body
           p.has-text-info.is-hidden#new-donor-info-text
             span.icon.is-small.is-left
               i.fas.fa-info-circle
-            span#new-donor-info-content please enter a valid email address
-            span
-              br
-              br
-          p.has-text-grey-dark#modal-instruction-text
-            span Enter your e-mail address to sign and see your learners
+            span#new-donor-info-content Please enter a valid email address
             br
-            span Or make a donation to create your account and start following your learners!
+            br
+          p.has-text-grey#modal-instruction-text
+            span We’ll email you a magic code for a password-free sign in.
+            //- br
+            //- span Or make a donation to create your account and start following your learners!
           form(onsubmit='checkForDonorSignIn(); return false;')
             //- .help Go to your Donor Summary
-            //- br
+            br
             label.has-text-grey(for='email') E-mail
             .control.has-icons-left
               input.input#donor-email(name='email', type='email', title="Email" placeholder='user-name@example.com')
@@ -201,7 +200,7 @@
                 i.fas.fa-envelope
             br
             .control
-              input.button#donor-email-submit(type='button' disabled=true onclick='checkForDonorSignIn()' value='View Your Learners')
+              input.button#donor-email-submit(type='button' disabled=true onclick='checkForDonorSignIn()' value='Send Me a Magic Link')
               input.button.is-pulled-right#go-to-donate(type='button' disabled=false onclick="document.getElementById('donor-email-modal').classList.remove('is-active'); tabSelector.ToggleTab('tab-campaigns')" value='Make a Donation')
           script.
             $(function() {
@@ -214,7 +213,7 @@
                     $('#new-donor-info-text').addClass('is-hidden');
                   } else {
                     $('#donor-email-submit').prop('disabled', true);
-                    $('#new-donor-info-text').text('please enter a valid email address');
+                    $('#new-donor-info-text').text('Please enter a valid email address');
                     $('#new-donor-info-text').removeClass('is-hidden');
                   }
                 });  
