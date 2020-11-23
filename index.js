@@ -74,6 +74,11 @@ app.get('/faq', function(req, res) {
   res.render('faq', {utmSource: utmSource});
 });
 
+app.get('/privacy-policy', function(req, res) {
+  const utmSource = req.query.utm_source;
+  res.render('privacy-policy', {utmSource: utmSource});
+});
+
 app.get('/campaigns', function(req, res) {
   const utmSource = req.query.utm_source;
   const dbRef = firestore.collection('campaigns');

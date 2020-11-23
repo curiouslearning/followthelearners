@@ -23,7 +23,7 @@
             a.title.has-text-grey-dark.is-large(href=utmValue) Follow The Learners™
               span.is-small.subtitle (Beta)
     .container
-      h2.is-size-2.has-text-centered Frequently Asked Questions
+      h2.is-size-2.has-text-centered(style="color: #079c94;") Frequently Asked Questions
       .section
         h2.is-size-2 Who runs Follow The Learners™?
         h5.is-size-5 &nbsp;&nbsp;&nbsp;Follow The Learners™ is run by 
@@ -99,9 +99,9 @@
           .column
             a(href=utmValue) Back to Landing Page
           .column
-            a(href='mailto:support@curiouslearning.org?Subject=FTL%20Support%20Request') Support
+            a(href='mailto:followthelearners@curiouslearning.org?Subject=FTL%20Support%20Request') Support
           .column
-            a(href=utmValue) Privacy Policy
+            a(href='/privacy-policy' + utmValue target='_blank') Privacy Policy
         h5.is-size-5 Copyright 2020 by Curious Learning.
 
   script(src="/static/js/firebase-app-7.14.3.js")
