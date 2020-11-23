@@ -168,6 +168,8 @@ $(document).ready(function() {
   } else if (token) {
     CheckTokenAndSwitchToDonorLearners(email);
   }
+
+  tabSelector.ToggleTab('tab-all-learners');
 });
 
 
