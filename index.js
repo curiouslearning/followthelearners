@@ -97,7 +97,7 @@ app.get('/campaigns', function(req, res) {
             imgRef: data.imgRef,
             body: data.summary,
             learnerCount: data.learnerCount,
-            amount: '5.00',
+            amount: '20.00',
             campaignID: data.campaignID,
             country: data.country,
             donateRef: data.donateRef,
