@@ -6,7 +6,7 @@
   "display": "fullscreen",
   "icons": [
     {
-      "src": "/static/imgs/icon.webp",
+      "src": "/static/imgs/appicon.png",
       "sizes": "512x512",
       "type": "image/webp",
       "purpose": "any maskable"
