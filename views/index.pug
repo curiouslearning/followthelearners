@@ -72,7 +72,7 @@
         .navbar-menu#navbarHeroMenu(style='background-color: #FFF')
           .navbar-end#tab-buttons(style='align-items: center;  padding-left: 1.5rem')
             // Campaigns Button
-            a.button.is-medium.is-dark.navbar-item(onclick="tabSelector.ToggleTab('tab-campaigns')" style='margin-right: 0.25rem; margin-left: 0.25rem; margin-bottom: 0.5rem;')
+            a.button.is-medium.navbar-item(onclick="tabSelector.ToggleTab('tab-campaigns')" style='margin-right: 0.25rem; margin-left: 0.25rem; margin-bottom: 0.5rem;')
               span.icon.is-small
                 i.fas.fa-map-marker-alt(aria-hidden='true' style='pointer-events: none;')
               span Donate
@@ -82,7 +82,7 @@
                 i.fas.fa-users(aria-hidden='true' style='pointer-events: none;')
               span Your Learners
             // All Learners Button
-            a.button.is-medium.navbar-item(onclick="tabSelector.ToggleTab('tab-all-learners')" style='margin-right: 0.25rem; margin-left: 0.25rem; margin-bottom: 0.5rem;')
+            a.button.is-medium.is-dark.navbar-item(onclick="tabSelector.ToggleTab('tab-all-learners')" style='margin-right: 0.25rem; margin-left: 0.25rem; margin-bottom: 0.5rem;')
               span.icon.is-small
                 i.fas.fa-globe(aria-hidden='true' style='pointer-events: none;')
               span All Learners
@@ -92,7 +92,7 @@
               span#sign-in-text Sign In
 
     .section#tabs-parent(style='z-index: 100; padding: 0;')
-      .section#tab-campaigns(style='padding: 0;')
+      .section.is-hidden#tab-campaigns(style='padding: 0;')
         //- h3.subtitle.is-3.has-text-grey(style='margin-top: 0.5rem') Pick a Region
         .section(style="padding-top: 0.5rem;")
           //- h3.has-text-grey.has-text-centered(style='background-color: rgba(255, 217, 105, 0.5)')
@@ -157,7 +157,7 @@
             button.button.is-medium#btn-reset-map-yl(onclick="onResetYLMapButtonClick()" style='pointer-events: auto; margin: 4px;') Reset Map
 
 
-      .section.is-hidden#tab-all-learners(style="margin-top: 0rem; padding-top: 0;")
+      .section#tab-all-learners(style="margin-top: 0rem; padding-top: 0;")
         .section(style='margin: 0; padding: 0rem;')
           h1.title.has-text-grey-dark.is-large(style='font-size: 2.2rem; margin: 0') All Learners
           h3.subtitle.is-3.has-text-grey(style='margin-top: 1rem;') We've reached&nbsp;
