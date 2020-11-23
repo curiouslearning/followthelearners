@@ -153,7 +153,7 @@ $(document).ready(function() {
   if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
     let email = window.localStorage.getItem('emailForSignIn');
     if (!email) {
-      email = window.prompt('please enter your email to finish signing in');
+      email = window.prompt('Please enter your email to finish signing in');
     }
     firebase.auth().signInWithEmailLink(email, window.location.href)
         .then((result)=>{
@@ -518,7 +518,7 @@ function checkForDonorSignIn() {
           .sendSignInLinkToEmail(currentDonorEmail, actionCodeSettings)
           .then(function() {
             window.localStorage.setItem('emailForSignIn', currentDonorEmail);
-            $(newDonorInfoTextId).text('please follow the link we sent to your email to complete the sign in process! You can now safely close this browser tab.');
+            $(newDonorInfoTextId).text('Success! Please follow the link we sent to your email to authenticate! You can now safely close this window.');
             $(newDonorInfoTextId).removeClass('is-hidden');
             currentDonorEmail = null;
             $(donorEmailElementId).value = null;
