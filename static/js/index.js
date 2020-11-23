@@ -39,6 +39,12 @@ let allLearnersData = null;
 let loadingAllLearnersData = false;
 let yourLearnersData = null;
 
+let yourLearnersPanoRef;
+let yourLearnersPanoId = 'your-learners-panorama';
+
+let allLearnersPanoRef;
+let allLearnersPanoId = 'all-learners-panorama';
+
 const COSTPERLEARNER = 0.25;
 
 // Auth data
@@ -220,6 +226,11 @@ function initializeMaps() {
   countrySelectElement = document.getElementById(
     countrySelectElementId);
 
+  yourLearnersPanoRef = new google.maps.StreetViewPanorama(
+      document.getElementById(yourLearnersPanoId));
+  allLearnersPanoRef = new google.maps.StreetViewPanorama(
+      document.getElementById(allLearnersPanoId));
+
   mapsSharedInfoWindow = new google.maps.InfoWindow();
 
   if (mapYourLearnersParent) {
@@ -321,6 +332,13 @@ function initializeCountrySelect(locationData) {
         country + " - " + locationData.campaignData[key].learnerCount, country));
     }
   }
+}
+
+/**
+ * Event handler when user clicks on the panorama close button
+ */
+function onPanoramaCloseButtonClick() {
+  document.getElementById('map-overlay-pano').classList.add('is-hidden');
 }
 
 /**
