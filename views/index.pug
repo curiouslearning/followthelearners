@@ -169,23 +169,27 @@
               span#no-region-user-count
               span &nbsp;users have Do Not Track on.)
         .section(style='position: relative; padding: 0; margin-top: 1rem;')
-          #map-display-all-learners(style="width: 100%; height: 640px;")
-          #map-overlay(style='width: 100%; height: 640px; position: absolute; top: 0; left: 0; z-index: 25; pointer-events: none;')
+          #map-display-all-learners(style="width: 100%; height: 720px;")
+          #map-overlay(style='width: 100%; height: 720px; position: absolute; top: 0; left: 0; z-index: 25; pointer-events: none;')
             .select.is-medium
               select#countrySelection(onchange='onCountrySelectionChanged()' style='pointer-events: auto; margin: 4px;' name='campaignSelection')
             button.button.is-medium#btn-reset-map(onclick="onResetMapButtonClick()" style='pointer-events: auto; margin: 4px;') Reset Map
-          div#map-overlay-pano(style="width: 100%; height: 640px; position: absolute; top: 0; left: 0; z-index: 30;")
-            div#all-learners-panorama(style="width: 100%; height: 100%;")
+          div#all-learners-overlay-pano.is-hidden(style="width: 100%; height: 720px; position: absolute; top: 0; left: 0; z-index: 30; pointer-events: auto;")
+            div#all-learners-panorama(style="width: 100%; height: 100%; pointer-events: auto;")
             div(style="width: 100%; height: 100%; position: absolute; left: 0; top: 0; z-index: 35; pointer-events: none;")
-              button.button.is-small(onclick="onPanoramaCloseButtonClick()" style='pointer-events: auto; margin: 10px;')
-                span(style="font-weight: bold;") X
-              h4.is-size-4.has-text-centered(style="margin: 4px; pointer-events: none;") Rajasthan
-    
+              button.button.is-medium(onclick="onAllLearnersPanoramaCloseButtonClick()" style='pointer-events: auto; margin: 10px; float: right;')
+                span(style="font-weight: bold;") Close
+              //- button.button.is-medium(onclick="onPanoramaPreviousButtonClick()" style='pointer-events: auto; margin: 10px; position: absolute; left: 0; top: 45%; background-color: rgba(30, 30, 30, 0.3); font-weight: bold; font-size: 1.2rem; color: white; border: none;')
+              //-   span(style="font-weight: bold;") Prev
+              //- button.button.is-medium(onclick="onPanoramaNextButtonClick()" style='pointer-events: auto; margin: 10px; position: absolute; right: 0; top: 45%; background-color: rgba(30, 30, 30, 0.3); font-weight: bold; font-size: 1.2rem; color: white; border: none;')
+              //-   span(style="font-weight: bold;") Next
+              h4.is-size-4.has-text-centered(style="margin: 10px; pointer-events: auto; ") 
+                span#all-learners-pano-region(style="color: white; background-color: rgba(30, 30, 30, 0.3); padding: 4px; padding-left: 20px; padding-right: 20px;")
     .modal#donor-email-modal
       .modal-background(onclick="document.getElementById('donor-email-modal').classList.remove('is-active');")
       .modal-card
         header.modal-card-head(style='border: none')
-          p.modal-card-title.hast-text-grey-dark.has-text-centered Login to Follow The Learners™
+          p.modal-card-title.hast-text-grey-dark.has-text-centered Sign In to Follow The Learners™
           button.delete(aria-label='close' onclick="document.getElementById('donor-email-modal').classList.remove('is-active'); document.getElementById('modal-instruction-text').classList.remove('is-hidden');")
         .modal-card-body
           p.has-text-info.is-hidden#new-donor-info-text
@@ -206,6 +210,8 @@
               input.input#donor-email(name='email', type='email', title="Email" placeholder='user-name@example.com')
               span.icon.is-small.is-left
                 i.fas.fa-envelope
+            br
+            p.is-pulled-right(style="font-size: 0.6rem;") New to Follow the Learners™?
             br
             .control
               input.button#donor-email-submit(type='button' disabled=true onclick='checkForDonorSignIn()' value='Send Me a Magic Link')

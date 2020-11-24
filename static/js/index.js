@@ -337,8 +337,9 @@ function initializeCountrySelect(locationData) {
 /**
  * Event handler when user clicks on the panorama close button
  */
-function onPanoramaCloseButtonClick() {
-  document.getElementById('map-overlay-pano').classList.add('is-hidden');
+function onAllLearnersPanoramaCloseButtonClick() {
+  document.getElementById('all-learners-overlay-pano').classList
+      .add('is-hidden');
 }
 
 /**
@@ -1343,29 +1344,41 @@ function constructRegionPinWindow(country, region, randomFact) {
  */
 function constructInfoWindowContent(country, region, randomFact, latitude,
     longitude, heading) {
-  region = region === "no-region" ? "Region not available" : region;
+  region = region === 'no-region' ? 'Region not available' : region;
   const contentString = '<div style=\'text-align: left;\'>' +
     '<span style=\'font-size: 18px; color: #606060\'><b>' +
     region + ' </b></span>' +
     '<span style=\'font-size: 16px; color: #909090\'><b>(' +
     country + ')</b></span>' +
-    // '<br><br> <p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
-    // randomFact + '</p> ' +
-    '<br><br><br> <form action=\'https://google.com/maps/@?\' method=\'get\' ' +
-    'target=\'_blank\' style=\'text-align: center;\'>' +
-    '<input type=\'hidden\' name=\'api\' value=\'1\'></input>' +
-    '<input type=\'hidden\' name=\'map_action\' value=\'pano\'></input>' +
-    '<input type=\'hidden\' name=\'viewpoint\' value=\''+
-    latitude + ',' + longitude + '\'></input>' +
-    '<input type=\'hidden\' name=\'heading\' value=\'' +
-    heading + '\'></input>' +
-    '<button type=\'submit\' class=\'button is-link is-outlined \'>' +
+    '<br><br><button onclick="showAllLearnersStreetViewPano(\'' + region +
+    '\',' + latitude + ',' + longitude + ',' + heading +
+    ')" type=\'button\' class=\'button is-link is-outlined \'>' +
     ' <i class="fas fa-street-view"></i>&nbsp;&nbsp;Take Me There ' +
     '</button> ' +
     '<button onclick="GiveNow()" type=\'button\' class=\'button is-primary \'> Give Now ' +
     '</button>' +
     '</form></div>';
   return contentString;
+}
+
+/**
+ * Enable all learners street view panorama and attempt to display given SV
+ * @param {String} region Name of the region
+ * @param {Number} latitude Latitude
+ * @param {Number} longitude Longitude
+ * @param {Number} heading Heading
+ */
+function showAllLearnersStreetViewPano(region, latitude, longitude, heading) {
+  document.getElementById('all-learners-pano-region').innerHTML = region;
+  allLearnersPanoRef = new google.maps.StreetViewPanorama(
+      document.getElementById(allLearnersPanoId), {
+        position: {lat: latitude, lng: longitude},
+        pov: {heading: heading, pitch: 10},
+        fullscreenControl: false,
+      });
+  allLearnersPanoRef.setVisible(true);
+  document.getElementById('all-learners-overlay-pano').classList
+      .remove('is-hidden');
 }
 
 /**
