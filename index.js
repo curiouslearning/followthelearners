@@ -421,7 +421,7 @@ app.get('/yourLearners', function(req, res) {
         res.json({campaignData: donations, locationData: locationData});
       });
     } else {
-      res.json({err: 'Oops! We couldn\'t find that email in our database. If you\'d like to make an account with us, pick a region to support!\n If you\'ve already made an account and cannot access your learners, please email followthelearners@curiouslearning.org. '});
+      res.json({err: 'Oops! We couldn\'t find that email in our database. If you\'d like to make an account with us, make a donation!\n If you\'ve already made an account and cannot access your learners, please email followthelearners@curiouslearning.org. '});
       res.end();
     }
   }).catch((err)=>{
