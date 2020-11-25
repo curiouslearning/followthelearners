@@ -1,0 +1,130 @@
+<!Doctype html lang="en">
+  include mixins/_campaign
+  head
+    title Follow The Learners™ (Beta) - FAQ
+    meta(name="description" content="Follow The Learners™ (Beta) - FAQ")
+    meta(name="viewport" content="width=device-width, initial-scale=1")
+    meta(name="theme-color" content="#8CCDC9")
+    link(rel="shortcut icon" type="image/jpg" href="/static/imgs/appicon.ico")
+    link(rel="apple-touch-icon" href="/static/imgs/2.png")
+    link(rel='stylesheet', href='/static/css/bulma-0.9.1.min.css')
+    style(type='text/css').
+      html,body
+      {
+          width: 100%;
+          margin: 0px;
+          padding: 0px;
+      }
+
+  body
+    - const utmValue = utmSource ? "/?utm_source=" + utmSource : '/';
+    header
+        nav.navbar(role="navigation" style='z-index: 100; padding-left: 1.5rem; padding-right: 1.5rem; padding-top: 2rem; padding-bottom: 2rem;')
+          .navbar-brand
+            a.title.has-text-grey-dark.is-large(href=utmValue) Follow The Learners™
+              span.is-small.subtitle (Beta)
+    .container
+      h2.is-size-2.has-text-centered(style="color: #079c94;") Privacy Policy
+      .section
+        h5.is-size-5 &nbsp;&nbsp;&nbsp;Follow The Learners™ is a project created and maintained by 
+          a(href='https://www.curiouslearning.org/' target='_blank') Curious Learning
+          span , a 501(c)(3) non-profit. We founded Curious Learning so every child could learn to read, regardless of their language. We know that privacy is important to our community, especially for children and their parents. This Privacy Policy explains what information we collect in the Follow The Learners™ website and app, how we use it, and what we're doing to keep it safe. 
+
+      .section
+        h2.is-size-2 What websites and apps does this Privacy Policy cover?
+        h5.is-size-5 &nbsp;&nbsp;&nbsp;This Privacy Policy covers the Follow The Learners™ website and web application.
+
+
+      .section
+        h2.is-size-2#how-is-my-donation-used What third-party vendors and services does Follow The Learners™ use and why?
+        h5.is-size-5 &nbsp;&nbsp;&nbsp;Follow The Learners™ uses 4 third-party vendors/services as part of the experience as described below. We are satisfied that these service providers have privacy policies that restrict them from further disclosing any of your information and they are linked below.
+        br
+        h4.is-size-4(style="font-weight: bold;") Analytics
+        h5.is-size-5 &nbsp;&nbsp;&nbsp;We continuously improve our Follow The Learners™ website and application through the use of third-party cookies and web analytics tools specifically Google Firebase and Hotjar. 
+        h5.is-size-5 &nbsp;&nbsp;&nbsp;These analytics tools and third-party cookies help us understand how our visitors use Follow The Learners™, what pages they visit, what features and functions they like and dislike, and where they may have run into problems which need to be addressed.
+        br
+        h4.is-size-4 &nbsp; 1) 
+          a(href='https://policies.google.com/technologies/partner-sites' target='_blank') Google Firebase
+        h5.is-size-5 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Google Firebase provides us an analytics, user experience, and user authentication service that we use to improve the Follow The Learners™ experience.
+        h5.is-size-5 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The information collected via Google Firebase is described in our information collection section below.
+        h5.is-size-5 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;You can prevent your data from being used by Google Firebase Analytics on Follow The Learners™ by installing the Google Analytics opt-out browser add-on
+          a(href='https://tools.google.com/dlpage/gaoptout' target='_blank')  here
+          span .
+        br
+        h4.is-size-4 &nbsp; 2) 
+          a(href='https://www.hotjar.com/legal/policies/privacy/' target='_blank') Hotjar
+        h5.is-size-5 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Hotjar provides us an analytics and user experience service that we use to improve the Follow The Learners™ experience. The information collected via Hotjar is described in our information collection section below.
+        h5.is-size-5 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;You can prevent your data from being used by Hotjar on Follow the Learners™ by following the instructions
+          a(href='https://help.hotjar.com/hc/en-us/articles/360002735873-How-to-Stop-Hotjar-From-Collecting-your-Data' target='_blank')  here
+          span .
+        br
+        h4.is-size-4(style="font-weight: bold;") Donation
+        h5.is-size-5 &nbsp;&nbsp;&nbsp;We use Give Lively and Stripe for the Follow The Learners™ donation process. We chose to utilize these two services due to their high commitment to the security and integrity needed in obtaining and storing sensitive credit card information. 
+        br
+        h4.is-size-4 &nbsp; 1) 
+          a(href='https://www.givelively.org/data-privacy-and-security' target='_blank') Give Lively
+        h5.is-size-5 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Give Lively provides us with the service of receiving donation information through secure campaign pages. This encrypted information is passed along to the secure payment processing service Stripe.
+        h5.is-size-5 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;You can prevent your data from being used by Give Lively by not donating to Follow The Learners™.
+        br
+        h4.is-size-4 &nbsp; 2) 
+          a(href='https://stripe.com/privacy' target='_blank') Stripe
+        h5.is-size-5 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Stripe provides us with the service of secure payment processing.
+        h5.is-size-5 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;You can prevent your data from being used by Stripe by not donating to Follow The Learners™ via Give Lively.
+
+      .section
+        h2.is-size-2 What information does Follow The Learners™ collect and how does it use this information? 
+        h5.is-size-5 &nbsp;&nbsp;&nbsp;Through the third-party service Google Firebase, we obtain:
+        h5.is-size-5 
+          ul(style="list-style: inherit; padding-left: 40px;")
+            li.is-size-5 &nbsp;&nbsp;&nbsp;Anonymized usage and analytics data including pages visited and duration, device type, browser type, and limited demographic information such as country and city data for improvement of the Follow The Learners™ experience. We do not tie any of this information to any other information we obtain.
+        h5.is-size-5 &nbsp;&nbsp;&nbsp;Through the third-party service Hotjar, we obtain:
+        h5.is-size-5 
+          ul(style="list-style: inherit; padding-left: 40px;")
+            li.is-size-5 &nbsp;&nbsp;&nbsp;Feedback directly from users if they choose to provide information about their experience using Follow The Learners™.
+            li.is-size-5 &nbsp;&nbsp;&nbsp;Anonymized usage and analytics data (including click, scroll, screen captures, and screen recordings) for creating heatmaps of most used features and user experience testing for improvement of the Follow The Learners™ experience. We do not tie any of this information to any other information we obtain.
+            li.is-size-5 &nbsp;&nbsp;&nbsp;Any information input by a user on a Follow The Learners™ page is obscured during a screen capture or screen recording.
+        h5.is-size-5 &nbsp;&nbsp;&nbsp;We may disclose some of this anonymized usage and analytics information to third-party service providers that help us perform various support functions. We are satisfied that these service providers have privacy policies that restrict them from further disclosing any of your information.
+        h5.is-size-5 &nbsp;&nbsp;&nbsp;Through the donation process, we obtain and store the following personally identifiable information, on a secure server hosted by Google, which allows us to create a Follow The Learners™ account for you which is used for accessing the “Your Learners” functionality of the application.
+        h5.is-size-5 
+          ul(style="list-style: inherit; padding-left: 40px;")
+            li.is-size-5 &nbsp;&nbsp;&nbsp;First name
+            li.is-size-5 &nbsp;&nbsp;&nbsp;E-mail address
+            li.is-size-5 &nbsp;&nbsp;&nbsp;When the donation was made
+            li.is-size-5 &nbsp;&nbsp;&nbsp;To which Follow The Learners™ campaign the donation was made
+            li.is-size-5 &nbsp;&nbsp;&nbsp;An attribution to the donation
+            li.is-size-5 &nbsp;&nbsp;&nbsp;The donation amount
+        h5.is-size-5 &nbsp;&nbsp;&nbsp;This stored data will not be shared by Curious Learning. Please be aware that through the Give Lively service, you are given the option to make your name and donation amount public for viewing on the Give Lively campaign web page or you can mark the donation as anonymous. Give Lively will still share the above information for donations marked as “anonymous” with Curious Learning.
+        h5.is-size-5 &nbsp;&nbsp;&nbsp; If you would like us to close your Follow The Learners™ account and remove this information from our database, please e-mail us directly at 
+          a(href='mailto:followthelearners@curiouslearning.org?Subject=FTL%20Support%20Request' target='_blank') followthelearners@curiouslearning.org
+          span .
+      
+      .section
+        h2.is-size-2 How does Follow The Learners™ protect you and your information?
+        h5.is-size-5 &nbsp;&nbsp;&nbsp;The personally identifiable information obtained and stored as a result of the donation process (first name and e-mail address) are stored on a secure Google server and will not be shared with any third party. This information is only used for creation of a Follow The Learners™ account to access the “Your Learners” functionality of Follow The Learners™.
+        h5.is-size-5 &nbsp;&nbsp;&nbsp;If you would like us to close your Follow The Learners™ account and remove this information from our database, please e-mail us directly at 
+          a(href='mailto:followthelearners@curiouslearning.org?Subject=FTL%20Support%20Request' target='_blank') followthelearners@curiouslearning.org
+            span .
+
+      .section
+        h2.is-size-2 Contact
+        h5.is-size-5 &nbsp;&nbsp;&nbsp; If you have any questions, concerns, or suggestions regarding this Privacy Policy, please contact us at 
+          a(href="mailto:info@curiouslearning.org?Subject=FTL%20Support%20Request" target="_blank") info@curiouslearning.org
+      
+      
+        
+    footer.footer
+      .container.has-text-centered
+        .columns
+          .column
+            a(href=utmValue) Back to Landing Page
+          .column
+            a(href='mailto:followthelearners@curiouslearning.org?Subject=FTL%20Support%20Request') Support
+          .column
+            a(href=utmValue) Privacy Policy
+        h5.is-size-5 Copyright 2020 by Curious Learning.
+
+  script(src="/static/js/firebase-app-7.14.3.js")
+  script(src="/static/js/firebase-analytics-7.14.3.js")
+  script(src='/static/js/font-awesome-89be965993a.js')
+  script(src="/static/js/hj.js")
+  script(src='/static/js/fbc.js')

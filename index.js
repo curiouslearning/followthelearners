@@ -8,6 +8,7 @@ const bodyParser = require('body-parser');
 const dateFormat = require('date-format');
 const randLoc = require('random-location');
 const fs = require('fs');
+const path = require('path')
 const app = express();
 const CACHETIMEOUT = 720; // the cache timeout in minutes
 
@@ -54,11 +55,32 @@ app.use('/static', express.static(__dirname + '/static'));
 app.set('view engine', 'pug');
 app.use(bodyParser.urlencoded({extended: true}));
 
+app.get('/robots.txt', function(req, res) {
+  res.type('text/plain');
+  res.send('User-agent: *\nAllow: /');
+});
+
+app.get('/sw.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'sw.js'));
+});
+
 app.get('/', function(req, res) {
-  res.render('landing-page');
+  const utmSource = req.query.utm_source;
+  res.render('landing-page', {utmSource: utmSource});
+});
+
+app.get('/faq', function(req, res) {
+  const utmSource = req.query.utm_source;
+  res.render('faq', {utmSource: utmSource});
+});
+
+app.get('/privacy-policy', function(req, res) {
+  const utmSource = req.query.utm_source;
+  res.render('privacy-policy', {utmSource: utmSource});
 });
 
 app.get('/campaigns', function(req, res) {
+  const utmSource = req.query.utm_source;
   const dbRef = firestore.collection('campaigns');
   const campaigns =[];
   dbRef.where('isActive', '==', true).where('isVisible', '==', true)
@@ -75,7 +97,7 @@ app.get('/campaigns', function(req, res) {
             imgRef: data.imgRef,
             body: data.summary,
             learnerCount: data.learnerCount,
-            amount: '5.00',
+            amount: '20.00',
             campaignID: data.campaignID,
             country: data.country,
             donateRef: data.donateRef,
@@ -84,7 +106,7 @@ app.get('/campaigns', function(req, res) {
         });
         return campaigns;
       }).then((snapshot)=>{
-        res.render('index', {campaigns: campaigns});
+        res.render('index', {campaigns: campaigns, utmSource: utmSource});
       }).catch((err)=> console.error(err));
 });
 
@@ -367,7 +389,7 @@ app.get('/isUser', function(req, res) {
     res.status(200).json({isUser:true});
   }).catch((err)=>{
     if (err.code === 'auth/user-not-found') {
-      res.status(200).send({err: err, isUser: false, displayText: 'Oops! We couldn\'t find that email in our database. If you\'d like to make an account with us, pick a region to support!\n If you\'ve already made an account and cannot access your learners, please email support@curiouslearning.org.'});
+      res.status(200).send({err: err, isUser: false, displayText: 'Oops! We couldn\'t find that email in our database. If you\'d like to make an account with us, pick a region to support!\n If you\'ve already made an account and cannot access your learners, please email followthelearners@curiouslearning.org.'});
     } else {
       next(err);
     }
@@ -399,7 +421,7 @@ app.get('/yourLearners', function(req, res) {
         res.json({campaignData: donations, locationData: locationData});
       });
     } else {
-      res.json({err: 'Oops! We couldn\'t find that email in our database. If you\'d like to make an account with us, pick a region to support!\n If you\'ve already made an account and cannot access your learners, please email support@curiouslearning.org. '});
+      res.json({err: 'Oops! We couldn\'t find that email in our database. If you\'d like to make an account with us, pick a region to support!\n If you\'ve already made an account and cannot access your learners, please email followthelearners@curiouslearning.org. '});
       res.end();
     }
   }).catch((err)=>{

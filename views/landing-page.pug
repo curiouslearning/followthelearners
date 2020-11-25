@@ -1,17 +1,22 @@
-html
+<!Doctype html lang="en">
   include mixins/_campaign
   head
-    script(src="https://www.gstatic.com/firebasejs/7.14.3/firebase-app.js")
-    script(src="https://www.gstatic.com/firebasejs/7.14.3/firebase-analytics.js")
-    script(src="/static/js/hj.js")
+    title Follow The Learners™ (Beta)
+    meta(name="description" content="Follow The Learners™ (Beta)")
     meta(name="viewport" content="width=device-width, initial-scale=1")
-    link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css')
+    meta(name="theme-color" content="#8CCDC9")
+    link(rel="shortcut icon" type="image/jpg" href="/static/imgs/appicon.ico")
+    link(rel="apple-touch-icon" href="/static/imgs/appicon.png")
     link(rel='manifest', href='/static/manifest.webmanifest')
-    script(src="https://kit.fontawesome.com/89be96593a.js" crossorigin="anonymous")
-    script(
-        src="https://code.jquery.com/jquery-3.5.0.min.js"
-        integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
-        crossorigin="anonymous")
+    script(src="/static/js/sw-loader.js")
+    link(rel='stylesheet', href='/static/css/bulma-0.9.1.min.css')
+    link(rel="preconnect" href="https://in.hotjar.com")
+    link(rel="preconnect" href="https://static.hotjar.com")
+    link(rel="preconnect" href="https://vars.hotjar.com")
+    link(rel="preconnect" href="https://script.hotjar.com")
+    link(rel="preconnect" href="https://firebaseinstallations.googleapis.com")
+    link(rel="dns-prefetch" href="https://www.googletagmanager.com")
+    link(rel="dns-prefetch" href="https://kit-free.fontawesome.com")
     style(type='text/css').
       html,body
       {
@@ -21,25 +26,28 @@ html
       }
 
   body
-    .hero.is-large(style="color: white; background-image: url('/static/imgs/hero-cover.jpg'); background-position: center -100; background-size: cover; background-repeat: no-repeat;")
+    - const utmValue = utmSource ? "/?utm_source=" + utmSource : '';
+    - const utmValueFAQ = utmSource ? "/?utm_source=" + utmSource : '?';
+    .hero.is-large(style="color: white; background-image: url('/static/imgs/hero-cover.webp'); background-position: center -100; background-size: cover; background-repeat: no-repeat;")
       .hero-head
         .navbar
           .section
             .navbar-brand
-              a(href='/')
-                img(src="/static/imgs/cl_white_logo.png", alt='logo' style='width: 196px; height: auto;')
+              a(href=utmValue)
+                img(src="/static/imgs/cl_white_logo.webp" width="196px" height="100%" alt='CL Logo')
               a.navbar-burger.is-large(data-target="navbarHeroMenu" role="button" aria-label="menu" aria-expanded="false" style="background-color: #8CCDC9;")
                 span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
                 span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
                 span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
           .navbar-menu#navbarHeroMenu
             .navbar-end(style='align-items: center; padding-right: 1.5rem')
-              a.button.is-rounded.navbar-item.is-active.is-primary(href="/campaigns" style='color: white; background-color: #8CCDC9; font-size: 1.8rem;')
+              a.button.is-rounded.navbar-item.is-active.is-primary(href="/campaigns" + utmValue style='color: white; background-color: #8CCDC9; font-size: 1.8rem;')
                 span Get Started
       .hero-body(style='padding: 0')
         .container.has-text-centered(style="margin-bottom: 12rem; margin-top: 4rem")
-          h1.title(style='color: white; font-size: 4.5rem;') Follow The Learners™ 
-            span(style='color: white; font-size: 2.5rem') (Beta)
+          h1.title(style='color: white; font-size: 4.5rem;') Follow The Learners™
+            br
+            span(style='color: white; font-size: 2.5rem;') (Beta)
           h3.subtitle.is-size-4(style='color: white;') Use our Follow the Learners™ tool to track the impact of your donation
 
         .columns.is-desktop#learners-parent(style="margin-bottom: 8rem; margin-left: 0; margin-top: 0; margin-right: 0; opacity: 0")
@@ -52,9 +60,9 @@ html
     .section
       .container
         h1.title.has-text-centered(style='font-size: 3rem;')
-          span Every dollar you give puts literacy
+          span Every dollar you give
           br
-          span apps in the hands of 2-4 children.
+          span puts literacy apps in the hands of a child.
     br
     br
     br
@@ -64,33 +72,85 @@ html
       .column
         .rows
           .row(style="background-color: rgba(140, 205, 201, 0.7); font-size: 4rem;") &nbsp;
-          .row(style="margin-top: -12rem")
-            .columns
-              .column.is-half
-              .column(style="margin-right: 10rem")
-                img(src="/static/imgs/streetview_phone.png")
+          .row.has-text-centered(style="margin-top: -12rem")
+            img(src="/static/imgs/streetview_phone.webp" width="460px" height="auto" loading="lazy" alt="Streetview Display")
+            
       .column
         h1.title(style='font-size: 2.8rem; margin-bottom: 4rem; padding-left: 2rem; padding-right: 2rem;')
-          span Follow the Learners™ takes you on a virtual visit to our service locations and lets you watch literacy take root day by day—changing lives forever.
-        .rows
-          .row(style="background-color: rgba(0, 0, 0, 0); font-size: 4rem;") &nbsp;
-          .row(style="background-color: rgba(140, 205, 201, 0.7); font-size: 4rem;") &nbsp;
-          .row(style="margin-top: -12rem")
-            .columns(style="margin-left: 1rem")
-              .column
-                img(src="/static/imgs/gdl_phone_screen.png")
-              .column
-                img(src="/static/imgs/ftm_phone_screen.png")
-              .column
-              .column
+          span Follow the Learners™ takes you on a virtual visit to the countries and regions of your learners.
+        //- .rows
+        //-   .row(style="background-color: rgba(0, 0, 0, 0); font-size: 4rem;") &nbsp;
+        //-   .row(style="background-color: rgba(140, 205, 201, 0.7); font-size: 4rem;") &nbsp;
+        //-   .row(style="margin-top: -12rem")
+        //-     .columns(style="margin-left: 1rem")
+        //-       .column
+        //-         img(src="/static/imgs/gdl_phone_screen.webp" width="206px" height="auto" loading="lazy" alt="GDL Phone")
+        //-       .column
+        //-         img(src="/static/imgs/ftm_phone_screen.webp" width="206px" height="auto" loading="lazy" alt="FTM Phone")
+        //-       .column
+        //-       .column
     br
+
+    .section
+      .container
+        h1.title.has-text-centered(style='font-size: 2.2rem;')
+          span Learners gain basic literacy skills from high-quality apps designed by a global network of educators, designers, game developers, neuroscientists, and media partners to create an exciting and enriching journey of learning to read.
+    
+    .section
+      .container
+        .columns
+          .column
+          .column.has-text-centered
+            a.button.is-active.is-light.is-rounded(href="/faq" + utmValueFAQ + "#how-do-children-learn-from-the-apps" style='font-size: 1.8rem;')
+              span Learn More
+          .column
+    
+    .columns.is-desktop(style='margin: 0; margin-top: 6rem;')
+      .column
+        .rows
+          .row(style="background-color: rgba(140, 205, 201, 0.7); font-size: 4rem;") &nbsp;
+          .row.has-text-centered(style="margin-top: -12rem")
+            img(src="/static/imgs/feed_the_monster_screenshots.webp" width="460px" height="auto" loading="lazy" alt="FTM Screenshot")
+      .column.has-text-centered
+        h1.is-size-1.has-text-weight-bold Feed the Monster reviews
+
+    .section
+      .container
+        h4.is-size-4.has-text-centered
+          span "I love the approach of this game -- teaching kids how to read through sounds and syllables. It gives them the building blocks so they can learn any word -- not just teaching them how to memorize a couple. Also, the game is so addictive. I kept playing just to get more points. So fun and effective!”
+        br
+        h4.is-size-4.has-text-centered
+          span “Brilliant. My kids love it and I can definitely see the benefits already.”
+        br
+        h4.is-size-4.has-text-centered
+          span “The best app for kids. There are almost no such teaching materials in Tajik. Thanks to the developers.”
+
+    .columns.is-desktop(style='margin: 0; margin-top: 6rem;')
+      .column.has-text-centered(style="margin-bottom: 6rem;")
+        h1.is-size-1.has-text-weight-bold Read with Akili reviews
+      .column
+        .rows
+          .row(style="background-color: rgba(140, 205, 201, 0.7); font-size: 4rem;") &nbsp;
+          .row.has-text-centered(style="margin-top: -12rem")
+            img(src="/static/imgs/rwa_phone.webp" width="709px" height="auto" loading="lazy" alt="RWA Phone")
+
+    .section
+      .container
+        h4.is-size-4.has-text-centered
+          span “Am just glad that my son will learn through this app as he eagerly awaits joining school...love the fact that it's App free, no ads and no any in-app purchases! what else could one look for”
+        br
+        h4.is-size-4.has-text-centered
+          span “This is so cool.. Can't wait to read with my daughter”
+        br
+        h4.is-size-4.has-text-centered
+          span “It is fun and people learn how to read”
 
     .section
       .container
         .columns
           .column
           .column.has-text-centered
-            a.button.is-rounded.is-active.is-primary(href="/campaigns" style='color: white; background-color: #8CCDC9; font-size: 1.8rem;')
+            a.button.is-rounded.is-active.is-primary(href="/campaigns" + utmValue style='color: white; background-color: #8CCDC9; font-size: 1.8rem;')
               span Get Started
           .column
     
@@ -105,17 +165,63 @@ html
 
     .section
       .container
-        img(src="/static/imgs/landingpage-infographic.png")
+        img(src="/static/imgs/landingpage-infographic.webp" width="auto" height="auto" loading="lazy" alt="Landing Page Infographic")
 
     .section
       .container
         .columns
           .column
           .column.has-text-centered
-            a.button.is-rounded.is-active.is-primary(href="/campaigns" style='color: white; background-color: #8CCDC9; font-size: 1.8rem;')
+            a.button.is-rounded.is-active.is-primary(href="/campaigns" + utmValue style='color: white; background-color: #8CCDC9; font-size: 1.8rem;')
               span Get Started
+          .column.has-text-centered
+            a.button.is-rounded.is-active.is-light(href="/faq" + utmValueFAQ + "#how-is-my-donation-used" style='font-size: 1.8rem;')
+              span Learn More
           .column
 
+    .section
+      h1.title.has-text-centered(style='font-size: 3.4rem') Partners
+      .container
+        .columns
+          .column.has-text-centered
+            img(src="/static/imgs/partners/unesco_logo.webp" loading="lazy" width="168px;" height="168px;" alt="Unesco Logo")
+          .column.has-text-centered
+            img(src="/static/imgs/partners/work_bank_logo.webp" loading="lazy" width="168px;" height="168px;" alt="World Bank Logo")
+          .column.has-text-centered
+            img(src="/static/imgs/partners/unicef_logo.webp" loading="lazy" width="168px;" height="168px;" alt="Unicef Logo")
+          .column.has-text-centered
+            img(src="/static/imgs/partners/unchr_logo.webp" loading="lazy" width="168px;" height="168px;" alt="UNCHR Logo")
+        .columns
+            .column.has-text-centered
+              img(src="/static/imgs/partners/ubongo_logo.webp" loading="lazy" width="168px;" height="168px;" alt="Unesco Logo")
+            .column.has-text-centered
+              img(src="/static/imgs/partners/mit_logo.webp" loading="lazy" width="168px;" height="168px;" alt="MIT Logo")
+            .column.has-text-centered
+              img(src="/static/imgs/partners/global_digital_library_logo.webp" loading="lazy" width="168px;" height="168px;" alt="GDL Logo")
+            .column.has-text-centered
+              img(src="/static/imgs/partners/bellavista_logo.webp" loading="lazy" width="168px;" height="168px;" alt="Bellavista Logo")
+        div.has-text-centered
+          img(src="/static/imgs/partners/click_foundation_logo.webp" loading="lazy" width="161px;" height="60px;" alt="CF Logo")
+
+    .section.has-text-centered
+      button.button.add-button.is-primary(style='display: inline-block;') Add to home screen
+
+    footer.footer
+      .container.has-text-centered
+        .columns
+          .column
+            a(href='/faq' + utmValue target='_blank') FAQ
+          .column
+            a(href='mailto:followthelearners@curiouslearning.org?Subject=FTL%20Support%20Request' target='_blank') Support
+          .column
+            a(href='/privacy-policy' + utmValue target='_blank') Privacy Policy
+        h5.is-size-5 Copyright 2020 by Curious Learning.
+
+    script(src="/static/js/jquery-3.5.0.min.js")
+    script(src="/static/js/firebase-app-7.14.3.js")
+    script(src="/static/js/firebase-analytics-7.14.3.js")
+    script(src='/static/js/font-awesome-89be965993a.js')
+    script(src="/static/js/hj.js")
     script(src='/static/js/fbc.js')
-    script(src="/static/js/countUp.js")
+    script(src='/static/js/countUp.js')
     script(src='/static/js/landing-page.js')

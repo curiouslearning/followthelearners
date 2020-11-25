@@ -60,10 +60,6 @@ class TabSelector {
     if (this.tabButtonsParentElement && this.tabsParentElement) {
       const tabButtons = this.tabButtonsParentElement.children;
       const tabs = this.tabsParentElement.children;
-      if (tabButtons.length !== tabs.length) {
-        console.log('Number of tab buttons and tabs are not equal.');
-        return;
-      }
       let tabIndex = 0;
       for (let i = 0; i < tabs.length; i++) {
         if (tabs[i].id === tabID) {

@@ -1,20 +1,25 @@
 include ./_link
 //- renders a quick summary of a campaign, with an image and 
 //- a donation link
-mixin campaign (title, imgRef, body, campaignID, amount, country, donateRef, isFeatured)
+mixin campaign (title, imgRef, body, campaignID, amount, country, utmSource, donateRef, isFeatured)
   - var featured = isFeatured
+  - const donateLink = 'campaign' + campaignID + '|' + country + '|' + utmSource + '&amount=' + amount + '&donateRef=' + donateRef;
   .card.column.is-shadowless(style='border: none; margin: 10px;')
     .card-image
-      a(href='/donate?campaign=' + campaignID+'|'+country +'&amount='+amount+'&donateRef='+donateRef target='_blank')
+      a(href='/donate?' + donateLink target='_blank')
         .box(style="border-radius: 0; box-shadow: 0px 2px 8px #808080; padding: 0")
           figure.image.is-5by3
             img(src=imgRef, alt='Campaign Image')
-            button.button.is-primary.is-large(type='button', id='giveNow'+campaignID, onclick = "goToDonate(\""+campaignID + '|' + country + '","' +'', style='position: absolute; bottom: -78px; width: 20%; left: 40%;') Give Now
             if featured
               p(style="position: absolute; top: 20; left: -10; background-color: #fff; border: 2px solid #606060; padding-left: 1rem; padding-right: 1rem; font-size: 1.4rem; font-weight: bold;") FEATURED
               
     br
     .card-header.is-shadowless
-      a.title.is-size-2.has-text-grey-dark(href='/donate?campaign=' + campaignID + '|' + country+'&amount='+amount+'&donateRef='+donateRef ) #{title}
-    .card-content
-      .subtitle.is-size-6.has-text-grey !{body}
+      .columns(style='display: flex; flex-wrap: nowrap; width: 100%')
+        .column.is-two-fifths
+          
+          a.title.is-size-2.has-text-grey-dark(href='/donate?' + donateLink) #{title}
+        .column
+          button.button.is-primary.is-large.is-desktop(type='button', id='giveNow'+campaignID, onclick = "goToDonate(\"" + campaignID + '|' + country + '|' + utmSource + '","' + amount + '","' + donateRef + '\")', style='') Give Now
+    .card-content(style="padding: 0; margin-top: 0.5rem")
+      .subtitle.is-size-5.has-text-grey !{body}
