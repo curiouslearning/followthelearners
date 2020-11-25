@@ -149,6 +149,7 @@ $(document).ready(function() {
                 allLearnersData.campaignData[key].learnerCount);
           }
         }
+        document.getElementById('all-learners-in-country').innerHTML = '';
         countrySelectElement.value = allCountriesValue;
       }
     });
@@ -851,6 +852,7 @@ function clearAllMarkers() {
  * should be passed
  */
 async function displayAllLearnersData(locData, isCountryLevelData, country) {
+  document.getElementById('all-learners-in-country').innerHTML = '';
   if (locData === null) {
     const center = new google.maps.LatLng(0, 0);
     mapAllLearners.setCenter(center);
