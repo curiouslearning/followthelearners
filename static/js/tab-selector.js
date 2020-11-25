@@ -72,6 +72,9 @@ class TabSelector {
 
       if (!this.preventDefaultAction) {
         for (let i = 0; i < tabButtons.length; i++) {
+          if (tabs[i] == null) {
+            continue;
+          }
           if (i === tabIndex) {
             tabButtons[i].classList.add(this.selectedTabButtonClassName);
             tabs[i].classList.remove(this.hiddenTabClassName);
