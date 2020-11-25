@@ -1378,6 +1378,16 @@ function constructInfoWindowContent(country, region, randomFact, latitude,
   return contentString;
 }
 
+/**
+ * Constructs and returns info window html string content
+ * @param {String} country is the country value
+ * @param {String} region is the region value
+ * @param {String} randomFact is the randomFact value displayed on info window
+ * @param {Number} latitude is the latitude used for street view link
+ * @param {Number} longitude is the longitude used for the street view link
+ * @param {Number} heading is the heading valued used for street view link
+ * @return {String} content string for the info window
+ */
 function constructYourLearnersInfoWindowContent(country, region, randomFact, latitude,
     longitude, heading) {
   region = region === 'no-region' ? 'Region not available' : region;
@@ -1416,6 +1426,13 @@ function showAllLearnersStreetViewPano(region, latitude, longitude, heading) {
       .remove('is-hidden');
 }
 
+/**
+ * Enable your learners street view panorama and attempt to display given SV
+ * @param {String} region Name of the region
+ * @param {Number} latitude Latitude
+ * @param {Number} longitude Longitude
+ * @param {Number} heading Heading
+ */
 function showYourLearnersStreetViewPano(region, latitude, longitude, heading) {
   allLearnersPanoRef = new google.maps.StreetViewPanorama(
       document.getElementById(yourLearnersPanoId), {
