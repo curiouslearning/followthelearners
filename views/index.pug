@@ -143,6 +143,8 @@
             span#learner-count
             span &nbsp;Learners since&nbsp;
             span#donation-date
+            span &nbsp;
+            span#your-learners-in-country
             span(style='font-size: 1.4rem;') &nbsp;(
               span#your-learners-no-region-user-count
               span &nbsp;users have Do Not Track on.)
@@ -152,19 +154,28 @@
           h3.subtitle.is-3.has-text-grey
             span#percent-filled
         .section(style='position: relative; margin: 1rem; padding: 0;')
-          #map-display-your-learners(style="width: 100%; height: 640px;")
-          #map-overlay(style='width: 100%; height: 640px; position: absolute; top: 0; left: 0; z-index: 25; pointer-events: none;')
+          #map-display-your-learners(style="width: 100%; height: 720px;")
+          #map-overlay(style='width: 100%; height: 720px; position: absolute; top: 0; left: 0; z-index: 25; pointer-events: none;')
             .select.is-medium(style='')
               select#yourLearnersCountrySelect(onchange='onYourLearnersCountrySelectionChanged()' style='pointer-events: auto; margin: 4px;' name='campaignSelection')
             button.button.is-medium#btn-reset-map-yl(onclick="onResetYLMapButtonClick()" style='pointer-events: auto; margin: 4px;') Reset Map
-
-
+          div#your-learners-overlay-pano.is-hidden(style="width: 100%; height: 720px; position: absolute; top: 0; left: 0; z-index: 30; pointer-events: auto;")
+            div#your-learners-panorama(style="width: 100%; height: 100%; pointer-events: auto;")
+            div(style="width: 100%; height: 100%; position: absolute; left: 0; top: 0; z-index: 35; pointer-events: none;")
+              button.button.is-medium(onclick="onYourLearnersPanoramaCloseButtonClick()" style='pointer-events: auto; margin: 10px; float: right;')
+                span(style="font-weight: bold;") Close
+              //- button.button.is-medium(onclick="onPanoramaPreviousButtonClick()" style='pointer-events: auto; margin: 10px; position: absolute; left: 0; top: 45%; background-color: rgba(30, 30, 30, 0.3); font-weight: bold; font-size: 1.2rem; color: white; border: none;')
+              //-   span(style="font-weight: bold;") Prev
+              //- button.button.is-medium(onclick="onPanoramaNextButtonClick()" style='pointer-events: auto; margin: 10px; position: absolute; right: 0; top: 45%; background-color: rgba(30, 30, 30, 0.3); font-weight: bold; font-size: 1.2rem; color: white; border: none;')
+              //-   span(style="font-weight: bold;") Next
+      
       .section#tab-all-learners(style="margin-top: 0rem; padding-top: 0;")
         .section(style='margin: 0; padding: 0rem;')
           h1.title.has-text-grey-dark.is-large(style='font-size: 2.2rem; margin: 0') All Learners
           h3.subtitle.is-3.has-text-grey(style='margin-top: 1rem;') We've reached&nbsp;
             span#all-learners-count
-            span &nbsp;Learners
+            span &nbsp;Learners&nbsp;
+            span#all-learners-in-country
             span(style='font-size: 1.4rem;') &nbsp;(
               span#no-region-user-count
               span &nbsp;users have Do Not Track on.)
@@ -183,8 +194,7 @@
               //-   span(style="font-weight: bold;") Prev
               //- button.button.is-medium(onclick="onPanoramaNextButtonClick()" style='pointer-events: auto; margin: 10px; position: absolute; right: 0; top: 45%; background-color: rgba(30, 30, 30, 0.3); font-weight: bold; font-size: 1.2rem; color: white; border: none;')
               //-   span(style="font-weight: bold;") Next
-              h4.is-size-4.has-text-centered(style="margin: 10px; pointer-events: auto; ") 
-                span#all-learners-pano-region(style="color: white; background-color: rgba(30, 30, 30, 0.3); padding: 4px; padding-left: 20px; padding-right: 20px;")
+              
     .modal#donor-email-modal
       .modal-background(onclick="document.getElementById('donor-email-modal').classList.remove('is-active');")
       .modal-card
