@@ -39,6 +39,12 @@ let allLearnersData = null;
 let loadingAllLearnersData = false;
 let yourLearnersData = null;
 
+let yourLearnersPanoRef;
+let yourLearnersPanoId = 'your-learners-panorama';
+
+let allLearnersPanoRef;
+let allLearnersPanoId = 'all-learners-panorama';
+
 const COSTPERLEARNER = 0.25;
 
 // Auth data
@@ -143,6 +149,7 @@ $(document).ready(function() {
                 allLearnersData.campaignData[key].learnerCount);
           }
         }
+        document.getElementById('all-learners-in-country').innerHTML = '';
         countrySelectElement.value = allCountriesValue;
       }
     });
@@ -219,6 +226,11 @@ function initializeMaps() {
     yourLearnersCountrySelectElementId);
   countrySelectElement = document.getElementById(
     countrySelectElementId);
+
+  yourLearnersPanoRef = new google.maps.StreetViewPanorama(
+      document.getElementById(yourLearnersPanoId));
+  allLearnersPanoRef = new google.maps.StreetViewPanorama(
+      document.getElementById(allLearnersPanoId));
 
   mapsSharedInfoWindow = new google.maps.InfoWindow();
 
@@ -324,6 +336,22 @@ function initializeCountrySelect(locationData) {
 }
 
 /**
+ * Event handler when user clicks on the panorama close button
+ */
+function onAllLearnersPanoramaCloseButtonClick() {
+  document.getElementById('all-learners-overlay-pano').classList
+      .add('is-hidden');
+}
+
+/**
+ * Event handler when user clicks on the panorama close button
+ */
+function onYourLearnersPanoramaCloseButtonClick() {
+  document.getElementById('your-learners-overlay-pano').classList
+      .add('is-hidden');
+}
+
+/**
  * Event listener when user clicks on the country take me there button that's on
  * info window
  * @param {String} country country that is selected on the map
@@ -333,6 +361,7 @@ function onYourLearnersCountryZoomInClick(country) {
     return;
   }
   yourLearnersCountrySelectElement.value = country;
+  document.getElementById('your-learners-in-country').innerHTML = `in ${country}`;
   onYourLearnersCountrySelectionChanged();
 }
 
@@ -631,6 +660,7 @@ function onCountrySelectionChanged() {
           allLearnersData.campaignData[key].learnerCount);
       }
     }
+    document.getElementById('all-learners-in-country').innerHTML = ``;
   } else {
     displayAllLearnersData(allLearnersData, false, countrySelection);
     let c = allLearnersData.campaignData.find((loc) => { return loc.country === countrySelection; });
@@ -643,6 +673,8 @@ function onCountrySelectionChanged() {
     } else if (!noRegion) {
       createCountUpTextInElement(dntLearnersCountElementId, 0);
     }
+    document.getElementById('all-learners-in-country').innerHTML =
+      `in ${countrySelection}`;
   }
 
   updateResetMapButtonState();
@@ -657,15 +689,15 @@ function onYourLearnersCountrySelectionChanged() {
     return;
   }
 
-  let countrySelection =  yourLearnersCountrySelectElement.
-    options[yourLearnersCountrySelectElement.selectedIndex].value;
+  let countrySelection = yourLearnersCountrySelectElement.
+      options[yourLearnersCountrySelectElement.selectedIndex].value;
 
   clearYourLearnersMarkers();
 
   if (countrySelection === allCountriesValue) {
     let allCountriesAggregateAmount = 0;
     let tempDonationStartDate = null;
-    let allCountriesDonationStartDate = "";
+    let allCountriesDonationStartDate = '';
     let allCountriesLearnersCount = 0;
     let allCountriesDNTUsersCount = 0;
     for (let i = 0; i < yourLearnersData.campaignData.length; i++) {
@@ -691,12 +723,13 @@ function onYourLearnersCountrySelectionChanged() {
     setDonationPercentage(
         allCountriesAggregateAmount,
         allCountriesLearnersCount,
-        COSTPERLEARNER
+        COSTPERLEARNER,
     );
-    document.getElementById('donation-amount').innerText =
-      allCountriesAggregateAmount;
 
-    if (allCountriesDonationStartDate !== "") {
+    document.getElementById('donation-amount').innerText =
+      allCountriesAggregateAmount.toFixed(2);
+
+    if (allCountriesDonationStartDate !== '') {
       document.getElementById('donation-date').innerText =
         allCountriesDonationStartDate.toString();
     }
@@ -704,15 +737,16 @@ function onYourLearnersCountrySelectionChanged() {
     createCountUpTextInElement('learner-count', allCountriesLearnersCount);
 
     createCountUpTextInElement(dntYourLearnersCountElementId,
-      allCountriesDNTUsersCount);
+        allCountriesDNTUsersCount);
 
     displayYourLearnersData(yourLearnersData, true);
+    document.getElementById('your-learners-in-country').innerHTML = ``;
   } else {
     displayYourLearnersData(yourLearnersData, false, countrySelection);
 
     let countryDonationAggregate = 0;
     let countryLearnersAggregate = 0;
-    let countryDonationStartDate = "";
+    let countryDonationStartDate = '';
     let dntRegionLearnersForCountry = 0;
     let tempDonationStartDate = null;
 
@@ -756,7 +790,9 @@ function onYourLearnersCountrySelectionChanged() {
     }
 
     createCountUpTextInElement(dntYourLearnersCountElementId,
-      dntRegionLearnersForCountry);
+        dntRegionLearnersForCountry);
+    document.getElementById('your-learners-in-country').innerHTML =
+      `in ${countrySelection}`;
   }
 
   updateYourLearnersResetMapButtonState();
@@ -816,6 +852,7 @@ function clearAllMarkers() {
  * should be passed
  */
 async function displayAllLearnersData(locData, isCountryLevelData, country) {
+  document.getElementById('all-learners-in-country').innerHTML = '';
   if (locData === null) {
     const center = new google.maps.LatLng(0, 0);
     mapAllLearners.setCenter(center);
@@ -856,7 +893,7 @@ async function displayAllLearnersData(locData, isCountryLevelData, country) {
             getRandomFact(newMarker.facts)));
         mapsSharedInfoWindow.open(mapAllLearners);
         mapsSharedInfoWindow.setPosition(
-          {lat: newMarker.lat, lng: newMarker.lng});
+            {lat: newMarker.lat, lng: newMarker.lng});
       });
 
       loadedMarkers.push(newMarker);
@@ -1159,25 +1196,26 @@ async function displayYourLearnersData(locData, isCountryLevelData, countrySelec
                 streetView = regionMarker.otherViews[randomValue - 1];
             }
 
-            mapsSharedInfoWindow.setContent(constructInfoWindowContent(
-              regionMarker.country,
-              regionMarker.region,
-              getRandomFact(regionMarker.facts),
-              streetView.lat,
-              streetView.lng,
-              streetView.h));
+            mapsSharedInfoWindow.setContent(
+                constructYourLearnersInfoWindowContent(
+                    regionMarker.country,
+                    regionMarker.region,
+                    getRandomFact(regionMarker.facts),
+                    streetView.lat,
+                    streetView.lng,
+                    streetView.h,
+                ));
             mapsSharedInfoWindow.open(mapYourLearners);
             mapsSharedInfoWindow.setPosition(
-              {lat: regionMarker.lat, lng: regionMarker.lng});
+                {lat: regionMarker.lat, lng: regionMarker.lng});
           });
 
           loadedYourLearnersMarkers.push(regionMarker);
           bounds.extend(regionMarker.position);
-
         } else if (region.hasOwnProperty('streetViews') &&
-          learnerCount > 0 &&
-          region.hasOwnProperty('pin') &&
-          region.streetViews.locations.length === 0) {
+            learnerCount > 0 &&
+            region.hasOwnProperty('pin') &&
+            region.streetViews.locations.length === 0) {
 
           let iconOptions = getIconOptionsBasedOnCount(learnerCount);
           let regionMarker = new google.maps.Marker({position:
@@ -1325,29 +1363,88 @@ function constructRegionPinWindow(country, region, randomFact) {
  */
 function constructInfoWindowContent(country, region, randomFact, latitude,
     longitude, heading) {
-  region = region === "no-region" ? "Region not available" : region;
+  region = region === 'no-region' ? 'Region not available' : region;
   const contentString = '<div style=\'text-align: left;\'>' +
     '<span style=\'font-size: 18px; color: #606060\'><b>' +
     region + ' </b></span>' +
     '<span style=\'font-size: 16px; color: #909090\'><b>(' +
     country + ')</b></span>' +
-    // '<br><br> <p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
-    // randomFact + '</p> ' +
-    '<br><br><br> <form action=\'https://google.com/maps/@?\' method=\'get\' ' +
-    'target=\'_blank\' style=\'text-align: center;\'>' +
-    '<input type=\'hidden\' name=\'api\' value=\'1\'></input>' +
-    '<input type=\'hidden\' name=\'map_action\' value=\'pano\'></input>' +
-    '<input type=\'hidden\' name=\'viewpoint\' value=\''+
-    latitude + ',' + longitude + '\'></input>' +
-    '<input type=\'hidden\' name=\'heading\' value=\'' +
-    heading + '\'></input>' +
-    '<button type=\'submit\' class=\'button is-link is-outlined \'>' +
+    '<br><br><button onclick="showAllLearnersStreetViewPano(\'' + region +
+    '\',' + latitude + ',' + longitude + ',' + heading +
+    ')" type=\'button\' class=\'button is-link is-outlined \'>' +
     ' <i class="fas fa-street-view"></i>&nbsp;&nbsp;Take Me There ' +
     '</button> ' +
     '<button onclick="GiveNow()" type=\'button\' class=\'button is-primary \'> Give Now ' +
     '</button>' +
     '</form></div>';
   return contentString;
+}
+
+/**
+ * Constructs and returns info window html string content
+ * @param {String} country is the country value
+ * @param {String} region is the region value
+ * @param {String} randomFact is the randomFact value displayed on info window
+ * @param {Number} latitude is the latitude used for street view link
+ * @param {Number} longitude is the longitude used for the street view link
+ * @param {Number} heading is the heading valued used for street view link
+ * @return {String} content string for the info window
+ */
+function constructYourLearnersInfoWindowContent(country, region, randomFact, latitude,
+    longitude, heading) {
+  region = region === 'no-region' ? 'Region not available' : region;
+  const contentString = '<div style=\'text-align: left;\'>' +
+    '<span style=\'font-size: 18px; color: #606060\'><b>' +
+    region + ' </b></span>' +
+    '<span style=\'font-size: 16px; color: #909090\'><b>(' +
+    country + ')</b></span>' +
+    '<br><br><button onclick="showYourLearnersStreetViewPano(\'' + region +
+    '\',' + latitude + ',' + longitude + ',' + heading +
+    ')" type=\'button\' class=\'button is-link is-outlined \'>' +
+    ' <i class="fas fa-street-view"></i>&nbsp;&nbsp;Take Me There ' +
+    '</button> ' +
+    '<button onclick="GiveNow()" type=\'button\' class=\'button is-primary \'> Give Now ' +
+    '</button>' +
+    '</form></div>';
+  return contentString;
+}
+
+/**
+ * Enable all learners street view panorama and attempt to display given SV
+ * @param {String} region Name of the region
+ * @param {Number} latitude Latitude
+ * @param {Number} longitude Longitude
+ * @param {Number} heading Heading
+ */
+function showAllLearnersStreetViewPano(region, latitude, longitude, heading) {
+  allLearnersPanoRef = new google.maps.StreetViewPanorama(
+      document.getElementById(allLearnersPanoId), {
+        position: {lat: latitude, lng: longitude},
+        pov: {heading: heading, pitch: 10},
+        fullscreenControl: false,
+      });
+  allLearnersPanoRef.setVisible(true);
+  document.getElementById('all-learners-overlay-pano').classList
+      .remove('is-hidden');
+}
+
+/**
+ * Enable your learners street view panorama and attempt to display given SV
+ * @param {String} region Name of the region
+ * @param {Number} latitude Latitude
+ * @param {Number} longitude Longitude
+ * @param {Number} heading Heading
+ */
+function showYourLearnersStreetViewPano(region, latitude, longitude, heading) {
+  allLearnersPanoRef = new google.maps.StreetViewPanorama(
+      document.getElementById(yourLearnersPanoId), {
+        position: {lat: latitude, lng: longitude},
+        pov: {heading: heading, pitch: 10},
+        fullscreenControl: false,
+      });
+  allLearnersPanoRef.setVisible(true);
+  document.getElementById('your-learners-overlay-pano').classList
+      .remove('is-hidden');
 }
 
 /**
