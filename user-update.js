@@ -24,11 +24,14 @@ const gmaps = new Client({});
 * main function
 */
 async function main() {
+  await fetchUpdatesFromBigQuery();
+}
+
   /**
   * Fetch new users from the last 24 hours
   *
   */
-  async function fetchUpdatesFromBigQuery() {
+const fetchUpdatesFromBigQuery= async () => {
     console.log("updates for ", new Date(Date.now()));
     console.log('============================================================');
     const bigQueryClient = new BigQuery();
@@ -120,12 +123,11 @@ async function main() {
     } catch (err) {
       console.error('ERROR', err);
     }
-  }
-  await fetchUpdatesFromBigQuery();
+  }it fetchUpdatesFromBigQuery();
 }
 
 /**
-* @return {Promise} a promise that waits for 1 second before continuing
+ * @return {Promise} a promise that waits for 1 second before continuing
 */
 function waitForSecond() {
   return new Promise((resolve) =>{
