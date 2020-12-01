@@ -18,154 +18,113 @@ fireStoreAdmin.initializeApp({
   credential: fireStoreAdmin.credential.cert(serviceAccount),
 });
 const firestore = fireStoreAdmin.firestore();
+const {BatchManager} = require('./batchManager');
 const gmaps = new Client({});
 
 /**
-* main function
+* Fetch new users from the last 24 hours
+*
 */
-async function main() {
-  await fetchUpdatesFromBigQuery();
-}
-
-  /**
-  * Fetch new users from the last 24 hours
-  *
-  */
-const fetchUpdatesFromBigQuery= async () => {
-    console.log("updates for ", new Date(Date.now()));
-    console.log('============================================================');
-    const bigQueryClient = new BigQuery();
-    const tables =[
-      `tinkrplayer.analytics_175820453.events_*`,
-      `ftm-brazilian-portuguese.analytics_161789655.events_*`,
-      `ftm-hindi.analytics_174638281.events_*`,
-      `ftm-zulu.analytics_155849122.events_*`,
-      `ftm-swahili.analytics_160694316.events*`,
-      `ftm-english.analytics_152408808.events_*`,
-      `ftm-afrikaans.analytics_177200876.events_*`,
-      `ftm-australian-english.analytics_159083443.events_*`,
-      `ftm-brazilian-portuguese.analytics_161789655.events_*`,
-      `ftm-french.analytics_173880465.events_*`,
-      `ftm-hausa.analytics_164138311.events_*`,
-      `ftm-indian-english.analytics_160227348.events_*`,
-      `ftm-isixhosa.analytics_180747962.events_*`,
-      `ftm-kinayrwanda.analytics_177922191.events_*`,
-      `ftm-ndebele.analytics_181170652.events_*`,
-      `ftm-oromo.analytics_167539175.events_*`,
-      `ftm-sepedi.analytics_180755978.events_*`,
-      `ftm-sesotho.analytics_177536906.events_*`,
-      `ftm-siswati.analytics_181021951.events_*`,
-      `ftm-somali.analytics_159630038.events_*`,
-      `ftm-southafricanenglish.analytics_173750850.events_*`,
-      `ftm-spanish.analytics_158656398.events_*`,
-      `ftm-tsonga.analytics_177920210.events_*`,
-      `ftm-tswana.analytics_181020641.events_*`,
-      `ftm-venda.analytics_179631877.events_*`,
-    ];
-    let query = '';
-    tables.forEach((table)=>{
-      if (query != '') {
-        query = query.concat(' UNION ALL ');
-      }
-      const subquery = `SELECT
-        DISTINCT user_pseudo_id,
-        event_name,
-        event_date,
-        traffic_source.name,
-        geo.continent,
-        geo.country,
-        geo.region
-      FROM
-        \``+ table+`\`
-      WHERE
-        _TABLE_SUFFIX =
-          FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY))
-      AND
-        event_name = \"first_open\"`;
-      query = query.concat(subquery);
-    });
-
-    const options = {
-      query: query,
-      location: 'US',
-    };
-
-    try {
-      const [rows] = await bigQueryClient.query(options);
-      console.log('successful Query');
-      const batchMax = 490;
-      let batchCounter = 0;
-      let commitCounter = 0;
-      const batches = [];
-      const usedIDs = [];
-      let counter = 0;
-      let doubleCounter = 0;
-      batches[commitCounter] = firestore.batch();
-      rows.forEach((row)=>{
-        if (batchCounter >= batchMax) {
-          batchCounter = 0;
-          commitCounter++;
-          batches[commitCounter] = firestore.batch();
-        }
-        if (!usedIDs.includes(row.user_pseudo_id)) {
-          counter++;
-          usedIDs.push(row.user_pseudo_id);
-          addUserToPool(createUser(row), batches[commitCounter]);
-          insertLocation(row);
-          batchCounter++;
-        } else {
-          doubleCounter++;
-        }
-      });
-      console.log('created ', counter - doubleCounter, ' new users');
-      await writeToDb(batches);
-      console.log('doubleCounter: ' + doubleCounter);
-    } catch (err) {
-      console.error('ERROR', err);
+exports.fetchUpdatesFromBigQuery = async () => {
+  console.log('updates for ', new Date(Date.now()));
+  console.log('============================================================');
+  const bigQueryClient = new BigQuery();
+  const tables =[
+    `tinkrplayer.analytics_175820453.events_*`,
+    `ftm-brazilian-portuguese.analytics_161789655.events_*`,
+    `ftm-hindi.analytics_174638281.events_*`,
+    `ftm-zulu.analytics_155849122.events_*`,
+    `ftm-swahili.analytics_160694316.events*`,
+    `ftm-english.analytics_152408808.events_*`,
+    `ftm-afrikaans.analytics_177200876.events_*`,
+    `ftm-australian-english.analytics_159083443.events_*`,
+    `ftm-brazilian-portuguese.analytics_161789655.events_*`,
+    `ftm-french.analytics_173880465.events_*`,
+    `ftm-hausa.analytics_164138311.events_*`,
+    `ftm-indian-english.analytics_160227348.events_*`,
+    `ftm-isixhosa.analytics_180747962.events_*`,
+    `ftm-kinayrwanda.analytics_177922191.events_*`,
+    `ftm-ndebele.analytics_181170652.events_*`,
+    `ftm-oromo.analytics_167539175.events_*`,
+    `ftm-sepedi.analytics_180755978.events_*`,
+    `ftm-sesotho.analytics_177536906.events_*`,
+    `ftm-siswati.analytics_181021951.events_*`,
+    `ftm-somali.analytics_159630038.events_*`,
+    `ftm-southafricanenglish.analytics_173750850.events_*`,
+    `ftm-spanish.analytics_158656398.events_*`,
+    `ftm-tsonga.analytics_177920210.events_*`,
+    `ftm-tswana.analytics_181020641.events_*`,
+    `ftm-venda.analytics_179631877.events_*`,
+  ];
+  let query = '';
+  tables.forEach((table)=>{
+    if (query != '') {
+      query = query.concat(' UNION ALL ');
     }
-  }it fetchUpdatesFromBigQuery();
-}
-
-/**
- * @return {Promise} a promise that waits for 1 second before continuing
-*/
-function waitForSecond() {
-  return new Promise((resolve) =>{
-    setTimeout(()=>{
-      resolve('resolved');
-    }, 1010);
+    const subquery = `SELECT
+      DISTINCT user_pseudo_id,
+      event_name,
+      event_date,
+      traffic_source.name,
+      geo.continent,
+      geo.country,
+      geo.region
+    FROM
+      \``+ table+`\`
+    WHERE
+      _TABLE_SUFFIX =
+        FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY))
+    AND
+      event_name = \"first_open\"`;
+    query = query.concat(subquery);
   });
-}
 
-/**
-* Loop through an array of firestore batches and commit each one
-* working at a rate of 1 batch/second
-* @param{Object[]} arr the array of batches to commit to
-*/
-async function writeToDb(arr) {
-  console.log('beginning write');
-  for (let i = 0; i < arr.length; i++) {
-    console.log('writing batch: ' + i);
-    await waitForSecond();
-    arr[i].commit().then(function() {
-      console.log('wrote batch: ' + i);
-    }).catch((err)=>{
-      console.error(err);
+  const options = {
+    query: query,
+    location: 'US',
+  };
+
+  try {
+    const [rows] = await bigQueryClient.query(options);
+    console.log('successful Query');
+    const batch = new BatchManager();
+    const usedIDs = [];
+    let counter = 0;
+    let doubleCounter = 0;
+    const poolRef = firestore.collection('user_pool');
+    rows.forEach((row)=>{
+      if (!usedIDs.includes(row.user_pseudo_id)) {
+        const filePath = poolRef.doc(row.user_pseudo_id);
+        counter++;
+        usedIDs.push(row.user_pseudo_id);
+        batch.set(filePath, this.createUser(row), true);
+        this.insertLocation(row);
+      } else {
+        doubleCounter++;
+      }
     });
+    console.log('created ', counter - doubleCounter, ' new users');
+    batch.commit();
+    console.log('doubleCounter: ' + doubleCounter);
+  } catch (err) {
+    console.error('ERROR', err);
   }
-}
+};
 
 /**
 * add a new location reference to fireStore
 * @param{string[]} row the row containing the new location data
+*@param{Object} batch the BatchManager instance handling data upload
+*@return{Promise} a promise that resolves by setting a database operation.
 */
-function insertLocation(row) {
+exports.insertLocation = async (row, batch)=> {
   if (row.country != null && row.country != '') {
     const locationRef = firestore.collection('loc_ref').doc(row.country);
-    locationRef.get().then(async (doc)=>{
+    return locationRef.get().then((doc)=>{
       if (!doc.exists) {
-        await getPinForAddress(row.country, (markerLoc) => {
-          locationRef.set({
+        const data = await this.getPinForAddress(row.country, (markerLoc, err) => {
+          if (err) throw err;
+          return {
             country: row.country,
             continent: row.continent,
             learnerCount: 0,
@@ -174,31 +133,37 @@ function insertLocation(row) {
               lng: markerLoc.lng,
             },
             regions: [],
-          }, {merge: true});
+          };
         });
+        return batch.set(locationRef, data, true);
       } else if (doc.exists && !doc.data().hasOwnProperty('pin') ||
-          (doc.exists && doc.data().pin.lat === 0 && doc.data().pin.lng === 0)) {
-        await getPinForAddress(row.country, (markerLoc) => {
-          locationRef.set({
+          (doc.exists && doc.data().pin.lat === 0 &&
+          doc.data().pin.lng === 0)) {
+        const data = await this.getPinForAddress(row.country, (markerLoc, err) => {
+          if (err) throw err;
+          return {
             pin: {
               lat: markerLoc.lat,
               lng: markerLoc.lng,
             },
-          }, {merge: true});
+          };
         });
+        return batch.set(locationRef, data, true);
       }
     }).catch((err)=>{
-      console.log(err);
+      console.error(err);
     });
+  } else {
+    console.warn(`${row.user_pseudo_id} has no location data!`);
   }
-}
+};
 
 /**
  * Returns a [lat, lng] pair of values for the given address
  * @param {String} address is the address in string format
  * @param {Function} callback is a function that's called after getting a marker
  */
-async function getPinForAddress(address, callback) {
+exports.getPinForAddress = async (address, callback) => {
   if (address === 'Georgia') address = 'Country of Georgia';
   await gmaps.geocode({
     params: {
@@ -210,19 +175,21 @@ async function getPinForAddress(address, callback) {
     if (r.data.results[0]) {
       // console.log(r.data.results[0]);
       const markerLoc = r.data.results[0].geometry.location;
-      callback(markerLoc);
+      callback(markerLoc, null);
+    } else {
+      callback(null, new Error(`no data found for address: ${address}`));
     }
   }).catch((e) => {
-    console.log(e.response.data.error_message);
+    callback(null, e);
   });
-}
+};
 
 /**
 * Create a user object from a BigQuery row
 * @param{string[]} row The array of strings representing a user event
 * @return{Object} The newly formatted user object
 */
-function createUser(row) {
+exports.createUser = (row) => {
   if (row.region === null || row.region === undefined || row.region === '') {
     row.region = 'no-region';
   }
@@ -232,39 +199,54 @@ function createUser(row) {
   if (row.country === undefined || row.country === null || row.country === '') {
     row.country = 'no-country';
   }
-  if (row.continent === undefined|| row.country === null || row.country ==='') {
-    row.country = 'not-set';
+  if (row.continent === undefined|| row.continent === null ||
+    row.continent ==='') {
+    row.continent = 'not-set';
   }
 
+  const now = fireStoreAdmin.firestore.Timestamp.now();
+  let dateCreated;
+  try {
+    dateCreated = this.makeTimestamp(row.event_date);
+  } catch (e) {
+    console.warn('event_date is malformed, defaulting to current time');
+    dateCreated = now;
+  }
   const user = {
     userID: row.user_pseudo_id,
-    dateCreated: makeTimestamp(row.event_date),
-    dateIngested: fireStoreAdmin.firestore.Timestamp.now(),
+    dateCreated: dateCreated,
+    dateIngested: now,
     sourceCampaign: row.name,
     region: row.region,
     country: row.country,
     continent: row.continent,
     learnerLevel: row.event_name,
-    userStatus: 'unassigned'
+    userStatus: 'unassigned',
+    sourceDonor: 'unassigned',
+    countedInMasterCount: false,
+    countedInRegion: false,
+    countedInCampaign: false,
   };
-  console.log('created user: ' + user.userID + ' ' + row.country + ' / ' + row.region);
+  console.log(`created user: ${user.userID}, ${row.country}/ ${row.region}`);
   return user;
-}
+};
 
 /**
 * Convert a date string to a firebase Timestamp
 * @param{str} date the date string
 * @return{Object} the firebase timestamp
 */
-function makeTimestamp(date) {
+exports.makeTimestamp = (date) => {
   const year = date.slice(0, 4);
   const month = date.slice(4, 6);
   const day = date.slice(6);
+  console.log(`date is ${year}-${month}-${day}`);
   const dateString = year.toString()+'-'+month.toString()+'-'+day.toString();
   const parsedDate = new Date(dateString);
   const timestamp = fireStoreAdmin.firestore.Timestamp.fromDate(parsedDate);
+  console.log(`timestamp: ${timestamp._seconds}`);
   return timestamp;
-}
+};
 
 /**
 * create and batch a statement to add a new user to the user_pool collection
