@@ -23,7 +23,7 @@ const gmaps = new Client({});
 /**
 * main function
 */
-function main() {
+async function main() {
   /**
   * Fetch new users from the last 24 hours
   *
@@ -115,13 +115,13 @@ function main() {
         }
       });
       console.log('created ', counter - doubleCounter, ' new users');
-      writeToDb(batches);
+      await writeToDb(batches);
       console.log('doubleCounter: ' + doubleCounter);
     } catch (err) {
       console.error('ERROR', err);
     }
   }
-  fetchUpdatesFromBigQuery();
+  await fetchUpdatesFromBigQuery();
 }
 
 /**
@@ -160,9 +160,9 @@ async function writeToDb(arr) {
 function insertLocation(row) {
   if (row.country != null && row.country != '') {
     const locationRef = firestore.collection('loc_ref').doc(row.country);
-    locationRef.get().then((doc)=>{
+    locationRef.get().then(async (doc)=>{
       if (!doc.exists) {
-        getPinForAddress(row.country, (markerLoc) => {
+        await getPinForAddress(row.country, (markerLoc) => {
           locationRef.set({
             country: row.country,
             continent: row.continent,
@@ -176,7 +176,7 @@ function insertLocation(row) {
         });
       } else if (doc.exists && !doc.data().hasOwnProperty('pin') ||
           (doc.exists && doc.data().pin.lat === 0 && doc.data().pin.lng === 0)) {
-        getPinForAddress(row.country, (markerLoc) => {
+        await getPinForAddress(row.country, (markerLoc) => {
           locationRef.set({
             pin: {
               lat: markerLoc.lat,
@@ -287,4 +287,4 @@ function addUserToPool(user, batch) {
     countedInCampaign: false,
   }, {merge: true});
 }
-main();
+await main();
