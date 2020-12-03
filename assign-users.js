@@ -18,10 +18,10 @@ admin.initializeApp({
 });
 const firestore = admin.firestore();
 
-function main() {
-  assignExpiringLearners();
-}
-main();
+async function main() {
+  await assignExpiringLearners();
+};
+await main();
 
 async function assignExpiringLearners() {
   let priorityQueue = 0;
@@ -239,8 +239,8 @@ function sweepExpiredLearners() {
           batchSize ++;
         });
         return batches;
-      }).then((batches)=>{
-        writeToDb(batches);
+      }).then(async (batches)=>{
+        await writeToDb(batches);
       }).catch((err)=>{
         console.error(err);
       });
