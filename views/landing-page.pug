@@ -9,6 +9,7 @@
     link(rel="apple-touch-icon" href="/static/imgs/appicon.png")
     link(rel='manifest', href='/static/manifest.webmanifest')
     script(src="/static/js/sw-loader.js")
+    script(src="/static/js/gtm.js")
     link(rel='stylesheet', href='/static/css/bulma-0.9.1.min.css')
     link(rel="preconnect" href="https://in.hotjar.com")
     link(rel="preconnect" href="https://static.hotjar.com")
@@ -218,10 +219,17 @@
         h5.is-size-5 Copyright 2020 by Curious Learning.
 
     script(src="/static/js/jquery-3.5.0.min.js")
+    script(src='/static/js/countUp.js')
     script(src="/static/js/firebase-app-7.14.3.js")
     script(src="/static/js/firebase-analytics-7.14.3.js")
     script(src='/static/js/font-awesome-89be965993a.js')
     script(src="/static/js/hj.js")
     script(src='/static/js/fbc.js')
-    script(src='/static/js/countUp.js')
     script(src='/static/js/landing-page.js')
+
+    noscript
+      iframe(src="https://www.googletagmanager.com/ns.html?id=GTM-KW3K32P" height="0" width="0" style="display:none;visibility:hidden")
+
+    script(src='/static/js/lnkd.js')
+    noscript
+      img(height="1" width="1" style="display:none;" alt="" src="https://px.ads.linkedin.com/collect/?pid=3032825&fmt=gif")
