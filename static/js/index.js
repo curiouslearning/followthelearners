@@ -193,7 +193,6 @@ $(document).ready(function() {
   tabSelector.ToggleTab('tab-all-learners');
 });
 
-
 function closeHamburgerMenu() {
   const $navbarBurgers = Array.prototype.slice.call(
       document.querySelectorAll('.navbar-burger'), 0);
