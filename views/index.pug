@@ -195,7 +195,16 @@
               //-   span(style="font-weight: bold;") Prev
               //- button.button.is-medium(onclick="onPanoramaNextButtonClick()" style='pointer-events: auto; margin: 10px; position: absolute; right: 0; top: 45%; background-color: rgba(30, 30, 30, 0.3); font-weight: bold; font-size: 1.2rem; color: white; border: none;')
               //-   span(style="font-weight: bold;") Next
-              
+    
+    .modal#donate-modal
+          .modal-background(onclick="document.getElementById('donate-modal').classList.remove('is-active');")
+          .modal-card
+            header.modal-card-head(style='border: none')
+              p.modal-card-title.hast-text-grey-dark.has-text-centered Donate | Give Lively
+              button.delete(aria-label='close' onclick="document.getElementById('donate-modal').classList.remove('is-active'); document.getElementById('modal-instruction-text').classList.remove('is-hidden');")
+            .modal-card-body
+              div.gl-simple-donation-widget#give-lively-widget
+    
     .modal#donor-email-modal
       .modal-background(onclick="document.getElementById('donor-email-modal').classList.remove('is-active');")
       .modal-card
@@ -247,6 +256,8 @@
                   $('#donor-email').keyup(function(event) {});
               });
             });
+
+    script(src="https://secure.givelively.org/widgets/simple_donation/curious-learning-a-global-literacy-project-inc.js?show_suggested_amount_buttons=false&show_in_honor_of=false&address_required=false&has_required_custom_question=null&prefilled_donation_amount=20")
 
     footer.footer
       .container.has-text-centered
