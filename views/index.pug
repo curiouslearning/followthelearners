@@ -42,17 +42,6 @@
         margin-top: -4px; 
         z-index: 100;
       }
-      #give-again {
-        margin-left: 1rem;
-        //- background: none!important;
-        //- border: none;
-        //- padding: 0!important;
-        //- text-decoration: underline;
-        //- cursor: pointer;
-        //- font-size: 1.4rem;
-        //- font-weight: bold;
-        //- color: #069;
-      }
       #percent-filled {
         font-size: 1.4rem;
         background: none!important;
@@ -114,7 +103,8 @@
                     +campaign(campaign.country, campaign.imgRef, campaign.body, campaign.campaignID, campaign.amount, campaign.country, utmSource, campaign.donateRef, campaign.isFeatured)
           script.
             function goToDonate(campaign, amount, donateRef) {
-              window.open("/donate?campaign=" + campaign + "&amount=" + amount + "&donateRef=" + donateRef, '_blank');
+              document.getElementById('donate-modal').classList.add('is-active');
+              window.history.replaceState(null, null, "?utm_source=" + campaign);
             }
             function readMore(btn) {
               let spanId = btn.id.replace('btn_', '');
