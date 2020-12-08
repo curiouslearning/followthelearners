@@ -60,13 +60,16 @@
         padding: 0!important;
         font-weight: bold;
       }
+      #navbar {
+        transition: max-height 0.5s ease-in-out;
+      }
 
   body(style="padding-top: 8rem !important;")
     - const utmValue = utmSource ? "/?utm_source=" + utmSource : '/';
     header
-      nav.navbar.is-fixed-top(role="navigation" style='z-index: 100; padding-left: 1.5rem; padding-right: 1.5rem; padding-top: 2rem; padding-bottom: 2rem;')
-        .navbar-brand
-          a.title.has-text-grey-dark.is-large(href=utmValue) Follow The Learners™
+      nav.navbar.is-fixed-top#navbar(role="navigation" style='z-index: 100; max-height: 120px; height: 120px; padding-left: 1.5rem; border-radius: 0; padding-right: 1.5rem; ')
+        .navbar-brand(style="align-items: center;")
+          a.title.has-text-grey-dark.is-large(href=utmValue style="margin-bottom: 0.5rem;") Follow The Learners™
             span.is-small.subtitle (Beta)
           a.navbar-burger.is-large(data-target="navbarHeroMenu" role="button" aria-label="menu" aria-expanded="false" style="background-color: #404040;")
             span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
@@ -91,11 +94,12 @@
               span All Learners
 
             // Sign In Button
-            a.button.is-medium.is-primary.navbar-item#sign-in-out(onclick= "tabSelector.ToggleTab('tab-your-learners')" style='margin-right: 0.25rem; margin-left: 0.25rem; margin-bottom: 0.5rem')
+            a.button.is-medium.is-primary.navbar-item#sign-in-out(onclick= "tabSelector.ToggleTab('tab-your-learners')" style='margin-right: 0.25rem; margin-left: 0.25rem; margin-bottom: 0.5rem;')
               span#sign-in-text Sign In
 
     .section#tabs-parent(style='z-index: 100; padding: 0;')
       .section.is-hidden#tab-campaigns(style='padding: 0;')
+        //- div.has-text-centered
         //- h3.subtitle.is-3.has-text-grey(style='margin-top: 0.5rem') Pick a Region
         .section(style="padding-top: 0.5rem;")
           //- h3.has-text-grey.has-text-centered(style='background-color: rgba(255, 217, 105, 0.5)')
