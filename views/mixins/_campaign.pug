@@ -3,7 +3,7 @@ include ./_link
 //- a donation link
 mixin campaign (title, imgRef, body, campaignID, amount, country, utmSource, donateRef, isFeatured)
   - var featured = isFeatured
-  - const donateLink = 'campaign' + campaignID + '|' + country + '|' + utmSource + '&amount=' + amount + '&donateRef=' + donateRef;
+  - const donateLink = 'campaign=' + campaignID + '|' + country + '|' + utmSource + '&amount=' + amount + '&donateRef=' + donateRef;
   .card.column.is-shadowless(style='border: none; margin: 10px;')
     .card-image
       a(href='/donate?' + donateLink target='_blank')

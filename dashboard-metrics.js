@@ -54,7 +54,7 @@ function main(date) {
     console.error(err);
   })
 }
-main(parsedDate);
+await main(parsedDate);
 
 async function loadIntoBigQuery(filename) {
   const bigQueryClient = new BigQuery();
