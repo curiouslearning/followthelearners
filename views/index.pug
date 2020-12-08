@@ -191,13 +191,15 @@
               //-   span(style="font-weight: bold;") Next
     
     .modal#donate-modal
-          .modal-background(onclick="document.getElementById('donate-modal').classList.remove('is-active');")
-          .modal-card
-            header.modal-card-head(style='border: none')
-              p.modal-card-title.hast-text-grey-dark.has-text-centered Donate | Give Lively
-              button.delete(aria-label='close' onclick="document.getElementById('donate-modal').classList.remove('is-active'); document.getElementById('modal-instruction-text').classList.remove('is-hidden');")
-            .modal-card-body
-              div.gl-simple-donation-widget#give-lively-widget
+      .modal-background(onclick="document.getElementById('donate-modal').classList.remove('is-active');")
+      .modal-card
+        header.modal-card-head(style='border: none')
+          p.modal-card-title.hast-text-grey-dark.has-text-centered Donate | Give Lively
+          button.delete(aria-label='close' onclick="document.getElementById('donate-modal').classList.remove('is-active'); document.getElementById('modal-instruction-text').classList.remove('is-hidden');")
+        .modal-card-body
+          div.gl-simple-donation-widget#give-lively-widget
+      noscript
+        img(height="1" width="1" style="display:none;" alt="" src="https://px.ads.linkedin.com/collect/?pid=3032825&fmt=gif")
     
     .modal#donor-email-modal
       .modal-background(onclick="document.getElementById('donor-email-modal').classList.remove('is-active');")
