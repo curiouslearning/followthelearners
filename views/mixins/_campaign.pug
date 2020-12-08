@@ -19,18 +19,18 @@ mixin campaign (title, imgRef, body, campaignID, amount, country, utmSource, don
           img(src=imgRef, alt='Campaign Image')
           if featured
             p(style="position: absolute; top: 20; left: -10; background-color: #fff; border: 2px solid #606060; padding-left: 1rem; padding-right: 1rem; font-size: 1.4rem; font-weight: bold; cursor: default") FEATURED
-          //- div(style='position: absolute; bottom: 0; left: 0; background-color: rgba(30, 30, 30, 0.5); color: white; width: 100%; display: flex; align-items: center;')
-          //-   p.title.is-size-3(style='color: white; margin-top: 0.75rem; margin-bottom: 0.75rem; margin-left: 0.5rem;') #{title}
-          //-   button.button.is-primary.is-medium.is-desktop(type='button', id='giveNow'+campaignID, onclick = "goToDonate(\"" + utmSource + '","' + amount + '","' + donateRef + '\")', style='position: absolute; right: 0; margin-right: 0.5rem; padding-left: 2rem; padding-right: 2rem;') Give Now 
+          div(style='position: absolute; bottom: 0; left: 0; background-color: rgba(30, 30, 30, 0.5); color: white; width: 100%; display: flex; align-items: center;')
+            p.title.is-size-3(style='color: white; margin-top: 0.75rem; margin-bottom: 0.75rem; margin-left: 0.5rem;') #{title}
+            button.button.is-primary.is-medium.is-desktop(type='button', id='giveNow'+campaignID, onclick = "goToDonate(\"" + utmSource + '","' + amount + '","' + donateRef + '\")', style='position: absolute; right: 0; margin-right: 0.5rem; padding-left: 2rem; padding-right: 2rem;') Give Now 
               //- span &nbsp;to #{title}
           //- .container(style='align-')
               
     br
-    .card-header.is-shadowless
-      .columns(style='display: flex; flex-wrap: nowrap; width: 100%')
-        .column.is-two-fifths
-          h2.title.is-size-2.has-text-grey-dark #{title}
-        .column
-          button.button.is-primary.is-large.is-desktop(type='button', id='giveNow'+campaignID, onclick = "goToDonate(\"" + utmSource + '","' + amount + '","' + donateRef + '\")', style='') Give Now
+    //- .card-header.is-shadowless
+    //-   .columns(style='display: flex; flex-wrap: nowrap; width: 100%')
+    //-     .column.is-two-fifths
+    //-       h2.title.is-size-2.has-text-grey-dark #{title}
+    //-     .column
+    //-       button.button.is-primary.is-large.is-desktop(type='button', id='giveNow'+campaignID, onclick = "goToDonate(\"" + utmSource + '","' + amount + '","' + donateRef + '\")', style='') Give Now
     .card-content(style="padding: 0; margin-top: 0.5rem")
       .subtitle.is-size-5.has-text-grey !{body}
