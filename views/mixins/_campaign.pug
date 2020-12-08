@@ -2,24 +2,35 @@ include ./_link
 //- renders a quick summary of a campaign, with an image and 
 //- a donation link
 mixin campaign (title, imgRef, body, campaignID, amount, country, utmSource, donateRef, isFeatured)
-  - var featured = isFeatured
-  - const donateLink = 'campaign=' + campaignID + '|' + country + '|' + utmSource + '&amount=' + amount + '&donateRef=' + donateRef;
+  - var featured = isFeatured;
+  - if (utmSource === undefined) {
+  -   utmSource = campaignID + '|' + country + '|' + 'undefined';
+  - } else if (utmSource.split('|').length === 1) {
+  -   utmSource = campaignID + '|' + country + '|' + utmSource;
+  - } else if (utmSource.split('|').length >= 3) {
+  -   utmSource = campaignID + '|' + country + '|' + utmSource.split('|')[2];  
+  - }
+  - const donateLink = 'campaign=' + utmSource + '&amount=' + amount + '&donateRef=' + donateRef;
   .card.column.is-shadowless(style='border: none; margin: 10px;')
     .card-image
-      a(href='/donate?' + donateLink target='_blank')
-        .box(style="border-radius: 0; box-shadow: 0px 2px 8px #808080; padding: 0")
-          figure.image.is-5by3
-            img(src=imgRef, alt='Campaign Image')
-            if featured
-              p(style="position: absolute; top: 20; left: -10; background-color: #fff; border: 2px solid #606060; padding-left: 1rem; padding-right: 1rem; font-size: 1.4rem; font-weight: bold;") FEATURED
+      //- a(href='/donate?' + donateLink target='_blank')
+      .box(style="border-radius: 0; box-shadow: 0px 2px 8px #808080; padding: 0")
+        figure.image.is-5by3
+          img(src=imgRef, alt='Campaign Image')
+          if featured
+            p(style="position: absolute; top: 20; left: -10; background-color: #fff; border: 2px solid #606060; padding-left: 1rem; padding-right: 1rem; font-size: 1.4rem; font-weight: bold; cursor: default") FEATURED
+          //- div(style='position: absolute; bottom: 0; left: 0; background-color: rgba(30, 30, 30, 0.5); color: white; width: 100%; display: flex; align-items: center;')
+          //-   p.title.is-size-3(style='color: white; margin-top: 0.75rem; margin-bottom: 0.75rem; margin-left: 0.5rem;') #{title}
+          //-   button.button.is-primary.is-medium.is-desktop(type='button', id='giveNow'+campaignID, onclick = "goToDonate(\"" + utmSource + '","' + amount + '","' + donateRef + '\")', style='position: absolute; right: 0; margin-right: 0.5rem; padding-left: 2rem; padding-right: 2rem;') Give Now 
+              //- span &nbsp;to #{title}
+          //- .container(style='align-')
               
     br
     .card-header.is-shadowless
       .columns(style='display: flex; flex-wrap: nowrap; width: 100%')
         .column.is-two-fifths
-          
-          a.title.is-size-2.has-text-grey-dark(href='/donate?' + donateLink) #{title}
+          h2.title.is-size-2.has-text-grey-dark #{title}
         .column
-          button.button.is-primary.is-large.is-desktop(type='button', id='giveNow'+campaignID, onclick = "goToDonate(\"" + campaignID + '|' + country + '|' + utmSource + '","' + amount + '","' + donateRef + '\")', style='') Give Now
+          button.button.is-primary.is-large.is-desktop(type='button', id='giveNow'+campaignID, onclick = "goToDonate(\"" + utmSource + '","' + amount + '","' + donateRef + '\")', style='') Give Now
     .card-content(style="padding: 0; margin-top: 0.5rem")
       .subtitle.is-size-5.has-text-grey !{body}
