@@ -287,4 +287,4 @@ function addUserToPool(user, batch) {
     countedInCampaign: false,
   }, {merge: true});
 }
-await main();
+main();

@@ -300,14 +300,10 @@ function GetDataAndSwitchToAllLearners() {
 
     clearAllMarkers();
     createCountUpTextInElement('all-learners-count',
-        getTotalCountForAllLearners(allLearnersData));
+        allLearnersData.masterCounts.allLearnersCount);
     displayAllLearnersData(allLearnersData, true);
-    for (const key in allLearnersData.campaignData) {
-      if (allLearnersData.campaignData[key].country == 'no-country') {
-        createCountUpTextInElement(dntLearnersCountElementId,
-            allLearnersData.campaignData[key].learnerCount);
-      }
-    }
+    createCountUpTextInElement(dntLearnersCountElementId,
+        allLearnersData.masterCounts.allLearnersWithDoNotTrack);
     countrySelectElement.value = allCountriesValue;
   });
 }

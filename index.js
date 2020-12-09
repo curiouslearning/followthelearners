@@ -431,10 +431,10 @@ app.get('/yourLearners', function(req, res) {
   });
 });
 
-app.get('/allLearners', function(req, res) {
+app.get('/allLearners', async function(req, res) {
   console.log('Getting location data for all learners...');
   const dbRef = firestore.collection('loc_ref');
-  dbRef.get().then((snapshot) => {
+  dbRef.get().then(async (snapshot) => {
     if (snapshot.empty) {
       res.end();
       return;
@@ -459,6 +459,10 @@ app.get('/allLearners', function(req, res) {
     });
     resData.campaignData.filter((country) => country != undefined);
     resData.locationData.filter((country) => country != undefined);
+    resData['masterCounts'] = await firestore.collection('aggregate_data')
+        .doc('data').get().then((doc)=>{
+          return doc.data();
+        });
     res.json({data: resData});
   }).catch((err)=>{
     console.error(err);
