@@ -11,6 +11,9 @@
         crossorigin="anonymous")
     script(src="/static/js/sw-loader.js")
     script(src="/static/js/gtm.js")
+    script(src="/static/js/fbp.js")
+    noscript
+      img(height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=225538995469689&ev=PageView&noscript=1")
     script(src="https://www.gstatic.com/firebasejs/7.14.3/firebase-app.js")
     script(src="https://www.gstatic.com/firebasejs/7.14.3/firebase-analytics.js")
     script(src="https://www.gstatic.com/firebasejs/7.14.3/firebase-auth.js")
@@ -105,6 +108,15 @@
             function goToDonate(campaign, amount, donateRef) {
               document.getElementById('donate-modal').classList.add('is-active');
               window.history.replaceState(null, null, "?utm_source=" + campaign);
+              let submitButtons = document.getElementsByClassName('gl-widget__donation-submit-button');
+              if (submitButtons.length > 0) {
+                let donateButton = submitButtons[0];
+                donateButton.addEventListener('click', () => {
+                  if (campaign.includes("facebook")) {
+                    fbq('trackCustom', 'DonationClick', {utmSource: campaign});
+                  }
+                } , false);
+              }
             }
             function readMore(btn) {
               let spanId = btn.id.replace('btn_', '');
@@ -197,9 +209,9 @@
           p.modal-card-title.hast-text-grey-dark.has-text-centered Donate | Give Lively
           button.delete(aria-label='close' onclick="document.getElementById('donate-modal').classList.remove('is-active'); document.getElementById('modal-instruction-text').classList.remove('is-hidden');")
         .modal-card-body
+          noscript
+            img(height="1" width="1" style="display:none;" alt="" src="https://px.ads.linkedin.com/collect/?pid=3032825&fmt=gif")
           div.gl-simple-donation-widget#give-lively-widget
-      noscript
-        img(height="1" width="1" style="display:none;" alt="" src="https://px.ads.linkedin.com/collect/?pid=3032825&fmt=gif")
     
     .modal#donor-email-modal
       .modal-background(onclick="document.getElementById('donor-email-modal').classList.remove('is-active');")
