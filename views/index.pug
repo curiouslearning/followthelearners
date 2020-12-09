@@ -11,6 +11,9 @@
         crossorigin="anonymous")
     script(src="/static/js/sw-loader.js")
     script(src="/static/js/gtm.js")
+    script(src="/static/js/fbp.js")
+    noscript
+      img(height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=225538995469689&ev=PageView&noscript=1")
     script(src="https://www.gstatic.com/firebasejs/7.14.3/firebase-app.js")
     script(src="https://www.gstatic.com/firebasejs/7.14.3/firebase-analytics.js")
     script(src="https://www.gstatic.com/firebasejs/7.14.3/firebase-auth.js")
@@ -42,17 +45,6 @@
         margin-top: -4px; 
         z-index: 100;
       }
-      #give-again {
-        margin-left: 1rem;
-        //- background: none!important;
-        //- border: none;
-        //- padding: 0!important;
-        //- text-decoration: underline;
-        //- cursor: pointer;
-        //- font-size: 1.4rem;
-        //- font-weight: bold;
-        //- color: #069;
-      }
       #percent-filled {
         font-size: 1.4rem;
         background: none!important;
@@ -60,13 +52,16 @@
         padding: 0!important;
         font-weight: bold;
       }
+      #navbar {
+        transition: max-height 0.5s ease-in-out;
+      }
 
   body(style="padding-top: 8rem !important;")
     - const utmValue = utmSource ? "/?utm_source=" + utmSource : '/';
     header
-      nav.navbar.is-fixed-top(role="navigation" style='z-index: 100; padding-left: 1.5rem; padding-right: 1.5rem; padding-top: 2rem; padding-bottom: 2rem;')
-        .navbar-brand
-          a.title.has-text-grey-dark.is-large(href=utmValue) Follow The Learners™
+      nav.navbar.is-fixed-top#navbar(role="navigation" style='z-index: 100; max-height: 120px; height: 120px; padding-left: 1.5rem; border-radius: 0; padding-right: 1.5rem; ')
+        .navbar-brand(style="align-items: center;")
+          a.title.has-text-grey-dark.is-large(href=utmValue style="margin-bottom: 0.5rem;") Follow The Learners™
             span.is-small.subtitle (Beta)
           a.navbar-burger.is-large(data-target="navbarHeroMenu" role="button" aria-label="menu" aria-expanded="false" style="background-color: #404040;")
             span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
@@ -91,11 +86,12 @@
               span All Learners
 
             // Sign In Button
-            a.button.is-medium.is-primary.navbar-item#sign-in-out(onclick= "tabSelector.ToggleTab('tab-your-learners')" style='margin-right: 0.25rem; margin-left: 0.25rem; margin-bottom: 0.5rem')
+            a.button.is-medium.is-primary.navbar-item#sign-in-out(onclick= "tabSelector.ToggleTab('tab-your-learners')" style='margin-right: 0.25rem; margin-left: 0.25rem; margin-bottom: 0.5rem;')
               span#sign-in-text Sign In
 
     .section#tabs-parent(style='z-index: 100; padding: 0;')
       .section.is-hidden#tab-campaigns(style='padding: 0;')
+        //- div.has-text-centered
         //- h3.subtitle.is-3.has-text-grey(style='margin-top: 0.5rem') Pick a Region
         .section(style="padding-top: 0.5rem;")
           //- h3.has-text-grey.has-text-centered(style='background-color: rgba(255, 217, 105, 0.5)')
@@ -110,7 +106,17 @@
                     +campaign(campaign.country, campaign.imgRef, campaign.body, campaign.campaignID, campaign.amount, campaign.country, utmSource, campaign.donateRef, campaign.isFeatured)
           script.
             function goToDonate(campaign, amount, donateRef) {
-              window.open("/donate?campaign=" + campaign + "&amount=" + amount + "&donateRef=" + donateRef, '_blank');
+              document.getElementById('donate-modal').classList.add('is-active');
+              window.history.replaceState(null, null, "?utm_source=" + campaign);
+              let submitButtons = document.getElementsByClassName('gl-widget__donation-submit-button');
+              if (submitButtons.length > 0) {
+                let donateButton = submitButtons[0];
+                donateButton.addEventListener('click', () => {
+                  if (campaign.includes("facebook")) {
+                    fbq('trackCustom', 'DonationClick', {utmSource: campaign});
+                  }
+                } , false);
+              }
             }
             function readMore(btn) {
               let spanId = btn.id.replace('btn_', '');
@@ -195,7 +201,18 @@
               //-   span(style="font-weight: bold;") Prev
               //- button.button.is-medium(onclick="onPanoramaNextButtonClick()" style='pointer-events: auto; margin: 10px; position: absolute; right: 0; top: 45%; background-color: rgba(30, 30, 30, 0.3); font-weight: bold; font-size: 1.2rem; color: white; border: none;')
               //-   span(style="font-weight: bold;") Next
-              
+    
+    .modal#donate-modal
+      .modal-background(onclick="document.getElementById('donate-modal').classList.remove('is-active');")
+      .modal-card
+        header.modal-card-head(style='border: none')
+          p.modal-card-title.hast-text-grey-dark.has-text-centered Donate | Give Lively
+          button.delete(aria-label='close' onclick="document.getElementById('donate-modal').classList.remove('is-active'); document.getElementById('modal-instruction-text').classList.remove('is-hidden');")
+        .modal-card-body
+          noscript
+            img(height="1" width="1" style="display:none;" alt="" src="https://px.ads.linkedin.com/collect/?pid=3032825&fmt=gif")
+          div.gl-simple-donation-widget#give-lively-widget
+    
     .modal#donor-email-modal
       .modal-background(onclick="document.getElementById('donor-email-modal').classList.remove('is-active');")
       .modal-card
@@ -247,6 +264,8 @@
                   $('#donor-email').keyup(function(event) {});
               });
             });
+
+    script(src="https://secure.givelively.org/widgets/simple_donation/curious-learning-a-global-literacy-project-inc.js?show_suggested_amount_buttons=false&show_in_honor_of=false&address_required=false&has_required_custom_question=null&prefilled_donation_amount=20")
 
     footer.footer
       .container.has-text-centered

@@ -10,6 +10,9 @@
     link(rel='manifest', href='/static/manifest.webmanifest')
     script(src="/static/js/sw-loader.js")
     script(src="/static/js/gtm.js")
+    script(src="/static/js/fbp.js")
+    noscript
+      img(height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=225538995469689&ev=PageView&noscript=1")
     link(rel='stylesheet', href='/static/css/bulma-0.9.1.min.css')
     link(rel="preconnect" href="https://in.hotjar.com")
     link(rel="preconnect" href="https://static.hotjar.com")
@@ -29,19 +32,19 @@
   body
     - const utmValue = utmSource ? "/?utm_source=" + utmSource : '';
     - const utmValueFAQ = utmSource ? "/?utm_source=" + utmSource : '?';
-    .hero.is-large(style="color: white; background-image: url('/static/imgs/hero-cover.webp'); background-position: center -100; background-size: cover; background-repeat: no-repeat;")
+    .hero.is-large(style="color: white; background-image: url('/static/imgs/hero-cover.jpg'); background-position: center -100; background-size: cover; background-repeat: no-repeat;")
       .hero-head
         .navbar
           .section
             .navbar-brand
               a(href=utmValue)
-                img(src="/static/imgs/cl_white_logo.webp" width="196px" height="100%" alt='CL Logo')
+                img(src="/static/imgs/cl_white_logo.png" width="196px" height="100%" alt='CL Logo')
               a.navbar-burger.is-large(data-target="navbarHeroMenu" role="button" aria-label="menu" aria-expanded="false" style="background-color: #8CCDC9;")
                 span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
                 span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
                 span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
           .navbar-menu#navbarHeroMenu
-            .navbar-end(style='align-items: center; padding-right: 1.5rem')
+            .navbar-end(style='align-items: center; padding-right: 1.5rem; padding-left: 1.5rem')
               a.button.is-rounded.navbar-item.is-active.is-primary(href="/campaigns" + utmValue style='color: white; background-color: #8CCDC9; font-size: 1.8rem;')
                 span Get Started
       .hero-body(style='padding: 0')
@@ -74,7 +77,7 @@
         .rows
           .row(style="background-color: rgba(140, 205, 201, 0.7); font-size: 4rem;") &nbsp;
           .row.has-text-centered(style="margin-top: -12rem")
-            img(src="/static/imgs/streetview_phone.webp" width="460px" height="auto" loading="lazy" alt="Streetview Display")
+            img(src="/static/imgs/streetview_phone.png" width="460px" height="auto" loading="lazy" alt="Streetview Display")
             
       .column
         h1.title(style='font-size: 2.8rem; margin-bottom: 4rem; padding-left: 2rem; padding-right: 2rem;')
@@ -85,9 +88,9 @@
         //-   .row(style="margin-top: -12rem")
         //-     .columns(style="margin-left: 1rem")
         //-       .column
-        //-         img(src="/static/imgs/gdl_phone_screen.webp" width="206px" height="auto" loading="lazy" alt="GDL Phone")
+        //-         img(src="/static/imgs/gdl_phone_screen.png" width="206px" height="auto" loading="lazy" alt="GDL Phone")
         //-       .column
-        //-         img(src="/static/imgs/ftm_phone_screen.webp" width="206px" height="auto" loading="lazy" alt="FTM Phone")
+        //-         img(src="/static/imgs/ftm_phone_screen.png" width="206px" height="auto" loading="lazy" alt="FTM Phone")
         //-       .column
         //-       .column
     br
@@ -111,7 +114,7 @@
         .rows
           .row(style="background-color: rgba(140, 205, 201, 0.7); font-size: 4rem;") &nbsp;
           .row.has-text-centered(style="margin-top: -12rem")
-            img(src="/static/imgs/feed_the_monster_screenshots.webp" width="460px" height="auto" loading="lazy" alt="FTM Screenshot")
+            img(src="/static/imgs/ftm-screenshots.png" width="460px" height="auto" loading="lazy" alt="FTM Screenshot")
       .column.has-text-centered
         h1.is-size-1.has-text-weight-bold Feed the Monster reviews
 
@@ -133,7 +136,7 @@
         .rows
           .row(style="background-color: rgba(140, 205, 201, 0.7); font-size: 4rem;") &nbsp;
           .row.has-text-centered(style="margin-top: -12rem")
-            img(src="/static/imgs/rwa_phone.webp" width="709px" height="auto" loading="lazy" alt="RWA Phone")
+            img(src="/static/imgs/rwa_phone.png" width="709px" height="auto" loading="lazy" alt="RWA Phone")
 
     .section
       .container
@@ -166,7 +169,7 @@
 
     .section
       .container
-        img(src="/static/imgs/landingpage-infographic.webp" width="auto" height="auto" loading="lazy" alt="Landing Page Infographic")
+        img(src="/static/imgs/landingpage-infographic.png" width="auto" height="auto" loading="lazy" alt="Landing Page Infographic")
 
     .section
       .container
@@ -185,24 +188,24 @@
       .container
         .columns
           .column.has-text-centered
-            img(src="/static/imgs/partners/unesco_logo.webp" loading="lazy" width="168px;" height="168px;" alt="Unesco Logo")
+            img(src="/static/imgs/partners/unesco_logo.png" loading="lazy" width="168px;" height="168px;" alt="Unesco Logo")
           .column.has-text-centered
-            img(src="/static/imgs/partners/work_bank_logo.webp" loading="lazy" width="168px;" height="168px;" alt="World Bank Logo")
+            img(src="/static/imgs/partners/work_bank_logo.png" loading="lazy" width="168px;" height="168px;" alt="World Bank Logo")
           .column.has-text-centered
-            img(src="/static/imgs/partners/unicef_logo.webp" loading="lazy" width="168px;" height="168px;" alt="Unicef Logo")
+            img(src="/static/imgs/partners/unicef_logo.png" loading="lazy" width="168px;" height="168px;" alt="Unicef Logo")
           .column.has-text-centered
-            img(src="/static/imgs/partners/unchr_logo.webp" loading="lazy" width="168px;" height="168px;" alt="UNCHR Logo")
+            img(src="/static/imgs/partners/unchr_logo.png" loading="lazy" width="168px;" height="168px;" alt="UNCHR Logo")
         .columns
             .column.has-text-centered
-              img(src="/static/imgs/partners/ubongo_logo.webp" loading="lazy" width="168px;" height="168px;" alt="Unesco Logo")
+              img(src="/static/imgs/partners/ubongo_logo.png" loading="lazy" width="168px;" height="168px;" alt="Unesco Logo")
             .column.has-text-centered
-              img(src="/static/imgs/partners/mit_logo.webp" loading="lazy" width="168px;" height="168px;" alt="MIT Logo")
+              img(src="/static/imgs/partners/mit_logo.png" loading="lazy" width="168px;" height="168px;" alt="MIT Logo")
             .column.has-text-centered
-              img(src="/static/imgs/partners/global_digital_library_logo.webp" loading="lazy" width="168px;" height="168px;" alt="GDL Logo")
+              img(src="/static/imgs/partners/global_digital_library_logo.png" loading="lazy" width="168px;" height="168px;" alt="GDL Logo")
             .column.has-text-centered
-              img(src="/static/imgs/partners/bellavista_logo.webp" loading="lazy" width="168px;" height="168px;" alt="Bellavista Logo")
+              img(src="/static/imgs/partners/bellavista_logo.png" loading="lazy" width="168px;" height="168px;" alt="Bellavista Logo")
         div.has-text-centered
-          img(src="/static/imgs/partners/click_foundation_logo.webp" loading="lazy" width="161px;" height="60px;" alt="CF Logo")
+          img(src="/static/imgs/partners/click_foundation_logo.png" loading="lazy" width="161px;" height="60px;" alt="CF Logo")
 
     .section.has-text-centered
       button.button.add-button.is-primary(style='display: inline-block;') Add to home screen

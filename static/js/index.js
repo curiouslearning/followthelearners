@@ -67,6 +67,20 @@ firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
     });
 
 
+window.onscroll = function() {
+  scrollNavbar();
+};
+
+function scrollNavbar() {
+  if (document.body.scrollTop > 60 || document.documentElement.scrollTop > 60) {
+    document.getElementById('navbar').style.boxShadow = '2px 2px 8px #808080';
+    document.getElementById('navbar').style.maxHeight = '80px';
+  } else {
+    document.getElementById('navbar').style.boxShadow = '0px 0px 0px #808080';
+    document.getElementById('navbar').style.maxHeight = '120px';
+  }
+}
+
 $(document).ready(function() {
   const $navbarBurgers = Array.prototype.slice.call(
       document.querySelectorAll('.navbar-burger'), 0);
@@ -178,7 +192,6 @@ $(document).ready(function() {
 
   tabSelector.ToggleTab('tab-all-learners');
 });
-
 
 function closeHamburgerMenu() {
   const $navbarBurgers = Array.prototype.slice.call(
