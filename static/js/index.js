@@ -132,14 +132,16 @@ $(document).ready(function() {
   if (tabSelector) {
     tabSelector.addEventListener('preTabToggle', (tabId) => {
       closeHamburgerMenu();
+      document.getElementById('donate-modal').classList.remove('is-active');
+      document.getElementById('donor-email-modal').classList.remove('is-active');
       if (tabId === 'tab-your-learners'&& currentDonorEmail === null &&
         donorModal) {
         if (token !== undefined) {
           tabSelector.preventDefault();
           CheckTokenAndSwitchToDonorLearners(email);
         } else {
-          $(newDonorInfoTextId).addClass('is-hidden');
           tabSelector.preventDefault();
+          $(newDonorInfoTextId).addClass('is-hidden');
           donorModal.classList.add('is-active');
         }
       } else if (tabId === 'tab-all-learners' && allLearnersData === null &&
@@ -160,9 +162,6 @@ $(document).ready(function() {
         document.getElementById('all-learners-in-country').innerHTML = '';
         countrySelectElement.value = allCountriesValue;
       }
-    });
-    tabSelector.addEventListener('tabToggle', (tabId) => {
-      // console.log(tabId);
     });
   }
   if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
@@ -196,10 +195,9 @@ function closeHamburgerMenu() {
     $navbarBurgers.forEach((el) => {
       const target = el.dataset.target;
       const $target = document.getElementById(target);
-      el.classList.toggle('is-active');
-      $target.classList.toggle('is-active');
-      $target.style.backgroundColor =
-        $target.classList.contains('is-active') ? '#FFF' : 'rgba(0,0,0,0)';
+      el.classList.remove('is-active');
+      $target.classList.remove('is-active');
+      $target.style.backgroundColor = 'rgba(0,0,0,0)';
     });
   }
 }
