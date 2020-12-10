@@ -752,22 +752,39 @@ function onYourLearnersCountrySelectionChanged() {
   updateYourLearnersResetMapButtonState();
 }
 
-function setDonationPercentage(fullAmount, learnerCount, costPerLearner) {
-  let learnerMax = Math.round(fullAmount/costPerLearner);
+/**
+ * Calculate donation percent filled
+ * @param {Number} countryDonationAmount Country donation
+ * @param {Number} countryLearners Country learners
+ * @param {Number} cost Cost per learner
+ * @return {Number} Percent filled
+ */
+function calculatePercentFilled(countryDonationAmount, countryLearners, cost) {
+  let learnerMax = Math.round(countryDonationAmount/cost);
   if (isNaN(learnerMax)) {
     learnerMax = 0;
   }
-  let decimal = Math.round(learnerCount/learnerMax);
+  let decimal = Math.round(countryLearners/learnerMax);
   if (isNaN(decimal)) {
     decimal = 0;
   }
   const percentFilled = decimal * 100;
+  return percentFilled;
+}
+
+/**
+ * Donation percentage filled display logic
+ * @param {Number} percentFilled Donation filled percentage
+ */
+function setDonationPercentage(percentFilled) {
   if (percentFilled < 100) {
     $('#percent-filled').text('Check back in a few days to see more learners!');
     $('#give-again').css('display', 'none');
+    $('#congrats').text('');
   } else {
     $('#congrats').text('Congrats 🎉! ');
     $('#give-again').css('display', 'block');
+    $('#percent-filled').text('');
   }
 }
 
