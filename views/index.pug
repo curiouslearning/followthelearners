@@ -115,10 +115,8 @@
                   if (campaign.toLowerCase().includes("facebook")) {
                     fbq('trackCustom', 'DonationClick', {utmSource: campaign});
                   } else if (campaign.toLowerCase().includes('linkedin')) {
-                    let lnkdImg = 'https://px.ads.linkedin.com/collect/?pid=3032825&conversionId=3837249&fmt=gif';
-                    $.get(lnkdImg, function(data) {
-                      console.log(data);
-                    });
+                    const img = new Image();
+                    img.src = 'https://px.ads.linkedin.com/collect/?pid=3032825&conversionId=3837249&fmt=gif';
                   }
                 } , false);
               }
