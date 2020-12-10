@@ -155,14 +155,10 @@ $(document).ready(function() {
       } else if (tabId === 'tab-all-learners' && allLearnersData !== null) {
         clearAllMarkers();
         createCountUpTextInElement('all-learners-count',
-            getTotalCountForAllLearners(allLearnersData));
+            allLearnersData.masterCounts.allLearnersCount);
         displayAllLearnersData(allLearnersData, true);
-        for (let key in allLearnersData.campaignData) {
-          if (allLearnersData.campaignData[key].country == 'no-country') {
-            createCountUpTextInElement(dntLearnersCountElementId,
-                allLearnersData.campaignData[key].learnerCount);
-          }
-        }
+        createCountUpTextInElement(dntLearnersCountElementId,
+            allLearnersData.masterCounts.allLearnersWithDoNotTrack);
         document.getElementById('all-learners-in-country').innerHTML = '';
         countrySelectElement.value = allCountriesValue;
       }
@@ -192,6 +188,7 @@ $(document).ready(function() {
 
   tabSelector.ToggleTab('tab-all-learners');
 });
+
 
 function closeHamburgerMenu() {
   const $navbarBurgers = Array.prototype.slice.call(
@@ -283,14 +280,10 @@ function GetDataAndSwitchToAllLearners() {
 
     allLearnersData = data.data;
     createCountUpTextInElement(allLearnersCountElementId,
-        getTotalCountForAllLearners(allLearnersData));
+        allLearnersData.masterCounts.allLearnersCount);
 
-    for (const key in allLearnersData.campaignData) {
-      if (allLearnersData.campaignData[key].country == 'no-country') {
-        createCountUpTextInElement(dntLearnersCountElementId,
-            allLearnersData.campaignData[key].learnerCount);
-      }
-    }
+    createCountUpTextInElement(dntLearnersCountElementId,
+        allLearnersData.masterCounts.allLearnersWithDoNotTrack);
 
     initializeCountrySelect(allLearnersData);
     clearAllMarkers();
@@ -300,14 +293,10 @@ function GetDataAndSwitchToAllLearners() {
 
     clearAllMarkers();
     createCountUpTextInElement('all-learners-count',
-        getTotalCountForAllLearners(allLearnersData));
+        allLearnersData.masterCounts.allLearnersCount);
     displayAllLearnersData(allLearnersData, true);
-    for (const key in allLearnersData.campaignData) {
-      if (allLearnersData.campaignData[key].country == 'no-country') {
-        createCountUpTextInElement(dntLearnersCountElementId,
-            allLearnersData.campaignData[key].learnerCount);
-      }
-    }
+    createCountUpTextInElement(dntLearnersCountElementId,
+        allLearnersData.masterCounts.allLearnersWithDoNotTrack);
     countrySelectElement.value = allCountriesValue;
   });
 }
