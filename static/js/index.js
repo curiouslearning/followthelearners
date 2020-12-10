@@ -45,8 +45,6 @@ let yourLearnersPanoId = 'your-learners-panorama';
 let allLearnersPanoRef;
 let allLearnersPanoId = 'all-learners-panorama';
 
-const COSTPERLEARNER = 0.25;
-
 // Auth data
 let signInButton = '#sign-in-out'
 let signInTextElement = '#sign-in-text';
