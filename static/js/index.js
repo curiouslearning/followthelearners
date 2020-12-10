@@ -45,8 +45,6 @@ let yourLearnersPanoId = 'your-learners-panorama';
 let allLearnersPanoRef;
 let allLearnersPanoId = 'all-learners-panorama';
 
-const COSTPERLEARNER = 0.25;
-
 // Auth data
 let signInButton = '#sign-in-out'
 let signInTextElement = '#sign-in-text';
@@ -465,64 +463,14 @@ function GetDataAndSwitchToDonorLearners() {
             getTotalCountryLearnerCountFromDonations(
                 yourLearnersData.campaignData,
                 data.locationData[i].country),
-          data.locationData[i].country
+          data.locationData[i].country,
           );
       }
     }
-    // TODO: expand this  to cover campaigns with varying cost/learner
-    let allCountriesAggregateAmount = 0;
-    let tempDonationStartDate = null;
-    let allCountriesDonationStartDate = '';
-    let allCountriesLearnersCount = 0;
-    let allCountriesDNTUsersCount = 0;
-    let percentFilled = 0;
-    for (let i = 0; i < data.campaignData.length; i++) {
-      let donation = data.campaignData[i].data;
-      allCountriesAggregateAmount += typeof donation.amount === 'string' ?
-        parseFloat(donation.amount) : donation.amount;
-      if (tempDonationStartDate === null) {
-        tempDonationStartDate = new Date(donation.startDate);
-        allCountriesDonationStartDate = donation.startDate;
-      } else if (tempDonationStartDate > new Date(donation.startDate)) {
-        tempDonationStartDate = new Date(donation.startDate);
-        allCountriesDonationStartDate = donation.startDate;
-      }
-      allCountriesLearnersCount += donation.learnerCount;
-      for (let c = 0; c < donation.countries.length; c++) {
-        let country = donation.countries[c];
-        if (country.country === 'no-country') {
-          allCountriesDNTUsersCount += country.learnerCount;
-        }
-      }
-    }
-    setDonationPercentage(
-        allCountriesAggregateAmount,
-        allCountriesLearnersCount,
-        COSTPERLEARNER,
-    );
-    document.getElementById('donation-amount').innerText =
-      allCountriesAggregateAmount;
 
-    if (allCountriesDonationStartDate !== '') {
-      document.getElementById('donation-date').innerText =
-        allCountriesDonationStartDate.toString();
-    }
-
-    createCountUpTextInElement('learner-count',
-        allCountriesLearnersCount);
-
-    if (donorModal) {
-      donorModal.classList.remove('is-active');
-    }
-
-    createCountUpTextInElement(dntYourLearnersCountElementId,
-        allCountriesDNTUsersCount);
+    onYourLearnersCountrySelectionChanged();
 
     tabSelector.ToggleTab('tab-your-learners');
-
-    displayYourLearnersData(yourLearnersData, true);
-
-    updateYourLearnersResetMapButtonState();
   });
 }
 
@@ -702,6 +650,7 @@ function onYourLearnersCountrySelectionChanged() {
     let allCountriesDonationStartDate = '';
     let allCountriesLearnersCount = 0;
     let allCountriesDNTUsersCount = 0;
+    let allCountriesPercentFilled = [];
     for (let i = 0; i < yourLearnersData.campaignData.length; i++) {
       let donation = yourLearnersData.campaignData[i].data;
       allCountriesAggregateAmount += typeof donation.amount === 'string' ?
@@ -720,13 +669,19 @@ function onYourLearnersCountrySelectionChanged() {
           allCountriesDNTUsersCount += country.learnerCount;
         }
       }
+      allCountriesPercentFilled.push(calculatePercentFilled(donation.amount,
+          donation.learnerCount, donation.costPerLearner));
     }
 
-    setDonationPercentage(
-        allCountriesAggregateAmount,
-        allCountriesLearnersCount,
-        COSTPERLEARNER,
-    );
+    let allDonationsFilled = true;
+
+    for (let i = 0; i < allCountriesPercentFilled.length; i++) {
+      if (allCountriesPercentFilled < 100) {
+        allDonationsFilled = false;
+      }
+    }
+
+    setDonationPercentage(allDonationsFilled ? 100 : 0);
 
     document.getElementById('donation-amount').innerText =
       allCountriesAggregateAmount.toFixed(2);
@@ -741,6 +696,10 @@ function onYourLearnersCountrySelectionChanged() {
     createCountUpTextInElement(dntYourLearnersCountElementId,
         allCountriesDNTUsersCount);
 
+    if (donorModal) {
+      donorModal.classList.remove('is-active');
+    }
+
     displayYourLearnersData(yourLearnersData, true);
     document.getElementById('your-learners-in-country').innerHTML = ``;
   } else {
@@ -751,10 +710,11 @@ function onYourLearnersCountrySelectionChanged() {
     let countryDonationStartDate = '';
     let dntRegionLearnersForCountry = 0;
     let tempDonationStartDate = null;
-
+    let costPerLearner = 0;
     for (let i = 0; i < yourLearnersData.campaignData.length; i++) {
-      let campaign = yourLearnersData.campaignData[i].data;
+      const campaign = yourLearnersData.campaignData[i].data;
       if (campaign.country === countrySelection) {
+        costPerLearner = campaign.costPerLearner;
         countryDonationAggregate += typeof campaign.amount === 'string' ?
         parseFloat(campaign.amount) : campaign.amount;
         countryLearnersAggregate += campaign.learnerCount;
@@ -766,9 +726,13 @@ function onYourLearnersCountrySelectionChanged() {
           countryDonationStartDate = campaign.startDate;
         }
 
-        let country = campaign.countries.find((c) => { return c.country === countrySelection});
+        const country = campaign.countries.find((c) => {
+          return c.country === countrySelection;
+        });
 
-        let noRegion = country.regions.find((r) => { return r.region === "no-region"; });
+        const noRegion = country.regions.find((r) => {
+          return r.region === 'no-region';
+        });
 
         if (noRegion && noRegion.hasOwnProperty('learnerCount')) {
           dntRegionLearnersForCountry += noRegion.learnerCount;
@@ -776,17 +740,15 @@ function onYourLearnersCountrySelectionChanged() {
       }
     }
 
-    setDonationPercentage(
-        countryDonationAggregate,
-        countryLearnersAggregate,
-        COSTPERLEARNER
-    );
+    setDonationPercentage(calculatePercentFilled(countryDonationAggregate,
+        countryLearnersAggregate, costPerLearner));
+
     createCountUpTextInElement('learner-count', countryLearnersAggregate);
 
     document.getElementById('donation-amount').innerText =
       countryDonationAggregate;
 
-    if (countryDonationStartDate !== "") {
+    if (countryDonationStartDate !== '') {
       document.getElementById('donation-date').innerText =
         countryDonationStartDate.toString();
     }
@@ -800,22 +762,39 @@ function onYourLearnersCountrySelectionChanged() {
   updateYourLearnersResetMapButtonState();
 }
 
-function setDonationPercentage(fullAmount, learnerCount, costPerLearner) {
-  let learnerMax = Math.round(fullAmount/costPerLearner);
+/**
+ * Calculate donation percent filled
+ * @param {Number} countryDonationAmount Country donation
+ * @param {Number} countryLearners Country learners
+ * @param {Number} cost Cost per learner
+ * @return {Number} Percent filled
+ */
+function calculatePercentFilled(countryDonationAmount, countryLearners, cost) {
+  let learnerMax = Math.round(countryDonationAmount/cost);
   if (isNaN(learnerMax)) {
     learnerMax = 0;
   }
-  let decimal = Math.round(learnerCount/learnerMax);
+  let decimal = Math.round(countryLearners/learnerMax);
   if (isNaN(decimal)) {
     decimal = 0;
   }
   const percentFilled = decimal * 100;
+  return percentFilled;
+}
+
+/**
+ * Donation percentage filled display logic
+ * @param {Number} percentFilled Donation filled percentage
+ */
+function setDonationPercentage(percentFilled) {
   if (percentFilled < 100) {
     $('#percent-filled').text('Check back in a few days to see more learners!');
     $('#give-again').css('display', 'none');
+    $('#congrats').text('');
   } else {
     $('#congrats').text('Congrats 🎉! ');
     $('#give-again').css('display', 'block');
+    $('#percent-filled').text('');
   }
 }
 
