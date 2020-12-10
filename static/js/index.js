@@ -691,6 +691,10 @@ function onYourLearnersCountrySelectionChanged() {
     createCountUpTextInElement(dntYourLearnersCountElementId,
         allCountriesDNTUsersCount);
 
+    if (donorModal) {
+      donorModal.classList.remove('is-active');
+    }
+
     displayYourLearnersData(yourLearnersData, true);
     document.getElementById('your-learners-in-country').innerHTML = ``;
   } else {
