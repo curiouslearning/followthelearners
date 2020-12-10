@@ -650,6 +650,7 @@ function onYourLearnersCountrySelectionChanged() {
     let allCountriesDonationStartDate = '';
     let allCountriesLearnersCount = 0;
     let allCountriesDNTUsersCount = 0;
+    let allCountriesPercentFilled = [];
     for (let i = 0; i < yourLearnersData.campaignData.length; i++) {
       let donation = yourLearnersData.campaignData[i].data;
       allCountriesAggregateAmount += typeof donation.amount === 'string' ?
@@ -668,13 +669,19 @@ function onYourLearnersCountrySelectionChanged() {
           allCountriesDNTUsersCount += country.learnerCount;
         }
       }
+      allCountriesPercentFilled.push(calculatePercentFilled(donation.amount,
+          donation.learnerCount, donation.costPerLearner));
     }
 
-    setDonationPercentage(
-        allCountriesAggregateAmount,
-        allCountriesLearnersCount,
-        COSTPERLEARNER,
-    );
+    let allDonationsFilled = true;
+
+    for (let i = 0; i < allCountriesPercentFilled.length; i++) {
+      if (allCountriesPercentFilled < 100) {
+        allDonationsFilled = false;
+      }
+    }
+
+    setDonationPercentage(allDonationsFilled ? 100 : 0);
 
     document.getElementById('donation-amount').innerText =
       allCountriesAggregateAmount.toFixed(2);
@@ -703,10 +710,11 @@ function onYourLearnersCountrySelectionChanged() {
     let countryDonationStartDate = '';
     let dntRegionLearnersForCountry = 0;
     let tempDonationStartDate = null;
-
+    let costPerLearner = 0;
     for (let i = 0; i < yourLearnersData.campaignData.length; i++) {
-      let campaign = yourLearnersData.campaignData[i].data;
+      const campaign = yourLearnersData.campaignData[i].data;
       if (campaign.country === countrySelection) {
+        costPerLearner = campaign.costPerLearner;
         countryDonationAggregate += typeof campaign.amount === 'string' ?
         parseFloat(campaign.amount) : campaign.amount;
         countryLearnersAggregate += campaign.learnerCount;
@@ -718,9 +726,13 @@ function onYourLearnersCountrySelectionChanged() {
           countryDonationStartDate = campaign.startDate;
         }
 
-        let country = campaign.countries.find((c) => { return c.country === countrySelection});
+        const country = campaign.countries.find((c) => {
+          return c.country === countrySelection;
+        });
 
-        let noRegion = country.regions.find((r) => { return r.region === "no-region"; });
+        const noRegion = country.regions.find((r) => {
+          return r.region === 'no-region';
+        });
 
         if (noRegion && noRegion.hasOwnProperty('learnerCount')) {
           dntRegionLearnersForCountry += noRegion.learnerCount;
