@@ -465,7 +465,7 @@ function GetDataAndSwitchToDonorLearners() {
             getTotalCountryLearnerCountFromDonations(
                 yourLearnersData.campaignData,
                 data.locationData[i].country),
-          data.locationData[i].country
+          data.locationData[i].country,
           );
       }
     }
