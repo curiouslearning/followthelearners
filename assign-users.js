@@ -16,12 +16,13 @@ const BATCHMAX = 495;
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
+const {BatchManager} = require('./BatchManager');
 const firestore = admin.firestore();
 
 async function main() {
   await assignExpiringLearners();
 };
-await main();
+(async () => {await main();})();
 
 async function assignExpiringLearners() {
   let priorityQueue = 0;
@@ -66,6 +67,7 @@ async function assignExpiringLearners() {
 */
 function matchLearnersToDonors(learners, donations) {
   let fullDonations = 0;
+  console.log(`matching ${learners.length} learners to ${donations.length} donors`);
   while ((learners !== undefined)&&(learners.length > 1) &&
         (fullDonations < donations.length)) {
     if (learners[0] === undefined) {
@@ -89,7 +91,7 @@ function matchLearnersToDonors(learners, donations) {
       }
       const cap = calculateLearnerCap(donation);
       console.log('cap is ', cap);
-      if (donation.percentFilled < cap) {
+      if (!donation.learners || (donation.learners.length < cap)) {
         console.log('found donor: ', donation.sourceDonor);
         foundDonor = true;
         if (!donation.hasOwnProperty('learners')) {
@@ -105,55 +107,51 @@ function matchLearnersToDonors(learners, donations) {
         // log the moment a donation is filled
         if (donation.percentFilled >= 100) {
           console.log('filled donation ', donation.id)
-          fullDonations++;
+          fullDonations = markDonationFilled(donation, fullDonations);
           writeEndDate(donation);
         }
       } else {
-        fullDonations = markDonationFilled(donation);
+        console.log(`${donation.id} is full for the day`);
+        fullDonations = markDonationFilled(donation, fullDonations);
       }
     }
+    console.log(`${fullDonations} donations removed from queue`)
     if (!foundDonor) {
-      // if there are no matching donors, remove to prevent infinite loops
+      // remove matchless learners to prevent infinite loops
       learners.splice(0, 1);
     }
   }
+  console.log(`ending with ${learners.length} free learners`);
+  console.log(`${(donations.length - fullDonations)|| 0} open donations`);
 }
 
 function calculateLearnerCap(donation) {
   const learnerCount = donation.learnerCount;
   const amount = donation.amount;
   const costPerLearner = donation.costPerLearner;
-  const maxLearners = Math.round(amount/costPerLearner);
-  const maxDailyIncrease = Math.round(maxLearners/DONATIONFILLTIMELINE);
-  const rawCap = learnerCount + maxDailyIncrease;
-  return Math.round((rawCap/maxLearners) *100);
+  let maxLearners = Math.round(amount/costPerLearner);
+  if (maxLearners < 1) maxLearners = 1;
+  let maxDailyIncrease = Math.round(maxLearners/DONATIONFILLTIMELINE);
+  if (maxDailyIncrease < 1) maxDailyIncrease = 1;
+  return maxDailyIncrease;
+  // return Math.round((rawCap/maxLearners) *100);
 }
 
 /**
 * @param{Object[]} priorityQueue the list of donations to update in firestore
 */
 function batchLearnerAssignment(priorityQueue) {
-  let batchSize = 0;
-  let batchCount =0;
-  let batches = [];
-  batches[batchCount] = firestore.batch();
-  batches[batchCount] = firestore.batch();
+  let batch = new BatchManager();
   const poolRef = firestore.collection('user_pool');
   priorityQueue.forEach((donation, i)=>{
     if (donation.hasOwnProperty('learners')) {
       donation.learners.forEach((learner) =>{
-        if (batchSize >= BATCHMAX) {
-          batchSize = 0;
-          batchCount++;
-          batches[batchCount] = firestore.batch();
-        }
         const docRef = poolRef.doc(learner.userID);
-        batches[batchCount].set(docRef, learner, {merge: true});
-        batchSize++;
+        batch.set(docRef, learner, true);
       });
     }
   });
-  writeToDb(batches);
+  batch.commit();
 }
 
 /**
@@ -214,6 +212,7 @@ function getPriorityQueue() {
 function sweepExpiredLearners() {
   const pivot = getPivot();
   const poolRef = firestore.collection('user_pool');
+  let batch = new BatchManager();
   poolRef.where('userStatus', '==', 'unassigned')
       .where('dateCreated', '<=', pivot).get()
       .then((snap)=>{
@@ -221,46 +220,20 @@ function sweepExpiredLearners() {
           console.log('empty snap');
           return [];
         }
-        let batchSize = 0;
-        let batchCount = 0;
-        let batches = [];
-        batches[batchCount] = firestore.batch();
         snap.forEach((doc)=>{
-          if (batchSize >= BATCHMAX) {
-            batchSize = 0;
-            batchCount++;
-            batches[batchCount] = firestore.batch();
-          }
           let data = doc.data();
           let id = doc.id;
           data.userStatus = 'expired';
           data['expiredOn'] = admin.firestore.Timestamp.now();
-          batches[batchCount].set(poolRef.doc(id), data, {merge: true});
-          batchSize ++;
+          batch.set(poolRef.doc(id), data, {merge: true});
         });
-        return batches;
-      }).then(async (batches)=>{
-        await writeToDb(batches);
+        return batch.commit();
       }).catch((err)=>{
         console.error(err);
       });
 }
 
 // ************************Helper Functions********************************* //
-
-function initBatch() {
-  if (batches[batchCount] === undefined) {
-    batches[batchCount] = firestore.batch();
-  }
-}
-
-function checkBatch() {
-  if (batchSize >= BATCHMAX) {
-    batchSize = 0;
-    batchCount++;
-    batches[batchCount] = firestore.batch();
-  }
-}
 
 /**
 * determine whether a learner can be assigned to the given donation
@@ -269,7 +242,6 @@ function checkBatch() {
 * @param {Object} donation the donation object to compare
 */
 function checkForMatch(learner, donation) {
-  console.log('learner.country: ', learner.country, ', donation.country: ', donation.country);
   if (donation.country === 'any') return true;
   if (donation.country === learner.country) return true;
   if (CONTINENTS.includes(donation.country)) {
@@ -345,33 +317,4 @@ function getPivot() {
   let pivot = nowInMillis - (DAYINMS * PRUNEDATE);
   const timestamp = admin.firestore.Timestamp.fromMillis(pivot);
   return timestamp;
-}
-
-/**
-* @return {Promise} a promise that waits for 1 second before continuing
-*/
-function waitForSecond() {
-  return new Promise((resolve) =>{
-    setTimeout(()=>{
-      resolve('resolved');
-    }, 1010);
-  });
-}
-
-/**
-* Loop through an array of firestore batches and commit each one
-* working at a rate of 1 batch/second
-* @param{Object[]} arr the array of batches to commit to
-*/
-async function writeToDb(arr) {
-  console.log('beginning write');
-  for (let i = 0; i < arr.length; i++) {
-    console.log('writing batch: ' + i);
-    await waitForSecond();
-    arr[i].commit().then(function() {
-      console.log('wrote batch: ' + i);
-    }).catch((err)=>{
-      console.error(err);
-    });
-  }
 }
