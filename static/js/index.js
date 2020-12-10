@@ -469,60 +469,10 @@ function GetDataAndSwitchToDonorLearners() {
           );
       }
     }
-    // TODO: expand this  to cover campaigns with varying cost/learner
-    let allCountriesAggregateAmount = 0;
-    let tempDonationStartDate = null;
-    let allCountriesDonationStartDate = '';
-    let allCountriesLearnersCount = 0;
-    let allCountriesDNTUsersCount = 0;
-    let percentFilled = 0;
-    for (let i = 0; i < data.campaignData.length; i++) {
-      let donation = data.campaignData[i].data;
-      allCountriesAggregateAmount += typeof donation.amount === 'string' ?
-        parseFloat(donation.amount) : donation.amount;
-      if (tempDonationStartDate === null) {
-        tempDonationStartDate = new Date(donation.startDate);
-        allCountriesDonationStartDate = donation.startDate;
-      } else if (tempDonationStartDate > new Date(donation.startDate)) {
-        tempDonationStartDate = new Date(donation.startDate);
-        allCountriesDonationStartDate = donation.startDate;
-      }
-      allCountriesLearnersCount += donation.learnerCount;
-      for (let c = 0; c < donation.countries.length; c++) {
-        let country = donation.countries[c];
-        if (country.country === 'no-country') {
-          allCountriesDNTUsersCount += country.learnerCount;
-        }
-      }
-    }
-    setDonationPercentage(
-        allCountriesAggregateAmount,
-        allCountriesLearnersCount,
-        COSTPERLEARNER,
-    );
-    document.getElementById('donation-amount').innerText =
-      allCountriesAggregateAmount;
 
-    if (allCountriesDonationStartDate !== '') {
-      document.getElementById('donation-date').innerText =
-        allCountriesDonationStartDate.toString();
-    }
-
-    createCountUpTextInElement('learner-count',
-        allCountriesLearnersCount);
-
-    if (donorModal) {
-      donorModal.classList.remove('is-active');
-    }
-
-    createCountUpTextInElement(dntYourLearnersCountElementId,
-        allCountriesDNTUsersCount);
+    onYourLearnersCountrySelectionChanged();
 
     tabSelector.ToggleTab('tab-your-learners');
-
-    displayYourLearnersData(yourLearnersData, true);
-
-    updateYourLearnersResetMapButtonState();
   });
 }
 
