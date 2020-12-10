@@ -26,11 +26,9 @@ const listStripeCharges = async () => {
         formattedDonations.push({
             eventId: donation.id,
             amount: donation.amount,
-            createdOn: new Date(donation.created)
+            createdOn: new Date(donation.created * 1000)
         });
     })
-
-
     return formattedDonations;
 }
 
@@ -48,7 +46,7 @@ const listFirebaseDonations = async () => {
     donationDocs.forEach(donation => {
         formattedDonations.push({
             eventId: donation.data().stripeEventId,
-            amount: donation.data().amount/100,
+            amount: donation.data().amount,
             createdOn: new Date(donationDocs[0].data().startDate._seconds*1000),
         });
     })
@@ -67,10 +65,29 @@ const listFirebaseDonations = async () => {
     const firebaseDonations = donationResults[0];
     const stripeDonations = donationResults[1];
 
-    //TODO find how the stripe eventId is being created
-    //TODO Iterate over the results and match the values based on the payment ID's
-    //TODO return the values with added validations for the UI to display
+    const donationEventsOutsideOfStripe = [];
+    const missingStripeDonations = [];
+    let totalStripeDonations = 0;
+    let totalFirebaseDonations = 0;
 
+    //Use stripe as the source of truth
+    for (let stripeDonation of stripeDonations) {
+        let correspondingFirebaseDonation = firebaseDonations.find(fbDonation =>
+            fbDonation.eventId.replace('evt_', '') === stripeDonation.eventId.replace('ch_'));
+
+        totalStripeDonations += stripeDonation.amount;
+
+        if(!correspondingFirebaseDonation) {
+            missingStripeDonations.push(stripeDonation);
+            continue;
+        }
+
+        firebaseDonations.splice(firebaseDonations.findIndex(fbd => fbd.id === correspondingFirebaseDonation.id), 1);
+
+        totalFirebaseDonations += correspondingFirebaseDonation.amount;
+    }
+
+    //TODO finish the parity checks and return the results to the caller or log to a file
     console.log(firebaseDonations);
 })();
 
