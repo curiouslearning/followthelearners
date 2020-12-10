@@ -112,8 +112,13 @@
               if (submitButtons.length > 0) {
                 let donateButton = submitButtons[0];
                 donateButton.addEventListener('click', () => {
-                  if (campaign.includes("facebook")) {
+                  if (campaign.toLowerCase().includes("facebook")) {
                     fbq('trackCustom', 'DonationClick', {utmSource: campaign});
+                  } else if (campaign.toLowerCase().includes('linkedin')) {
+                    let lnkdImg = 'https://px.ads.linkedin.com/collect/?pid=3032825&conversionId=3837249&fmt=gif';
+                    $.get(lnkdImg, function(data) {
+                      console.log(data);
+                    });
                   }
                 } , false);
               }
@@ -211,8 +216,6 @@
         .modal-card-body
           p We will locate your learners over the next few days after your donation. Please watch for an e-mail from followthelearners@curiouslearning.org letting you know when your first learners are ready.
           br
-          noscript
-            img(height="1" width="1" style="display:none;" alt="" src="https://px.ads.linkedin.com/collect/?pid=3032825&conversionId=3837249&fmt=gif")
           div.gl-simple-donation-widget#give-lively-widget
     
     .modal#donor-email-modal
