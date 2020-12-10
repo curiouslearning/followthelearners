@@ -280,7 +280,7 @@ function GetDataAndSwitchToAllLearners() {
 
     allLearnersData = data.data;
     createCountUpTextInElement(allLearnersCountElementId,
-        allLearnersData.masterCounts.allLearnersCounts);
+        allLearnersData.masterCounts.allLearnersCount);
 
     createCountUpTextInElement(dntLearnersCountElementId,
         allLearnersData.masterCounts.allLearnersWithDoNotTrack);
@@ -296,7 +296,7 @@ function GetDataAndSwitchToAllLearners() {
         allLearnersData.masterCounts.allLearnersCount);
     displayAllLearnersData(allLearnersData, true);
     createCountUpTextInElement(dntLearnersCountElementId,
-        allLearnersData.mastercounts.allLearnersWithDoNotTrack);
+        allLearnersData.masterCounts.allLearnersWithDoNotTrack);
     countrySelectElement.value = allCountriesValue;
   });
 }
