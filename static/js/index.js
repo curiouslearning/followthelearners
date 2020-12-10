@@ -728,17 +728,15 @@ function onYourLearnersCountrySelectionChanged() {
       }
     }
 
-    setDonationPercentage(
-        countryDonationAggregate,
-        countryLearnersAggregate,
-        COSTPERLEARNER
-    );
+    setDonationPercentage(calculatePercentFilled(countryDonationAggregate,
+        countryLearnersAggregate, costPerLearner));
+
     createCountUpTextInElement('learner-count', countryLearnersAggregate);
 
     document.getElementById('donation-amount').innerText =
       countryDonationAggregate;
 
-    if (countryDonationStartDate !== "") {
+    if (countryDonationStartDate !== '') {
       document.getElementById('donation-date').innerText =
         countryDonationStartDate.toString();
     }
