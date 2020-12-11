@@ -2,6 +2,7 @@ const {apiKey} = require('../keys/stripe.json')
 const stripe = require('stripe')(apiKey);
 const serviceAccount = require('../keys/firestore-key.json');
 const fireStoreAdmin = require('firebase-admin');
+const get = require('lodash/get');
 
 fireStoreAdmin.initializeApp({
     credential: fireStoreAdmin.credential.cert(serviceAccount)
@@ -24,11 +25,11 @@ const listStripeCharges = async () => {
     //TODO take into account refunded/failed payments
     charges.data.forEach(donation => {
         formattedDonations.push({
-            eventId: donation.id,
+            chargeId: donation.id,
             amount: donation.amount,
             createdOn: new Date(donation.created * 1000)
         });
-    })
+    });
     return formattedDonations;
 }
 
@@ -45,12 +46,12 @@ const listFirebaseDonations = async () => {
     //TODO take into account refunded/failed payments
     donationDocs.forEach(donation => {
         formattedDonations.push({
-            eventId: donation.data().stripeEventId,
+            donationId: donation.data().donationID,
+            chargeId: donation.data().chargeId,
             amount: donation.data().amount,
-            createdOn: new Date(donationDocs[0].data().startDate._seconds*1000),
+            createdOn: new Date((donation.data().startDate._seconds*1000)),
         });
     })
-
     return formattedDonations;
 }
 
@@ -71,9 +72,9 @@ const listFirebaseDonations = async () => {
     let totalFirebaseDonations = 0;
 
     //Use stripe as the source of truth
-    for (let stripeDonation of stripeDonations) {
+    for (const stripeDonation of stripeDonations) {
         let correspondingFirebaseDonation = firebaseDonations.find(fbDonation =>
-            fbDonation.eventId.replace('evt_', '') === stripeDonation.eventId.replace('ch_'));
+            fbDonation.chargeId === stripeDonation.chargeId);
 
         totalStripeDonations += stripeDonation.amount;
 
@@ -85,6 +86,12 @@ const listFirebaseDonations = async () => {
         firebaseDonations.splice(firebaseDonations.findIndex(fbd => fbd.id === correspondingFirebaseDonation.id), 1);
 
         totalFirebaseDonations += correspondingFirebaseDonation.amount;
+    }
+
+    if(firebaseDonations.length > 0) {
+        console.warn(`There are ${firebaseDonations.length} donation(s) that are in the Firebase DB that are not ` +
+    `present in Stripe.  This is most likely due to testing data.  Donation ID's are:
+    ${firebaseDonations.map(d => `id: ${d.donationId || 'unknown donationID!'}, amount: $${d.amount}`).join('\n\t')}`);
     }
 
     //TODO finish the parity checks and return the results to the caller or log to a file
