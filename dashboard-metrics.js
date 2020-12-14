@@ -52,9 +52,9 @@ function main(date) {
     return loadIntoBigQuery(filename);
   }).catch((err)=>{
     console.error(err);
-  })
+  });
 }
-await main(parsedDate);
+(async () => {await main(parsedDate);})();
 
 async function loadIntoBigQuery(filename) {
   const bigQueryClient = new BigQuery();
