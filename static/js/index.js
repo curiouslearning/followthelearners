@@ -268,15 +268,18 @@ function initializeMaps() {
  * Gets the location data for all learners and switches the tab to all learners
  */
 function GetDataAndSwitchToAllLearners() {
-  $.get('/allLearners', {e: currentDonorEmail}, function(data, status) {
-    if (!data) {
-      console.log("Couldn't get data for All Learners!");
-      return;
-    }
-
-    allLearnersData = data.data;
+  const ftlData = window.localStorage.getItem('ftl-all-learners');
+  const ftlDataFetchDate = window.localStorage
+      .getItem('ftl-all-learners-fetch-date');
+  const fetchDate = new Date(ftlDataFetchDate);
+  const dateNow = new Date();
+  const diff = Math.round(Math.abs((
+    dateNow.getTime() - fetchDate.getTime()) / (86400000)));
+  if (ftlData && ftlDataFetchDate && diff < 1) {
+    allLearnersData = JSON.parse(ftlData);
+    
     createCountUpTextInElement(allLearnersCountElementId,
-        allLearnersData.masterCounts.allLearnersCount);
+      allLearnersData.masterCounts.allLearnersCount);
 
     createCountUpTextInElement(dntLearnersCountElementId,
         allLearnersData.masterCounts.allLearnersWithDoNotTrack);
@@ -294,7 +297,39 @@ function GetDataAndSwitchToAllLearners() {
     createCountUpTextInElement(dntLearnersCountElementId,
         allLearnersData.masterCounts.allLearnersWithDoNotTrack);
     countrySelectElement.value = allCountriesValue;
-  });
+  } else {
+    $.get('/allLearners', {e: currentDonorEmail}, function(data, status) {
+      if (!data) {
+        console.log("Couldn't get data for All Learners!");
+        return;
+      }
+  
+      allLearnersData = data.data;
+
+      window.localStorage.setItem('ftl-all-learners', JSON.stringify(allLearnersData));
+      window.localStorage.setItem('ftl-all-learners-fetch-date', JSON.stringify(new Date().toString()));
+
+      createCountUpTextInElement(allLearnersCountElementId,
+          allLearnersData.masterCounts.allLearnersCount);
+  
+      createCountUpTextInElement(dntLearnersCountElementId,
+          allLearnersData.masterCounts.allLearnersWithDoNotTrack);
+  
+      initializeCountrySelect(allLearnersData);
+      clearAllMarkers();
+      // tabSelector.ToggleTab('tab-all-learners');
+  
+      updateResetMapButtonState();
+  
+      clearAllMarkers();
+      createCountUpTextInElement('all-learners-count',
+          allLearnersData.masterCounts.allLearnersCount);
+      displayAllLearnersData(allLearnersData, true);
+      createCountUpTextInElement(dntLearnersCountElementId,
+          allLearnersData.masterCounts.allLearnersWithDoNotTrack);
+      countrySelectElement.value = allCountriesValue;
+    });
+  }
 }
 
 /**
