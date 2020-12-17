@@ -184,13 +184,14 @@
           h1.title.has-text-grey-dark.is-large(style='font-size: 2.2rem; margin: 0') All Learners
           h5.subtitle.is-size-5.has-text-dark-grey(style='margin-top: 0.5rem; margin-bottom: 0') Every dollar puts literacy apps in the hands of a child.
             span
-              a(href='/') &nbsp;Learn More
+              a(href='/learn-more' + utmValue) &nbsp;Learn More
             span .
-          h5.subtitle.is-size-5.has-text-grey(style='margin-top: 0.5rem;') We've reached&nbsp;
+          h5.subtitle.is-size-5.has-text-grey(style='margin-top: 0.5rem;')
+            span We've reached&nbsp;
             span#all-learners-count
             span &nbsp;Learners&nbsp;
             span#all-learners-in-country
-            span(style='font-size: 1.4rem;') &nbsp;(
+            span#no-region-user-count-parent.is-hidden(style='font-size: 1rem;') &nbsp;(
               span#no-region-user-count
               span &nbsp;users have Do Not Track on.)
         .section(style='position: relative; padding: 0; margin-top: 1rem;')
