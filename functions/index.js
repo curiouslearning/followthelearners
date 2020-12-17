@@ -176,7 +176,7 @@ function writeDonation(params) {
       return assignInitialLearners(donorID, donationID, params.country);
     }).then((promise)=>{
       const actionCodeSettings = {
-        url: 'https://followthelearners.curiouslearning.org/campaigns',
+        url: 'https://followthelearners.curiouslearning.org/',
         handleCodeInApp: true,
       };
       return admin.auth()
