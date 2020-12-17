@@ -66,21 +66,6 @@ app.get('/sw.js', (req, res) => {
 
 app.get('/', function(req, res) {
   const utmSource = req.query.utm_source;
-  res.render('landing-page', {utmSource: utmSource});
-});
-
-app.get('/faq', function(req, res) {
-  const utmSource = req.query.utm_source;
-  res.render('faq', {utmSource: utmSource});
-});
-
-app.get('/privacy-policy', function(req, res) {
-  const utmSource = req.query.utm_source;
-  res.render('privacy-policy', {utmSource: utmSource});
-});
-
-app.get('/campaigns', function(req, res) {
-  const utmSource = req.query.utm_source;
   const dbRef = firestore.collection('campaigns');
   const campaigns =[];
   dbRef.where('isActive', '==', true).where('isVisible', '==', true)
@@ -108,6 +93,21 @@ app.get('/campaigns', function(req, res) {
       }).then((snapshot)=>{
         res.render('index', {campaigns: campaigns, utmSource: utmSource});
       }).catch((err)=> console.error(err));
+});
+
+app.get('/faq', function(req, res) {
+  const utmSource = req.query.utm_source;
+  res.render('faq', {utmSource: utmSource});
+});
+
+app.get('/privacy-policy', function(req, res) {
+  const utmSource = req.query.utm_source;
+  res.render('privacy-policy', {utmSource: utmSource});
+});
+
+app.get('/learn-more', function(req, res) {
+  const utmSource = req.query.utm_source;
+  res.render('landing-page', {utmSource: utmSource});
 });
 
 app.get('/donate', function(req, res) {

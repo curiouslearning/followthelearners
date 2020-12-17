@@ -30,7 +30,7 @@
       }
 
   body
-    - const utmValue = utmSource ? "/?utm_source=" + utmSource : '';
+    - const utmValue = utmSource ? "/?utm_source=" + utmSource : '/';
     - const utmValueFAQ = utmSource ? "/?utm_source=" + utmSource : '?';
     .hero.is-large(style="color: white; background-image: url('/static/imgs/hero-cover.jpg'); background-position: center -100; background-size: cover; background-repeat: no-repeat;")
       .hero-head
@@ -45,7 +45,7 @@
                 span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
           .navbar-menu#navbarHeroMenu
             .navbar-end(style='align-items: center; padding-right: 1.5rem; padding-left: 1.5rem')
-              a.button.is-rounded.navbar-item.is-active.is-primary(href="/campaigns" + utmValue style='color: white; background-color: #8CCDC9; font-size: 1.8rem;')
+              a.button.is-rounded.navbar-item.is-active.is-primary(href=utmValue style='color: white; background-color: #8CCDC9; font-size: 1.8rem;')
                 span Get Started
       .hero-body(style='padding: 0')
         .container.has-text-centered(style="margin-bottom: 12rem; margin-top: 4rem")
@@ -154,7 +154,7 @@
         .columns
           .column
           .column.has-text-centered
-            a.button.is-rounded.is-active.is-primary(href="/campaigns" + utmValue style='color: white; background-color: #8CCDC9; font-size: 1.8rem;')
+            a.button.is-rounded.is-active.is-primary(href=utmValue style='color: white; background-color: #8CCDC9; font-size: 1.8rem;')
               span Get Started
           .column
     
@@ -176,7 +176,7 @@
         .columns
           .column
           .column.has-text-centered
-            a.button.is-rounded.is-active.is-primary(href="/campaigns" + utmValue style='color: white; background-color: #8CCDC9; font-size: 1.8rem;')
+            a.button.is-rounded.is-active.is-primary(href=utmValue style='color: white; background-color: #8CCDC9; font-size: 1.8rem;')
               span Get Started
           .column.has-text-centered
             a.button.is-rounded.is-active.is-light(href="/faq" + utmValueFAQ + "#how-is-my-donation-used" style='font-size: 1.8rem;')
@@ -214,7 +214,7 @@
       .container.has-text-centered
         .columns
           .column
-            a(href='/faq' + utmValue) FAQ
+            a(href='/faq' + utmValueFAQ) FAQ
           .column
             a(href='mailto:followthelearners@curiouslearning.org?Subject=FTL%20Support%20Request' target='_blank') Support
           .column
