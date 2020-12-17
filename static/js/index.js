@@ -1339,9 +1339,9 @@ function constructCountryLevelInfoWindow(country, randomFact) {
   const contentString = '<div style=\'text-align: left;\'>' +
     '<span style=\'font-size: 18px; color: #606060\'><b>' +
     country + ' </b></span>' +
-    // '<br><br> <p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
-    // randomFact + '<br><br>' +
-    '<br><br><br><div style="text-align: center">' +
+    '<br><br> <p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
+    'Go to the region level to see where children are using apps to learn.</p>' +
+    '<br><br><div style="text-align: center">' +
     '<button onclick="onAllLearnersCountryZoomInClick(\''+ country + '\')" class=\'button is-link is-outlined \'>' +
     ' <i class="fas fa-search-plus"></i>&nbsp;&nbsp;Take Me There ' +
     '</button>&nbsp;' +
@@ -1387,6 +1387,8 @@ function constructInfoWindowContent(country, region, randomFact, latitude,
     region + ' </b></span>' +
     '<span style=\'font-size: 16px; color: #909090\'><b>(' +
     country + ')</b></span>' +
+    '<br><br><p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
+    'Take a virtual visit to the region or community reached by your donation.</p>' +
     '<br><br><button onclick="showAllLearnersStreetViewPano(\'' + region +
     '\',' + latitude + ',' + longitude + ',' + heading +
     ')" type=\'button\' class=\'button is-link is-outlined \'>' +
@@ -1416,6 +1418,8 @@ function constructYourLearnersInfoWindowContent(country, region, randomFact, lat
     region + ' </b></span>' +
     '<span style=\'font-size: 16px; color: #909090\'><b>(' +
     country + ')</b></span>' +
+    '<br><br><p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
+    'Take a virtual visit to the region or community reached by your donation.</p>' +
     '<br><br><button onclick="showYourLearnersStreetViewPano(\'' + region +
     '\',' + latitude + ',' + longitude + ',' + heading +
     ')" type=\'button\' class=\'button is-link is-outlined \'>' +
