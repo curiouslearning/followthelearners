@@ -161,6 +161,7 @@ $(document).ready(function() {
             allLearnersData.masterCounts.allLearnersWithDoNotTrack);
         document.getElementById('all-learners-in-country').innerHTML = '';
         countrySelectElement.value = allCountriesValue;
+        document.getElementById('no-region-user-count-parent').classList.add('is-hidden');
       }
     });
   }
@@ -173,10 +174,10 @@ $(document).ready(function() {
         .then((result)=>{
           currentDonorEmail = email;
           window.localStorage.removeItem('emailForSignIn');
-          window.history.replaceState({}, document.title, '/campaigns');
+          window.history.replaceState({}, document.title, '/');
         }).catch((err)=>{
           window.localStorage.removeItem('emailForSignIn');
-          window.history.replaceState({}, document.title, '/campaigns');
+          window.history.replaceState({}, document.title, '/');
           console.error(err);
         });
   } else if (token) {
@@ -523,7 +524,7 @@ function checkForDonorSignIn() {
   $.get('/isUser', {email: currentDonorEmail}, function(data, status) {
     if (data.isUser) {
       const actionCodeSettings = {
-        url: 'https://followthelearners.curiouslearning.org/campaigns',
+        url: 'https://followthelearners.curiouslearning.org/',
         handleCodeInApp: true,
       };
       firebase.auth()
@@ -643,7 +644,8 @@ function onCountrySelectionChanged() {
           allLearnersData.campaignData[key].learnerCount);
       }
     }
-    document.getElementById('all-learners-in-country').innerHTML = ``;
+    document.getElementById('all-learners-in-country').innerHTML = `worldwide`;
+    document.getElementById('no-region-user-count-parent').classList.add('is-hidden');
   } else {
     displayAllLearnersData(allLearnersData, false, countrySelection);
     let c = allLearnersData.campaignData.find((loc) => { return loc.country === countrySelection; });
@@ -658,6 +660,7 @@ function onCountrySelectionChanged() {
     }
     document.getElementById('all-learners-in-country').innerHTML =
       `in ${countrySelection}`;
+    document.getElementById('no-region-user-count-parent').classList.remove('is-hidden');
   }
 
   updateResetMapButtonState();
@@ -866,7 +869,8 @@ function clearAllMarkers() {
  * should be passed
  */
 async function displayAllLearnersData(locData, isCountryLevelData, country) {
-  document.getElementById('all-learners-in-country').innerHTML = '';
+  document.getElementById('all-learners-in-country').innerHTML = 'worldwide';
+  document.getElementById('no-region-user-count-parent').classList.add('is-hidden');
   if (locData === null) {
     const center = new google.maps.LatLng(0, 0);
     mapAllLearners.setCenter(center);
