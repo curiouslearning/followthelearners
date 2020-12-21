@@ -123,7 +123,17 @@ $(document).ready(function() {
       firebase.auth().currentUser.getIdToken(true).then((newToken) =>{
         token = newToken;
         console.log('token: ', token);
-        GetDataAndSwitchToDonorLearners();
+        if (window.location.href.includes('referrer=donate_again')) {
+          landedFromReferral = true;
+          tabSelector.preventDefault();
+          tabSelector.ToggleTab('tab-campaigns');
+        } else if (window.location.href.includes('referrer=email_update')) {
+          landedFromReferral = true;
+          tabSelector.preventDefault();
+          onReferralFromUpdateEmail();
+        } else {
+          GetDataAndSwitchToDonorLearners();
+        }
         lastRefresh = Date.now();
         return;
       }).catch((err)=>{
@@ -160,7 +170,13 @@ $(document).ready(function() {
       } else if (tabId == 'tab-all-learners' && !landedFromReferral &&
         window.location.href.includes('&referrer=email_update')) {
         landedFromReferral = true;
+        tabSelector.preventDefault();
         onReferralFromUpdateEmail();
+      } else if (tabId == 'tab-all-learners' && !landedFromReferral &&
+        window.location.href.includes('referrer=email_update')) {
+        landedFromReferral = true;
+        tabSelector.preventDefault();
+        tabSelector.ToggleTab('tab-campaigns');
       } else if (tabId === 'tab-all-learners' && allLearnersData === null &&
         !loadingAllLearnersData) {
         loadingAllLearnersData = true;
@@ -197,7 +213,8 @@ $(document).ready(function() {
           window.history.replaceState({}, document.title, '/');
           console.error(err);
         });
-  } else if (token) {
+  } else if (token && !landedFromReferral) {
+    console.log('no bad');
     CheckTokenAndSwitchToDonorLearners(email);
   }
 
@@ -295,7 +312,7 @@ function GetDataAndSwitchToAllLearners() {
     dateNow.getTime() - fetchDate.getTime()) / (86400000)));
   if (ftlData && ftlDataFetchDate && diff < 1) {
     allLearnersData = JSON.parse(ftlData);
-    
+
     createCountUpTextInElement(allLearnersCountElementId,
       allLearnersData.masterCounts.allLearnersCount);
 
@@ -321,7 +338,7 @@ function GetDataAndSwitchToAllLearners() {
         console.log("Couldn't get data for All Learners!");
         return;
       }
-  
+
       allLearnersData = data.data;
 
       window.localStorage.setItem('ftl-all-learners', JSON.stringify(allLearnersData));
@@ -329,16 +346,16 @@ function GetDataAndSwitchToAllLearners() {
 
       createCountUpTextInElement(allLearnersCountElementId,
           allLearnersData.masterCounts.allLearnersCount);
-  
+
       createCountUpTextInElement(dntLearnersCountElementId,
           allLearnersData.masterCounts.allLearnersWithDoNotTrack);
-  
+
       initializeCountrySelect(allLearnersData);
       clearAllMarkers();
       // tabSelector.ToggleTab('tab-all-learners');
-  
+
       updateResetMapButtonState();
-  
+
       clearAllMarkers();
       createCountUpTextInElement('all-learners-count',
           allLearnersData.masterCounts.allLearnersCount);
