@@ -57,7 +57,8 @@ let token = undefined;
 const TOKENTIMEOUT = 3600001;
 let lastRefresh = Date.now();
 
-firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
+// donor authentication persists until an explicit sign out action
+firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
     .then(()=>{
       return true;
     }).catch((err)=>{
