@@ -46,6 +46,7 @@ let allLearnersPanoRef;
 let allLearnersPanoId = 'all-learners-panorama';
 
 // Auth data
+let landedFromReferral = false;
 let signInButton = '#sign-in-out'
 let signInTextElement = '#sign-in-text';
 let signInText = 'Sign In';
@@ -81,6 +82,12 @@ function scrollNavbar() {
 }
 
 $(document).ready(function() {
+  const userInfo = window.localStorage.getItem('authInfo');
+  if (userInfo) {
+    uid = userInfo.uid;
+    email = userInfo.email;
+    emailVerified = userInfo.emailVerified;
+  }
   const $navbarBurgers = Array.prototype.slice.call(
       document.querySelectorAll('.navbar-burger'), 0);
 
@@ -103,8 +110,13 @@ $(document).ready(function() {
       uid = user.uid;
       email = user.email;
       emailVerified = user.emailVerified;
+      window.localStorage.setItem('authInfo', {uid, email, emailVerified});
       $(signInButton).click(function() {
         firebase.auth().signOut();
+        window.localStorage.removeItem('authInfo');
+        email = null;
+        uid = null;
+        emailVerified = null;
         tabSelector.ToggleTab('tab-campaigns');
       });
       $(signInTextElement).text(signOutText);
@@ -145,6 +157,10 @@ $(document).ready(function() {
           $(newDonorInfoTextId).addClass('is-hidden');
           donorModal.classList.add('is-active');
         }
+      } else if (tabId == 'tab-all-learners' && !landedFromReferral &&
+        window.location.href.includes('&referrer=email_update')) {
+        landedFromReferral = true;
+        onReferralFromUpdateEmail();
       } else if (tabId === 'tab-all-learners' && allLearnersData === null &&
         !loadingAllLearnersData) {
         loadingAllLearnersData = true;
@@ -167,7 +183,7 @@ $(document).ready(function() {
     });
   }
   if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
-    let email = window.localStorage.getItem('emailForSignIn');
+    email = window.localStorage.getItem('emailForSignIn');
     if (!email) {
       email = window.prompt('Please enter your email to finish signing in');
     }
@@ -509,8 +525,16 @@ function GetDataAndSwitchToDonorLearners() {
   });
 }
 
+function onReferralFromUpdateEmail() {
+  if (token !== undefined && email !== undefined) {
+    console.log(`token is: ${token}`);
+    console.log(`email is: ${email}`);
+    CheckTokenAndSwitchToDonorLearners(email);
+  } else {
+    tabSelector.ToggleTab('tab-your-learners');
+  }
+}
 function checkForDonorSignIn() {
-  console.log('token: ', token);
   if (token !== undefined) {
     let email = currentDonorEmail;
     if (email === undefined) {
