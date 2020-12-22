@@ -1,6 +1,6 @@
-const {apiKey} = require('../keys/stripe.json')
+const {apiKey} = require('./keys/stripe.json')
 const stripe = require('stripe')(apiKey);
-const serviceAccount = require('../keys/firestore-key.json');
+const serviceAccount = require('./keys/firestore-key.json');
 const fireStoreAdmin = require('firebase-admin');
 const get = require('lodash/get');
 
