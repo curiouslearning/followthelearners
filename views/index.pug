@@ -60,10 +60,10 @@
   body(style="padding-top: 8rem !important;")
     - const utmValue = utmSource ? "/?utm_source=" + utmSource : '/';
     header
-      nav.navbar.is-fixed-top#navbar(role="navigation" style='z-index: 100; max-height: 120px; height: 120px; padding-left: 1.5rem; border-radius: 0; padding-right: 1.5rem; ')
+      nav.navbar.is-fixed-top#navbar(role="navigation" style='background-image: url("/static/imgs/hero-cover-sticky-header.jpg"); background-size: cover; background-repeat: no-repeat; color: white; background-position: center center; z-index: 100; max-height: 120px; height: 120px; padding-left: 1.5rem; border-radius: 0; padding-right: 1.5rem; ')
         .navbar-brand(style="align-items: center;")
-          a.title.has-text-grey-dark.is-large(href=utmValue style="margin-bottom: 0.5rem;") Follow The Learners™
-            span.is-small.subtitle (Beta)
+          a.title.has-text-grey-dark.is-large(href=utmValue style="margin-bottom: 0.5rem; color: white !important;") Follow The Learners™
+            span.is-small.subtitle(style="color: white;") (Beta)
           a.navbar-burger.is-large(data-target="navbarHeroMenu" role="button" aria-label="menu" aria-expanded="false" style="background-color: #404040;")
             span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
             span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
@@ -183,11 +183,16 @@
       .section#tab-all-learners(style="margin-top: 0rem; padding-top: 0;")
         .section(style='margin: 0; padding: 0rem;')
           h1.title.has-text-grey-dark.is-large(style='font-size: 2.2rem; margin: 0') All Learners
-          h3.subtitle.is-3.has-text-grey(style='margin-top: 1rem;') We've reached&nbsp;
+          h5.subtitle.is-size-5.has-text-dark-grey(style='margin-top: 0.5rem; margin-bottom: 0') Every dollar puts literacy apps in the hands of a child.
+            span
+              a(href='/learn-more' + utmValue) &nbsp;Learn More
+            span .
+          h5.subtitle.is-size-5.has-text-grey(style='margin-top: 0.5rem;')
+            span We've reached&nbsp;
             span#all-learners-count
             span &nbsp;Learners&nbsp;
             span#all-learners-in-country
-            span(style='font-size: 1.4rem;') &nbsp;(
+            span#no-region-user-count-parent.is-hidden(style='font-size: 1rem;') &nbsp;(
               span#no-region-user-count
               span &nbsp;users have Do Not Track on.)
         .section(style='position: relative; padding: 0; margin-top: 1rem;')

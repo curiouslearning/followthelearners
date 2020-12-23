@@ -161,6 +161,7 @@ $(document).ready(function() {
             allLearnersData.masterCounts.allLearnersWithDoNotTrack);
         document.getElementById('all-learners-in-country').innerHTML = '';
         countrySelectElement.value = allCountriesValue;
+        document.getElementById('no-region-user-count-parent').classList.add('is-hidden');
       }
     });
   }
@@ -173,10 +174,10 @@ $(document).ready(function() {
         .then((result)=>{
           currentDonorEmail = email;
           window.localStorage.removeItem('emailForSignIn');
-          window.history.replaceState({}, document.title, '/campaigns');
+          window.history.replaceState({}, document.title, '/');
         }).catch((err)=>{
           window.localStorage.removeItem('emailForSignIn');
-          window.history.replaceState({}, document.title, '/campaigns');
+          window.history.replaceState({}, document.title, '/');
           console.error(err);
         });
   } else if (token) {
@@ -268,15 +269,18 @@ function initializeMaps() {
  * Gets the location data for all learners and switches the tab to all learners
  */
 function GetDataAndSwitchToAllLearners() {
-  $.get('/allLearners', {e: currentDonorEmail}, function(data, status) {
-    if (!data) {
-      console.log("Couldn't get data for All Learners!");
-      return;
-    }
-
-    allLearnersData = data.data;
+  const ftlData = window.localStorage.getItem('ftl-all-learners');
+  const ftlDataFetchDate = window.localStorage
+      .getItem('ftl-all-learners-fetch-date');
+  const fetchDate = new Date(ftlDataFetchDate);
+  const dateNow = new Date();
+  const diff = Math.round(Math.abs((
+    dateNow.getTime() - fetchDate.getTime()) / (86400000)));
+  if (ftlData && ftlDataFetchDate && diff < 1) {
+    allLearnersData = JSON.parse(ftlData);
+    
     createCountUpTextInElement(allLearnersCountElementId,
-        allLearnersData.masterCounts.allLearnersCount);
+      allLearnersData.masterCounts.allLearnersCount);
 
     createCountUpTextInElement(dntLearnersCountElementId,
         allLearnersData.masterCounts.allLearnersWithDoNotTrack);
@@ -294,7 +298,39 @@ function GetDataAndSwitchToAllLearners() {
     createCountUpTextInElement(dntLearnersCountElementId,
         allLearnersData.masterCounts.allLearnersWithDoNotTrack);
     countrySelectElement.value = allCountriesValue;
-  });
+  } else {
+    $.get('/allLearners', {e: currentDonorEmail}, function(data, status) {
+      if (!data) {
+        console.log("Couldn't get data for All Learners!");
+        return;
+      }
+  
+      allLearnersData = data.data;
+
+      window.localStorage.setItem('ftl-all-learners', JSON.stringify(allLearnersData));
+      window.localStorage.setItem('ftl-all-learners-fetch-date', JSON.stringify(new Date().toString()));
+
+      createCountUpTextInElement(allLearnersCountElementId,
+          allLearnersData.masterCounts.allLearnersCount);
+  
+      createCountUpTextInElement(dntLearnersCountElementId,
+          allLearnersData.masterCounts.allLearnersWithDoNotTrack);
+  
+      initializeCountrySelect(allLearnersData);
+      clearAllMarkers();
+      // tabSelector.ToggleTab('tab-all-learners');
+  
+      updateResetMapButtonState();
+  
+      clearAllMarkers();
+      createCountUpTextInElement('all-learners-count',
+          allLearnersData.masterCounts.allLearnersCount);
+      displayAllLearnersData(allLearnersData, true);
+      createCountUpTextInElement(dntLearnersCountElementId,
+          allLearnersData.masterCounts.allLearnersWithDoNotTrack);
+      countrySelectElement.value = allCountriesValue;
+    });
+  }
 }
 
 /**
@@ -488,7 +524,7 @@ function checkForDonorSignIn() {
   $.get('/isUser', {email: currentDonorEmail}, function(data, status) {
     if (data.isUser) {
       const actionCodeSettings = {
-        url: 'https://followthelearners.curiouslearning.org/campaigns',
+        url: 'https://followthelearners.curiouslearning.org/',
         handleCodeInApp: true,
       };
       firebase.auth()
@@ -608,7 +644,8 @@ function onCountrySelectionChanged() {
           allLearnersData.campaignData[key].learnerCount);
       }
     }
-    document.getElementById('all-learners-in-country').innerHTML = ``;
+    document.getElementById('all-learners-in-country').innerHTML = `worldwide`;
+    document.getElementById('no-region-user-count-parent').classList.add('is-hidden');
   } else {
     displayAllLearnersData(allLearnersData, false, countrySelection);
     let c = allLearnersData.campaignData.find((loc) => { return loc.country === countrySelection; });
@@ -623,6 +660,7 @@ function onCountrySelectionChanged() {
     }
     document.getElementById('all-learners-in-country').innerHTML =
       `in ${countrySelection}`;
+    document.getElementById('no-region-user-count-parent').classList.remove('is-hidden');
   }
 
   updateResetMapButtonState();
@@ -831,7 +869,8 @@ function clearAllMarkers() {
  * should be passed
  */
 async function displayAllLearnersData(locData, isCountryLevelData, country) {
-  document.getElementById('all-learners-in-country').innerHTML = '';
+  document.getElementById('all-learners-in-country').innerHTML = 'worldwide';
+  document.getElementById('no-region-user-count-parent').classList.add('is-hidden');
   if (locData === null) {
     const center = new google.maps.LatLng(0, 0);
     mapAllLearners.setCenter(center);
@@ -850,7 +889,7 @@ async function displayAllLearnersData(locData, isCountryLevelData, country) {
       }
       // console.log(locationData[key].country);
       let learnerCount = locData.campaignData[key.toString()].learnerCount;
-      let iconOptions = getIconOptionsBasedOnCount(learnerCount);
+      let iconOptions = getIconOptionsBasedOnCountAllLeanersAllCountries(learnerCount);
       let newMarker = new google.maps.Marker({position: locationData[key].pin,
           map: mapAllLearners,
           icon: {url: iconOptions.iconUrl, size: iconOptions.iconSize,
@@ -1238,6 +1277,38 @@ async function displayYourLearnersData(locData, isCountryLevelData, countrySelec
  * Get matching png image and proper size of marker icon based on label count
  * @param {Number} count count
  */
+function getIconOptionsBasedOnCountAllLeanersAllCountries(count) {
+  let iconOptions = {
+    iconUrl: '/static/imgs/1_grey.png',
+    iconSize: new google.maps.Size(52, 52),
+    iconAnchor: new google.maps.Point(26, 26)};
+  if (count > 10) {
+    iconOptions.iconUrl = '/static/imgs/2_grey.png';
+    iconOptions.iconSize = new google.maps.Size(56, 55);
+    iconOptions.iconAnchor = new google.maps.Point(28, 28);
+  }
+  if (count > 100) {
+    iconOptions.iconUrl = '/static/imgs/3_grey.png';
+    iconOptions.iconSize = new google.maps.Size(66, 65);
+    iconOptions.iconAnchor = new google.maps.Point(33, 33);
+  }
+  if (count > 1000) {
+    iconOptions.iconUrl = '/static/imgs/4_grey.png';
+    iconOptions.iconSize = new google.maps.Size(78, 77);
+    iconOptions.iconAnchor = new google.maps.Point(39, 39);
+  }
+  if (count > 10000) {
+    iconOptions.iconUrl = '/static/imgs/5.png';
+    iconOptions.iconSize = new google.maps.Size(90, 89);
+    iconOptions.iconAnchor = new google.maps.Point(45, 45);
+  }
+  return iconOptions;
+}
+
+/**
+ * Get matching png image and proper size of marker icon based on label count
+ * @param {Number} count count
+ */
 function getIconOptionsBasedOnCount(count) {
   let iconOptions = {
     iconUrl: '/static/imgs/1.png',
@@ -1300,9 +1371,9 @@ function constructCountryLevelInfoWindow(country, randomFact) {
   const contentString = '<div style=\'text-align: left;\'>' +
     '<span style=\'font-size: 18px; color: #606060\'><b>' +
     country + ' </b></span>' +
-    // '<br><br> <p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
-    // randomFact + '<br><br>' +
-    '<br><br><br><div style="text-align: center">' +
+    '<br><br> <p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
+    'Go to the region level to see where children are using apps to learn.</p>' +
+    '<br><br><div style="text-align: center">' +
     '<button onclick="onAllLearnersCountryZoomInClick(\''+ country + '\')" class=\'button is-link is-outlined \'>' +
     ' <i class="fas fa-search-plus"></i>&nbsp;&nbsp;Take Me There ' +
     '</button>&nbsp;' +
@@ -1348,6 +1419,8 @@ function constructInfoWindowContent(country, region, randomFact, latitude,
     region + ' </b></span>' +
     '<span style=\'font-size: 16px; color: #909090\'><b>(' +
     country + ')</b></span>' +
+    '<br><br><p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
+    'Take a virtual visit to the region or community reached by your donation.</p>' +
     '<br><br><button onclick="showAllLearnersStreetViewPano(\'' + region +
     '\',' + latitude + ',' + longitude + ',' + heading +
     ')" type=\'button\' class=\'button is-link is-outlined \'>' +
@@ -1377,6 +1450,8 @@ function constructYourLearnersInfoWindowContent(country, region, randomFact, lat
     region + ' </b></span>' +
     '<span style=\'font-size: 16px; color: #909090\'><b>(' +
     country + ')</b></span>' +
+    '<br><br><p style=\'max-width: 300px; color: #505050; font-size: 14px\'>' +
+    'Take a virtual visit to the region or community reached by your donation.</p>' +
     '<br><br><button onclick="showYourLearnersStreetViewPano(\'' + region +
     '\',' + latitude + ',' + longitude + ',' + heading +
     ')" type=\'button\' class=\'button is-link is-outlined \'>' +
