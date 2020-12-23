@@ -11,7 +11,6 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 const webpack = require('webpack');
-const JSObfuscator = require('webpack-obfuscator');
 const CACHETIMEOUT = 720; // the cache timeout in minutes
 
 admin.initializeApp({
@@ -62,14 +61,6 @@ webpack({
         test: /\.ts$/,
         use: 'ts-loader',
         include: [path.resolve(__dirname, 'static/js')],
-        // exclude: /node_modules/,
-        // enforce: 'post',
-        // use: {
-        //   loader: JSObfuscator.loader,
-        //   options: {
-        //     rotateStringArray: true,
-        //   },
-        // },
       },
     ],
   },
@@ -80,12 +71,7 @@ webpack({
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'static/js/public'),
   },
-  mode: 'development',
-  // plugins: [
-  //   new JSObfuscator({
-  //     rotateStringArray: true,
-  //   }, []),
-  // ],
+  mode: 'production',
 }, (err, stats) => {
   if (err || stats.hasErrors()) {
     console.error(stats.toString());
