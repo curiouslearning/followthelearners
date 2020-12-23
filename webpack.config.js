@@ -1,6 +1,4 @@
 const path = require('path');
-const JSObfuscator = require('webpack-obfuscator');
-
 
 module.exports = {
   entry: './static/js/index.ts',
@@ -10,14 +8,6 @@ module.exports = {
         test: /\.ts$/,
         use: 'ts-loader',
         include: [path.resolve(__dirname, 'static/js')],
-        // exclude: /node_modules/,
-        // enforce: 'post',
-        // use: {
-        //   loader: JSObfuscator.loader,
-        //   options: {
-        //     rotateStringArray: true,
-        //   },
-        // },
       },
     ],
   },
@@ -29,9 +19,4 @@ module.exports = {
     path: path.resolve(__dirname, 'static/js/public'),
   },
   mode: 'development',
-  // plugins: [
-  //   new JSObfuscator({
-  //     rotateStringArray: true,
-  //   }, []),
-  // ],
 };
