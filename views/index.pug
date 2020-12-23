@@ -12,6 +12,7 @@
     script(src="/static/js/sw-loader.js")
     script(src="/static/js/gtm.js")
     script(src="/static/js/fbp.js")
+    script(src="/static/js/public/bundle.js")
     noscript
       img(height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=225538995469689&ev=PageView&noscript=1")
     script(src="https://www.gstatic.com/firebasejs/7.14.3/firebase-app.js")
@@ -70,23 +71,23 @@
         .navbar-menu#navbarHeroMenu(style='background-color: #FFF')
           .navbar-end#tab-buttons(style='align-items: center;  padding-left: 1.5rem')
             // Campaigns Button
-            a.button.is-medium.navbar-item(onclick="tabSelector.ToggleTab('tab-campaigns')" style='margin-right: 0.25rem; margin-left: 0.25rem; margin-bottom: 0.5rem;')
+            a.button.is-medium.navbar-item#btn-tab-campaigns(style='margin-right: 0.25rem; margin-left: 0.25rem; margin-bottom: 0.5rem;')
               span.icon.is-small
                 i.fas.fa-map-marker-alt(aria-hidden='true' style='pointer-events: none;')
               span Donate
             // Your Learners Button
-            a.button.is-medium.navbar-item(onclick="tabSelector.ToggleTab('tab-your-learners')" style='margin-right: 0.25rem; margin-left: 0.25rem; margin-bottom: 0.5rem;')
+            a.button.is-medium.navbar-item#btn-tab-yl(style='margin-right: 0.25rem; margin-left: 0.25rem; margin-bottom: 0.5rem;')
               span.icon.is-small
                 i.fas.fa-users(aria-hidden='true' style='pointer-events: none;')
               span Your Learners
             // All Learners Button
-            a.button.is-medium.is-dark.navbar-item(onclick="tabSelector.ToggleTab('tab-all-learners')" style='margin-right: 0.25rem; margin-left: 0.25rem; margin-bottom: 0.5rem;')
+            a.button.is-medium.is-dark.navbar-item#btn-tab-al(style='margin-right: 0.25rem; margin-left: 0.25rem; margin-bottom: 0.5rem;')
               span.icon.is-small
                 i.fas.fa-globe(aria-hidden='true' style='pointer-events: none;')
               span All Learners
 
             // Sign In Button
-            a.button.is-medium.is-primary.navbar-item#sign-in-out(onclick= "tabSelector.ToggleTab('tab-your-learners')" style='margin-right: 0.25rem; margin-left: 0.25rem; margin-bottom: 0.5rem;')
+            a.button.is-medium.is-primary.navbar-item#sign-in-out(style='margin-right: 0.25rem; margin-left: 0.25rem; margin-bottom: 0.5rem;')
               span#sign-in-text Sign In
 
     .section#tabs-parent(style='z-index: 100; padding: 0;')
