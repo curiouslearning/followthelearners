@@ -1,7 +1,7 @@
 const admin = require('firebase-admin');
 // const firebase = require('firebase/app');
 const serviceAccount = require('./keys/firestore-key.json');
-const DONATIONFILLTIMELINE = 7; // The min number of days to fill a donation
+const DONATIONFILLTIMELINE = 14; // The min number of days to fill a donation
 const PRUNEDATE = 7; // the number of days before a new user expires
 const DAYINMS = 86400000;
 const CONTINENTS = [
