@@ -931,7 +931,7 @@ async function displayAllLearnersData(locData, isCountryLevelData, country) {
       }
       // console.log(locationData[key].country);
       let learnerCount = locData.campaignData[key.toString()].learnerCount;
-      let iconOptions = getIconOptionsBasedOnCount(learnerCount);
+      let iconOptions = getIconOptionsBasedOnCountAllLeanersAllCountries(learnerCount);
       let newMarker = new google.maps.Marker({position: locationData[key].pin,
           map: mapAllLearners,
           icon: {url: iconOptions.iconUrl, size: iconOptions.iconSize,
@@ -1313,6 +1313,38 @@ async function displayYourLearnersData(locData, isCountryLevelData, countrySelec
       mapYourLearners.panToBounds(bounds);
     }
   }
+}
+
+/**
+ * Get matching png image and proper size of marker icon based on label count
+ * @param {Number} count count
+ */
+function getIconOptionsBasedOnCountAllLeanersAllCountries(count) {
+  let iconOptions = {
+    iconUrl: '/static/imgs/1_grey.png',
+    iconSize: new google.maps.Size(52, 52),
+    iconAnchor: new google.maps.Point(26, 26)};
+  if (count > 10) {
+    iconOptions.iconUrl = '/static/imgs/2_grey.png';
+    iconOptions.iconSize = new google.maps.Size(56, 55);
+    iconOptions.iconAnchor = new google.maps.Point(28, 28);
+  }
+  if (count > 100) {
+    iconOptions.iconUrl = '/static/imgs/3_grey.png';
+    iconOptions.iconSize = new google.maps.Size(66, 65);
+    iconOptions.iconAnchor = new google.maps.Point(33, 33);
+  }
+  if (count > 1000) {
+    iconOptions.iconUrl = '/static/imgs/4_grey.png';
+    iconOptions.iconSize = new google.maps.Size(78, 77);
+    iconOptions.iconAnchor = new google.maps.Point(39, 39);
+  }
+  if (count > 10000) {
+    iconOptions.iconUrl = '/static/imgs/5.png';
+    iconOptions.iconSize = new google.maps.Size(90, 89);
+    iconOptions.iconAnchor = new google.maps.Point(45, 45);
+  }
+  return iconOptions;
 }
 
 /**
