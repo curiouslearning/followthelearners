@@ -8,8 +8,10 @@ const bodyParser = require('body-parser');
 const dateFormat = require('date-format');
 const randLoc = require('random-location');
 const fs = require('fs');
-const path = require('path')
+const path = require('path');
 const app = express();
+const webpack = require('webpack');
+const JSObfuscator = require('webpack-obfuscator');
 const CACHETIMEOUT = 720; // the cache timeout in minutes
 
 admin.initializeApp({
@@ -42,6 +44,7 @@ const memcachedMiddleware = (duration) => {
     });
   };
 };
+
 const memcachedDeleteKey = (req)=> {
   const key = '__express__' + req.originalUrl || req.url;
   memcached.del(key, function(err) {
@@ -50,6 +53,46 @@ const memcachedDeleteKey = (req)=> {
     }
   });
 };
+
+webpack({
+  entry: './static/js/index.ts',
+  module: {
+    rules: [
+      {
+        test: /\.ts$/,
+        use: 'ts-loader',
+        include: [path.resolve(__dirname, 'static/js')],
+        // exclude: /node_modules/,
+        // enforce: 'post',
+        // use: {
+        //   loader: JSObfuscator.loader,
+        //   options: {
+        //     rotateStringArray: true,
+        //   },
+        // },
+      },
+    ],
+  },
+  resolve: {
+    extensions: ['.ts', '.tsx', '.js'],
+  },
+  output: {
+    filename: 'bundle.js',
+    path: path.resolve(__dirname, 'static/js/public'),
+  },
+  mode: 'development',
+  // plugins: [
+  //   new JSObfuscator({
+  //     rotateStringArray: true,
+  //   }, []),
+  // ],
+}, (err, stats) => {
+  if (err || stats.hasErrors()) {
+    console.error(stats.toString());
+  }
+
+  console.log(stats.toString());
+});
 
 app.use('/static', express.static(__dirname + '/static'));
 app.set('view engine', 'pug');
