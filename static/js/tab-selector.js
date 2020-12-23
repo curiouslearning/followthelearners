@@ -97,6 +97,6 @@ let tabSelector = null;
 
 $(document).ready(function() {
   tabSelector = new TabSelector(
-      'is-hidden', 'is-dark', 'tab-buttons', 'tabs-parent');
+      'is-active', 'is-dark', 'tab-buttons', 'tabs-parent');
 });
 
