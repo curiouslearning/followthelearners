@@ -36,5 +36,8 @@
     "typescript": "^4.1.3",
     "webpack": "^5.10.3",
     "webpack-cli": "^4.2.0"
+  },
+  "devDependencies": {
+    "@types/googlemaps": "^3.43.0"
   }
 }
