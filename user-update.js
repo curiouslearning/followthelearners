@@ -1,20 +1,8 @@
 const {BigQuery} = require('@google-cloud/bigquery');
 const fireStoreAdmin = require('firebase-admin');
-const {Client, Status} = require('@googlemaps/google-maps-services-js');
-// const firebase = require('firebase/app');
+const {Client} = require('@googlemaps/google-maps-services-js');
 const serviceAccount = require('./keys/firestore-key.json');
 const {get, isNil} = require('lodash');
-
-const PRUNEDATE = 7;
-const DAYINMS = 86400000;
-const CONTINENTS = [
-  'Africa',
-  'Americas',
-  'Antarctica',
-  'Asia',
-  'Europe',
-  'Oceania',
-];
 
 fireStoreAdmin.initializeApp({
   credential: fireStoreAdmin.credential.cert(serviceAccount),
@@ -223,7 +211,6 @@ async function insertLocation(row) {
 /**
  * Returns a [lat, lng] pair of values for the given address
  * @param {String} address is the address in string format
- * @param {Function} callback is a function that's called after getting a marker
  */
 async function getPinForAddress(address) {
   if (address === 'Georgia') address = 'Country of Georgia';
@@ -278,7 +265,7 @@ function createUser(row) {
 
 /**
 * Convert a date string to a firebase Timestamp
-* @param{str} date the date string
+* @param date the date string
 * @return{Object} the firebase timestamp
 */
 function makeTimestamp(date) {
@@ -287,8 +274,7 @@ function makeTimestamp(date) {
   const day = date.slice(6);
   const dateString = year.toString()+'-'+month.toString()+'-'+day.toString();
   const parsedDate = new Date(dateString);
-  const timestamp = fireStoreAdmin.firestore.Timestamp.fromDate(parsedDate);
-  return timestamp;
+  return fireStoreAdmin.firestore.Timestamp.fromDate(parsedDate);
 }
 
 /**
