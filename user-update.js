@@ -3,6 +3,8 @@ const fireStoreAdmin = require('firebase-admin');
 const {Client, Status} = require('@googlemaps/google-maps-services-js');
 // const firebase = require('firebase/app');
 const serviceAccount = require('./keys/firestore-key.json');
+const {get, isNil} = require('lodash');
+
 const PRUNEDATE = 7;
 const DAYINMS = 86400000;
 const CONTINENTS = [
@@ -19,6 +21,7 @@ fireStoreAdmin.initializeApp({
 });
 const firestore = fireStoreAdmin.firestore();
 const gmaps = new Client({});
+const countriesAddedOrExist = [];
 
 /**
 * main function
@@ -61,7 +64,7 @@ async function main() {
     ];
     let query = '';
     tables.forEach((table)=>{
-      if (query != '') {
+      if (query !== '') {
         query = query.concat(' UNION ALL ');
       }
       const subquery = `SELECT
@@ -73,7 +76,7 @@ async function main() {
         geo.country,
         geo.region
       FROM
-        \``+ table+`\`
+        \`${table}\`
       WHERE
         _TABLE_SUFFIX =
           FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY))
@@ -89,7 +92,8 @@ async function main() {
 
     try {
       const [rows] = await bigQueryClient.query(options);
-      console.log('successful Query');
+      console.log(`successful Query - retrieved ${rows.length} new users`);
+
       const batchMax = 490;
       let batchCounter = 0;
       let commitCounter = 0;
@@ -98,22 +102,26 @@ async function main() {
       let counter = 0;
       let doubleCounter = 0;
       batches[commitCounter] = firestore.batch();
-      rows.forEach((row)=>{
+
+      for(const row of rows) {
+        //Create a new batch if it exceeds the max
         if (batchCounter >= batchMax) {
           batchCounter = 0;
-          commitCounter++;
-          batches[commitCounter] = firestore.batch();
+          batches[++commitCounter] = firestore.batch();
         }
+
+        //If the list of userID's doesn't contain the new user, add it to the list
         if (!usedIDs.includes(row.user_pseudo_id)) {
           counter++;
           usedIDs.push(row.user_pseudo_id);
           addUserToPool(createUser(row), batches[commitCounter]);
-          insertLocation(row);
+          await insertLocation(row);
           batchCounter++;
         } else {
           doubleCounter++;
         }
-      });
+      }
+
       console.log('created ', counter - doubleCounter, ' new users');
       await writeToDb(batches);
       console.log('doubleCounter: ' + doubleCounter);
@@ -142,52 +150,73 @@ function waitForSecond() {
 */
 async function writeToDb(arr) {
   console.log('beginning write');
-  for (let i = 0; i < arr.length; i++) {
-    console.log('writing batch: ' + i);
-    await waitForSecond();
-    arr[i].commit().then(function() {
-      console.log('wrote batch: ' + i);
-    }).catch((err)=>{
+  for(const [index, a] of arr.entries()) {
+    console.log(`writing batch: ${index}`);
+    try {
+      await a.commit();
+    } catch(err) {
       console.error(err);
-    });
+    }
+    console.log(`wrote batch: ${index}`);
+    await waitForSecond();
   }
 }
 
 /**
-* add a new location reference to fireStore
+* add a new location reference to fireStore if not exists
 * @param{string[]} row the row containing the new location data
 */
-function insertLocation(row) {
-  if (row.country != null && row.country != '') {
-    const locationRef = firestore.collection('loc_ref').doc(row.country);
-    locationRef.get().then(async (doc)=>{
-      if (!doc.exists) {
-        await getPinForAddress(row.country, (markerLoc) => {
-          locationRef.set({
-            country: row.country,
-            continent: row.continent,
-            learnerCount: 0,
-            pin: {
-              lat: markerLoc.lat,
-              lng: markerLoc.lng,
-            },
-            regions: [],
-          }, {merge: true});
-        });
-      } else if (doc.exists && !doc.data().hasOwnProperty('pin') ||
-          (doc.exists && doc.data().pin.lat === 0 && doc.data().pin.lng === 0)) {
-        await getPinForAddress(row.country, (markerLoc) => {
-          locationRef.set({
-            pin: {
-              lat: markerLoc.lat,
-              lng: markerLoc.lng,
-            },
-          }, {merge: true});
-        });
-      }
-    }).catch((err)=>{
-      console.log(err);
-    });
+async function insertLocation(row) {
+  if(isNil(row.country) || row.country === '' || countriesAddedOrExist.contains(row.country)) return;
+
+  let doc, locationRef;
+  try {
+    locationRef = firestore.collection('loc_ref').doc(row.country);
+    doc = locationRef.get();
+  } catch(err) {
+    console.error(`Error when trying to retrieve the location for country: ${row.country}.  Skipping user: ${row.user_pseudo_id}`);
+    return;
+  }
+
+  if(doc.exists && doc.data().pin.lat !== 0 && doc.data().pin.lng !== 0) {
+    countriesAddedOrExist.push(row.country);
+    return;
+  }
+
+  if (!doc.exists) {
+    const markerLoc = await getPinForAddress(row.country);
+    if(!markerLoc) {
+      console.error(`Unable to retrieve a Google pin for address: ${row.country}.  Skipping user: ${row.user_pseudo_id}`);
+      return;
+    }
+
+    await locationRef.set({
+      country: row.country,
+      continent: row.continent,
+      learnerCount: 0,
+      pin: {
+        lat: markerLoc.lat,
+        lng: markerLoc.lng,
+      },
+      regions: [],
+      }, {merge: true});
+    countriesAddedOrExist.push(row.country);
+  } else if (doc.exists && !doc.data().hasOwnProperty('pin') ||
+        (doc.exists && doc.data().pin.lat === 0 && doc.data().pin.lng === 0)) {
+    const markerLoc = await getPinForAddress(row.country);
+
+    if(!markerLoc) {
+      console.error(`Unable to retrieve a Google pin for address: ${row.country}.  Skipping user: ${row.user_pseudo_id}`);
+      return;
+    }
+
+    await locationRef.set({
+      pin: {
+        lat: markerLoc.lat,
+        lng: markerLoc.lng,
+      },
+    }, {merge: true});
+    countriesAddedOrExist.push(row.country);
   }
 }
 
@@ -196,23 +225,21 @@ function insertLocation(row) {
  * @param {String} address is the address in string format
  * @param {Function} callback is a function that's called after getting a marker
  */
-async function getPinForAddress(address, callback) {
+async function getPinForAddress(address) {
   if (address === 'Georgia') address = 'Country of Georgia';
-  await gmaps.geocode({
-    params: {
-      address: address,
-      key: "AIzaSyDEl20cTMsc72W_TasuK5PlWYIgMrzyuAU",
-    },
-    timeout: 1000, // milliseconds
-  }).then((r) => {
-    if (r.data.results[0]) {
-      // console.log(r.data.results[0]);
-      const markerLoc = r.data.results[0].geometry.location;
-      callback(markerLoc);
-    }
-  }).catch((e) => {
-    console.log(e.response.data.error_message);
-  });
+
+  try {
+    const record = await gmaps.geocode({
+      params: {
+        address: address,
+        key: "AIzaSyDEl20cTMsc72W_TasuK5PlWYIgMrzyuAU",
+      },
+      timeout: 1000, // milliseconds
+    });
+    return get(record, 'data.results[0]') ? r.data.results[0].geometry.location : null;
+  } catch(err) {
+    console.log(get(err, 'response.data.error_message', err));
+  }
 }
 
 /**
