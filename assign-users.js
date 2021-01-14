@@ -51,8 +51,7 @@ async function assignExpiringLearners() {
   console.log('priority queue length:', priorityQueue.length);
   matchLearnersToDonors(learnerQueue, priorityQueue);
   await batchLearnerAssignment(priorityQueue);
-  sweepExpiredLearners();
-
+  await sweepExpiredLearners();
 }
 
 /**
@@ -121,7 +120,7 @@ function matchLearnersToDonors(learners, donations) {
   console.log(`ending with ${learners.length} free learners`);
   console.log(`${(donations.length - fullDonations)|| 0} open donations`);
 }
-
+ 
 function calculateLearnerCap(donation) {
   const amount = donation.amount;
   const costPerLearner = donation.costPerLearner;
