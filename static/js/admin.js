@@ -7,6 +7,7 @@ let generatedStreetViews = null;
 let streetViewService = null;
 let pinMap = null;
 let loadedPins = [];
+let activeButtonId= 'street-views-btn';
 
 const toastType = {
   primary: 'primary',
@@ -16,6 +17,62 @@ const toastType = {
   info: 'info',
   success: 'success',
 };
+
+$(document).ready(()=>{
+  if (tabSelector) {
+    tabSelector.addEventListener('preTabToggle', (tabId) => {
+      switch (tabId) {
+        case 'street-views':
+          if (activeButtonId !== 'street-views-btn') {
+            document.getElementById(activeButtonId)
+                .classList.toggle('is-active');
+            document.getElementById('street-views-btn')
+                .classList.toggle('is-active');
+            activeButtonId = 'street-views-btn';
+          }
+          break;
+        case 'dashboard-metrics':
+          if (activeButtonId !== 'dashboard-metrics-btn') {
+            document.getElementById(activeButtonId)
+                .classList.toggle('is-active');
+            document.getElementById('dashboard-metrics-btn')
+                .classList.toggle('is-active');
+            activeButtonId = 'dashboard-metrics-btn';
+          }
+          break;
+        case 'logs':
+          if (activeButtonId !== 'logs-btn') {
+            document.getElementById(activeButtonId)
+                .classList.toggle('is-active');
+            document.getElementById('logs-btn')
+                .classList.toggle('is-active');
+            activeButtonId = 'logs-btn';
+          }
+          break;
+        case 'campaigns':
+          if (activeButtonId !== 'campaigns-btn') {
+            document.getElementById(activeButtonId)
+                .classList.toggle('is-active');
+            document.getElementById('campaigns-btn')
+                .classList.toggle('is-active');
+            activeButtonId = 'campaigns-btn';
+          }
+          break;
+        case 'users':
+          if (activeButtonId !== 'users-btn') {
+            document.getElementById(activeButtonId)
+                .classList.toggle('is-active');
+            document.getElementById('users-btn')
+                .classList.toggle('is-active');
+            activeButtonId = 'users-btn';
+          }
+          break;
+        default:
+          break;
+      }
+    });
+  }
+});
 
 /**
  * Entry point after the goolge maps has finished loading on the page
