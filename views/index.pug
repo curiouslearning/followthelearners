@@ -5,13 +5,13 @@
     title Follow The Learners™ (Beta)
     meta(name="description" content="Follow The Learners™ (Beta)")
     meta(name="viewport" content="width=device-width, initial-scale=1")
-    script(
-        src="https://code.jquery.com/jquery-3.5.0.min.js"
-        integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
-        crossorigin="anonymous")
+    //- script(
+    //-     src="https://code.jquery.com/jquery-3.5.0.min.js"
+    //-     integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
+    //-     crossorigin="anonymous")
     script(src="/static/js/sw-loader.js")
-    script(src="/static/js/gtm.js")
-    script(src="/static/js/fbp.js")
+    script(src="/static/js/third/gtm.js")
+    script(src="/static/js/third/fbp.js")
     script(src="/static/js/public/bundle.js")
     noscript
       img(height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=225538995469689&ev=PageView&noscript=1")
@@ -68,7 +68,7 @@
             span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
             span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
             span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
-        .navbar-menu#navbarHeroMenu(style='background-color: #FFF')
+        .navbar-menu#navbarHeroMenu(style='background-color: rgba(0, 0, 0, 0)')
           .navbar-end#tab-buttons(style='align-items: center;  padding-left: 1.5rem')
             // Campaigns Button
             a.button.is-medium.navbar-item#btn-tab-campaigns(style='margin-right: 0.25rem; margin-left: 0.25rem; margin-bottom: 0.5rem;')
@@ -88,6 +88,8 @@
 
             // Sign In Button
             a.button.is-medium.is-primary.navbar-item#sign-in-out(style='margin-right: 0.25rem; margin-left: 0.25rem; margin-bottom: 0.5rem;')
+              span.icon.is-small
+                  i.fas.fa-sign-in-alt#auth-button-icon(aria-hidden='true' style='pointer-events: none;')
               span#sign-in-text Sign In
 
     .section#tabs-parent(style='z-index: 100; padding: 0;')
@@ -100,7 +102,7 @@
             //- p If you have not received a beta testing invitation, please e-mail info@curiouslearning.org to log your interest in becoming a tester before donating.
           - for (let i = 0; i < campaigns.length; i++)
             if (i === 0 || i % 3 === 0)
-              .columns.is-desktop(style='margin-top: 0.5rem')
+              .columns.is-desktop(style='margin-top: 0.5rem') 
                 - for (var j = i; j < (3 + i); j++)
                   - if (j >= campaigns.length) break;
                     - let campaign = campaigns[j];
@@ -159,7 +161,7 @@
             span(style='font-size: 1.4rem;') &nbsp;(
               span#your-learners-no-region-user-count
               span &nbsp;users have Do Not Track on.)
-          button.button.is-primary.is-large#give-again(onclick="onGiveNowButtonClick()" style="margin-left: 0") Give Again
+          button.button.is-primary.is-large#give-again-button(style="margin-left: 0") Give Again
           
             //- span Would you like to give again to reach more?
           h3.subtitle.is-3.has-text-grey
@@ -168,12 +170,12 @@
           #map-display-your-learners(style="width: 100%; height: 720px;")
           #map-overlay(style='width: 100%; height: 720px; position: absolute; top: 0; left: 0; z-index: 25; pointer-events: none;')
             .select.is-medium(style='')
-              select#yourLearnersCountrySelect(onchange='onYourLearnersCountrySelectionChanged()' style='pointer-events: auto; margin: 4px;' name='campaignSelection')
-            button.button.is-medium#btn-reset-map-yl(onclick="onResetYLMapButtonClick()" style='pointer-events: auto; margin: 4px;') Reset Map
+              select#yourLearnersCountrySelect(style='pointer-events: auto; margin: 4px;' name='campaignSelection')
+            button.button.is-medium#btn-reset-map-yl(style='pointer-events: auto; margin: 4px;') Reset Map
           div#your-learners-overlay-pano.is-hidden(style="width: 100%; height: 720px; position: absolute; top: 0; left: 0; z-index: 30; pointer-events: auto;")
             div#your-learners-panorama(style="width: 100%; height: 100%; pointer-events: auto;")
             div(style="width: 100%; height: 100%; position: absolute; left: 0; top: 0; z-index: 35; pointer-events: none;")
-              button.button.is-medium(onclick="onYourLearnersPanoramaCloseButtonClick()" style='pointer-events: auto; margin: 10px; float: right;')
+              button.button.is-medium#your-learners-pano-close(style='pointer-events: auto; margin: 10px; float: right;')
                 span(style="font-weight: bold;") Close
               //- button.button.is-medium(onclick="onPanoramaPreviousButtonClick()" style='pointer-events: auto; margin: 10px; position: absolute; left: 0; top: 45%; background-color: rgba(30, 30, 30, 0.3); font-weight: bold; font-size: 1.2rem; color: white; border: none;')
               //-   span(style="font-weight: bold;") Prev
@@ -199,12 +201,12 @@
           #map-display-all-learners(style="width: 100%; height: 720px;")
           #map-overlay(style='width: 100%; height: 720px; position: absolute; top: 0; left: 0; z-index: 25; pointer-events: none;')
             .select.is-medium
-              select#countrySelection(onchange='onCountrySelectionChanged()' style='pointer-events: auto; margin: 4px;' name='campaignSelection')
-            button.button.is-medium#btn-reset-map(onclick="onResetMapButtonClick()" style='pointer-events: auto; margin: 4px;') Reset Map
+              select#all-learners-country-select(style='pointer-events: auto; margin: 4px;' name='campaignSelection')
+            button.button.is-medium#btn-reset-map(style='pointer-events: auto; margin: 4px;') Reset Map
           div#all-learners-overlay-pano.is-hidden(style="width: 100%; height: 720px; position: absolute; top: 0; left: 0; z-index: 30; pointer-events: auto;")
             div#all-learners-panorama(style="width: 100%; height: 100%; pointer-events: auto;")
             div(style="width: 100%; height: 100%; position: absolute; left: 0; top: 0; z-index: 35; pointer-events: none;")
-              button.button.is-medium(onclick="onAllLearnersPanoramaCloseButtonClick()" style='pointer-events: auto; margin: 10px; float: right;')
+              button.button.is-medium#all-learners-pano-close(style='pointer-events: auto; margin: 10px; float: right;')
                 span(style="font-weight: bold;") Close
               //- button.button.is-medium(onclick="onPanoramaPreviousButtonClick()" style='pointer-events: auto; margin: 10px; position: absolute; left: 0; top: 45%; background-color: rgba(30, 30, 30, 0.3); font-weight: bold; font-size: 1.2rem; color: white; border: none;')
               //-   span(style="font-weight: bold;") Prev
@@ -212,22 +214,22 @@
               //-   span(style="font-weight: bold;") Next
     
     .modal#donate-modal
-      .modal-background(onclick="document.getElementById('donate-modal').classList.remove('is-active');")
+      .modal-background#donate-modal-overlay
       .modal-card
         header.modal-card-head(style='border: none')
           p.modal-card-title.hast-text-grey-dark.has-text-centered Donate | Give Lively
-          button.delete(aria-label='close' onclick="document.getElementById('donate-modal').classList.remove('is-active'); document.getElementById('modal-instruction-text').classList.remove('is-hidden');")
+          button.delete#donate-modal-close-button(aria-label='close')
         .modal-card-body
           p We will locate your learners over the next few days after your donation. Please watch for an e-mail from followthelearners@curiouslearning.org letting you know when your first learners are ready.
           br
           div.gl-simple-donation-widget#give-lively-widget
     
     .modal#donor-email-modal
-      .modal-background(onclick="document.getElementById('donor-email-modal').classList.remove('is-active');")
+      .modal-background#sign-in-modal-overlay
       .modal-card
         header.modal-card-head(style='border: none')
           p.modal-card-title.hast-text-grey-dark.has-text-centered.is-size-5 Sign In to Follow The Learners™
-          button.delete(aria-label='close' onclick="document.getElementById('donor-email-modal').classList.remove('is-active'); document.getElementById('modal-instruction-text').classList.remove('is-hidden');")
+          button.delete#sign-in-modal-close-btn(aria-label='close')
         .modal-card-body
           p.has-text-info.is-hidden#new-donor-info-text
             span.icon.is-small.is-left
@@ -239,7 +241,7 @@
             span We’ll email you a magic code for a password-free sign in.
             //- br
             //- span Or make a donation to create your account and start following your learners!
-          form(onsubmit='checkForDonorSignIn(); return false;')
+          form#sign-in-form
             //- .help Go to your Donor Summary
             br
             label.has-text-grey(for='email') E-mail
@@ -251,28 +253,8 @@
             p.is-pulled-right(style="font-size: 0.6rem;") New to Follow the Learners™?
             br
             .control
-              input.button#donor-email-submit(type='button' disabled=true onclick='checkForDonorSignIn()' value='Send Me a Magic Link')
-              input.button.is-pulled-right#go-to-donate(type='button' disabled=false onclick="document.getElementById('donor-email-modal').classList.remove('is-active'); tabSelector.ToggleTab('tab-campaigns')" value='Make a Donation')
-          script.
-            $(function() {
-              $('#donor-email').focusin(function() {
-                $('#donor-email').keyup(function(event) {
-                  if(isSpecial(event.which)) return;
-                  let value = $('#donor-email').val();
-                  if (validateEmail(value)) {
-                    $('#donor-email-submit').prop('disabled', false);
-                    $('#new-donor-info-text').addClass('is-hidden');
-                  } else {
-                    $('#donor-email-submit').prop('disabled', true);
-                    $('#new-donor-info-text').text('Please enter a valid email address');
-                    $('#new-donor-info-text').removeClass('is-hidden');
-                  }
-                });  
-              });
-              $('#donor-email').focusout(function() {
-                  $('#donor-email').keyup(function(event) {});
-              });
-            });
+              input.button#donor-email-submit(type='button' disabled=true value='Send Me a Magic Link')
+              input.button.is-pulled-right#go-to-donate-button(type='button' value='Make a Donation')
 
     script(src="https://secure.givelively.org/widgets/simple_donation/curious-learning-a-global-literacy-project-inc.js?show_suggested_amount_buttons=false&show_in_honor_of=false&address_required=false&has_required_custom_question=null&prefilled_donation_amount=20")
 
@@ -287,16 +269,11 @@
             a(href='/privacy-policy' + utmValue) Privacy Policy
         h5.is-size-5 Copyright 2020 by Curious Learning.
         
-  script(src="/static/js/fbc.js")
-  script(src="/static/js/tab-selector.js")
-  script(src="/static/js/countUp.js")
-  script(src="/static/js/index.js")
-  script(src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDEl20cTMsc72W_TasuK5PlWYIgMrzyuAU&callback=initializeMaps")
-  //- script(src="https://unpkg.com/@google/markerclustererplus@4.0.1/dist/markerclustererplus.min.js")
+  script(src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDEl20cTMsc72W_TasuK5PlWYIgMrzyuAU&callback=initGoogleMaps")
 
   noscript
     iframe(src="https://www.googletagmanager.com/ns.html?id=GTM-KW3K32P" height="0" width="0" style="display:none;visibility:hidden")
 
-  script(src='/static/js/lnkd.js')
+  script(src='/static/js/third/lnkd.js')
     noscript
       img(height="1" width="1" style="display:none;" alt="" src="https://px.ads.linkedin.com/collect/?pid=3032825&fmt=gif")
