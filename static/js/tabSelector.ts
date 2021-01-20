@@ -23,10 +23,6 @@ export class TabSelector
   private initializedSuccessfully: boolean;
   private preventDefaultAction: boolean;
   
-  /**
-   * Initialize class with config
-   * @param config Global config
-   */
   constructor(config: Config) {
     this.config = config;
     this.tabButtonsParentId = this.config.tabButtonsId;

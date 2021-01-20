@@ -16,9 +16,12 @@ export class HamburgerMenu {
     this.colorTransparent = this.config.colorTransparent;
   }
 
+  /**
+   * Close the hamburger menu if active
+   */
   public close(): void {
     const navbarBurgers = Array.prototype.slice.call(
-      document.querySelectorAll('.navbar-burger'), 0);
+      document.querySelectorAll(this.menuClass), 0);
     if (navbarBurgers.length > 0) {
       navbarBurgers.forEach((nb) => {
         const targetId = nb.dataset.target;
