@@ -76,8 +76,8 @@ export class Config {
   public readonly signInButtonIconId: string = "#auth-button-icon";
   public readonly signInButtonSignedInTextValue: string = "Sign Out";
   public readonly signInButtonSignedOutTextValue: string = "Sign In";
-  public readonly signInButtonIconSignedInClass: string = "fa-sign-in-alt";
-  public readonly signInButtonIconSignedOutClass: string = "fa-sign-out-alt";
+  public readonly signInButtonIconSignedInClass: string = "fa-sign-out-alt";
+  public readonly signInButtonIconSignedOutClass: string = "fa-sign-in-alt";
   
   /* Sign In Modal */
   public readonly signInModalId: string = '#donor-email-modal';

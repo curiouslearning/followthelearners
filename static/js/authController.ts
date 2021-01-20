@@ -3,6 +3,9 @@ import { Config } from "./config";
 import firebase from "firebase/app";
 import "firebase/auth";
 
+/**
+ * Class that controls Authentication capabilities
+ */
 export class AuthController {
   private config: Config;
 
@@ -86,10 +89,14 @@ export class AuthController {
         
         this.signInButtonTextElement!.innerHTML = 
           this.signInButtonSignedInTextValue;
+        this.signInButtonAuthIconElement?.classList.remove(this.signInButtonIconSignedOutClass);
+        this.signInButtonAuthIconElement?.classList.add(this.signInButtonIconSignedInClass);
         this.refreshToken();
       } else {
         this.signInButtonTextElement!.innerHTML = 
           this.signInButtonSignedOutTextValue;
+        this.signInButtonAuthIconElement?.classList.remove(this.signInButtonIconSignedInClass);
+        this.signInButtonAuthIconElement?.classList.add(this.signInButtonIconSignedOutClass);
         this.isUserAuthenticated = false;
         this.uid = '';
         this.email = '';
