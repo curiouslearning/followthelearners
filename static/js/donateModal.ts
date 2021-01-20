@@ -1,8 +1,10 @@
 import { getJSDocThisTag } from "typescript";
 import { Config } from "./config";
-import { Helpers } from "./helpers"
 import { Modal } from "./modal";
 
+/**
+ * Class for opening and closing the Donate Modal
+ */
 export class DonateModal extends Modal {
 
   constructor(config: Config) {

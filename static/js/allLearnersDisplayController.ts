@@ -23,6 +23,9 @@ export class AllLearnersDisplayController extends MapDisplayController {
     this.fetchIntervalInDays = this.config.alFetchIntervalInDays;
   }
 
+  /**
+   * Initialize the controls
+   */
   public init(): void {
     this.mapParentId = this.config.alMapParentId;
     this.learnerCountId = this.config.alCountElementId;
@@ -43,6 +46,11 @@ export class AllLearnersDisplayController extends MapDisplayController {
     super.init();
   }
 
+  /**
+   * Fetch the All learners data
+   * @param url URL
+   * @param callback Callback with hasData
+   */
   public fetchData(url: string, callback: (hasData: boolean) => void): void {
     const ftlData = window.localStorage.getItem(
       this.dataLocalStorageKey);
@@ -70,6 +78,9 @@ export class AllLearnersDisplayController extends MapDisplayController {
 
   }
 
+  /**
+   * Override for the updateUI that works with the all learners page
+   */
   public updateUI(): void {
     super.updateUI();
     if (this.currentCountrySelection !== this.allCountriesValue) {
@@ -86,6 +97,9 @@ export class AllLearnersDisplayController extends MapDisplayController {
       this.learnersData.masterCounts.allLearnersCount);
   }
 
+  /**
+   * Override for the initialize country select
+   */
   protected initializeCountrySelect(): void {
     if (this.countrySelectElement && this.countrySelectElement.options.length === 0) {
       this.countrySelectElement.innerHTML = '';
@@ -105,6 +119,9 @@ export class AllLearnersDisplayController extends MapDisplayController {
     }
   }
 
+  /**
+   * Override for the plot data
+   */
   public plotData(): void {
     if (!this.learnersData.locationData) {
       this.resetMapView();
@@ -165,6 +182,10 @@ export class AllLearnersDisplayController extends MapDisplayController {
     }
   }
 
+  /**
+   * Override for the get icon options 
+   * @param learnerCount Learner count
+   */
   public getIconOptions(learnerCount: number) {
     return this.currentCountrySelection === this.allCountriesValue ?
       Helpers.getIconOptionsGrey(learnerCount) : Helpers.getIconOptionsGeneral(learnerCount);

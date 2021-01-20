@@ -17,6 +17,9 @@ export class Modal {
     this.activeClass = this.config.activeClass;
   }
 
+  /**
+   * Initialize the modal elements and assign listeners
+   */
   public init(): void {
     this.modal = Helpers.getElement(this.modalId) as HTMLElement;
     this.closeButton = Helpers.getElement(this.closeButtonId) as HTMLButtonElement;
@@ -35,18 +38,27 @@ export class Modal {
     }
   }
 
+  /**
+   * Open the modal
+   */
   public open(): void {
     if (this.modal && !this.isOpen()) {
       this.modal.classList.add(this.activeClass);
     }
   }
 
+  /**
+   * Close the modal
+   */
   public close(): void {
     if (this.modal && this.isOpen()) {
       this.modal.classList.remove(this.activeClass);
     }
   }
 
+  /**
+   * Check to see if the modal is open
+   */
   public isOpen(): boolean {
     if (this.modal) {
       return this.modal.classList.contains(this.activeClass);

@@ -110,7 +110,9 @@ export class MapDisplayController {
     }
   }
 
-  /** Fetch data */
+  /** 
+   * Fetch learner data 
+   */
   public fetchData(url: string, callback: (hasData: boolean) => void): void {
     Helpers.get(url, (data: any | null)=> {
       if (!data) {
@@ -122,6 +124,9 @@ export class MapDisplayController {
     });
   }
 
+  /**
+   * Display learner data
+   */
   public displayData(): void {
       this.updateUI();
       this.plotData();
@@ -136,6 +141,10 @@ export class MapDisplayController {
     this.updateResetMapButtonState();
   }
 
+  /**
+   * Initialize the country select element with the initial all countries value
+   * & all the other countries
+   */
   protected initializeCountrySelect(): void {
     if (this.countrySelectElement && this.countrySelectElement.options.length === 0) {
       this.countrySelectElement.innerHTML = '';
@@ -153,16 +162,25 @@ export class MapDisplayController {
     }
   }
 
+  /**
+   * Assign a give now click listener
+   * @param callback Callback
+   */
   public SetGiveNowClickListener(callback: {(marker: google.maps.Marker): void}): void {
     this.onGiveNowButtonClickCallback = callback;
   }
 
+  /**
+   * Update country selection
+   */
   public updateCountrySelection(): void {
     this.currentCountrySelection = this.countrySelectElement?.options[
       this.countrySelectElement.selectedIndex].value;
   }
 
-  /** Update the state of the map reset button based on the country value */
+  /** 
+   * Update the state of the map reset button based on the country value 
+   */
   updateResetMapButtonState(): void {
     if (this.currentCountrySelection === this.allCountriesValue) {
       this.resetMapButton!.classList.add(this.config.hiddenClass);
@@ -171,7 +189,11 @@ export class MapDisplayController {
     }
   }
 
-  /** Get total learner count for a country in campaign data */
+  /**
+   * Get total learner count for a country in campaign data 
+   * @param campaignData Campaign data that we get from the server
+   * @param country Chosen country out of campaigns to calculate the total count for
+   */
   getTotalLearnerCount(campaignData: any, country: string): number {
     let learnerCount: number = 0;
     for (let i: number = 0; i < campaignData.length; i++) {
@@ -184,7 +206,12 @@ export class MapDisplayController {
     return learnerCount;
   }
 
-  /** Get total leaner count from campaign data for a region */
+  /**
+   * Get total leaner count from campaign data for a region
+   * @param campaignData Campaign data that we get from the server
+   * @param country Chosen country
+   * @param region Chosen region from the country to calculate the total count for
+   */
   getRegionLearnerCount(campaignData: any, country: string, region: string): number {
     let learnerCount = 0;
     for (let i = 0; i < campaignData.length; i++) {
@@ -202,11 +229,21 @@ export class MapDisplayController {
     return learnerCount;
   }
 
+  /**
+   * When the value of the country changes
+   * - Updates UI
+   * - Plots Data
+   * @param event Event
+   */
   onCountryValueChange(event: any): void {
     this.updateUI();
     this.plotData();
   }
 
+  /**
+   * Plot the learner location data on the map as markers based on the country
+   * selection
+   */
   plotData(): void {
     if (!this.learnersData.locationData) {
       this.resetMapView();
@@ -237,12 +274,7 @@ export class MapDisplayController {
       for (let r: number = 0; r < regions.length; r++) {
         let region = regions[r]!;
         if (region.region! === 'no-region' && regions.length === 1) {
-          const center = countryData.pin === undefined ?
-            new google.maps.LatLng(26.3351, 17.228331) :
-            new google.maps.LatLng(countryData.pin.lat, countryData.pin.lng);
-          this.map!.setCenter(center);
-          this.map!.setZoom(countryData.pin === undefined ?
-            this.zoomFullViewValue : this.zoomCountryViewValue);
+          this.resetMapView(countryData.pin);
           continue;
         }
         if (region.region! === 'no-region') continue;
@@ -256,12 +288,24 @@ export class MapDisplayController {
     }
   }
 
+  /**
+   * Add a new marker to the bounds and fit the map to bounds
+   * @param bounds Lat lng bounds
+   * @param marker Marker
+   */
   fitMapToBounds(bounds: google.maps.LatLngBounds, marker: google.maps.Marker): void {
     bounds.extend(marker.getPosition()!);
     this.map?.fitBounds(bounds);
     this.map?.panToBounds(bounds);
   }
 
+  /**
+   * Determine if the region can be included as a marker on the map
+   * - If the region has street views and the learner count is higher than 0
+   * - And if the region has no street views and the learner count is higher than 0
+   * @param region Region object
+   * @param learnerCount Learner count
+   */
   canPlotRegion(region: any, learnerCount: number): boolean {
     return (learnerCount > 0 && region.hasOwnProperty('streetViews') && 
           region.streetViews.hasOwnProperty('headingValues') && 
@@ -274,7 +318,12 @@ export class MapDisplayController {
           region.pin.lng !== undefined);
   }
 
-  /** Add new marker on the map */
+  /**
+   * Add new marker on the map
+   * @param countryData Country object
+   * @param region Region
+   * @param learnerCount Learner count
+   */
   addNewMarkerOnMap(countryData: any, region: any | null, learnerCount: number): google.maps.Marker {
     let pin = new google.maps.LatLng(countryData.pin.lat, countryData.pin.lng);
     let hasStreetViews: boolean = region !== null && region.streetViews.locations.length !== 0;
@@ -324,12 +373,17 @@ export class MapDisplayController {
     return newMarker;
   }
 
-  /** Get icon options based on learner count */
+  /**
+   * Get icon options based on learner count
+   * @param learnerCount Learner count
+   */
   getIconOptions(learnerCount: number) {
     return Helpers.getIconOptionsGeneral(learnerCount);
   }
 
-  /** Clears the markers on the map */
+  /** 
+   * Clears the markers on the map
+   */
   clearMap(): void {
     if (this.loadedMarkers && this.loadedMarkers.length > 0) {
       for (let i: number = 0; i < this.loadedMarkers.length; i++) {
@@ -339,7 +393,10 @@ export class MapDisplayController {
     this.loadedMarkers = [];
   }
 
-  /** Reset map view */
+  /**
+   * Reset map view on a pin or on the country level center
+   * @param pin Pin
+   */
   resetMapView(pin: any | undefined = undefined): void {
     const center: google.maps.LatLng = pin === undefined ? 
       new google.maps.LatLng(26.3351, 17.228331) :
@@ -349,17 +406,27 @@ export class MapDisplayController {
       this.zoomFullViewValue : this.zoomCountryViewValue);
   }
 
-  /** Check to see if the class is initialized */
+  /**
+   * Check to see if the class is initialized
+   */
   public isInitializedAndHasData(): boolean {
     return this.isSuccessfullyInitialized && this.learnersData;
   }
 
+  /**
+   * Initialize and show the info window
+   * @param marker Marker
+   */
   public openInfoWindow(marker: google.maps.Marker) {
     this.infoWindow?.setContent(this.compileInfoWindowContent(marker));
     this.infoWindow?.open(this.map!);
     this.infoWindow?.setPosition({lat: marker.get('lat'), lng: marker.get('lng')});
   }
 
+  /**
+   * Compile the info window content
+   * @param marker Marker
+   */
   public compileInfoWindowContent(marker: google.maps.Marker): HTMLElement {
     let hasStreetViews = marker.get('hasStreetViews') as boolean;
     let region = marker.get('region') as string;
@@ -403,6 +470,10 @@ export class MapDisplayController {
     return parentDiv;
   }
 
+  /**
+   * Compile the info window title based on what the marker has assigned to it
+   * @param marker Marker
+   */
   compileInfoWindowTitle(marker: google.maps.Marker): HTMLElement {
     let hasStreetViews = marker.get('hasStreetViews') as boolean;
     let region = marker.get('region') as string;
@@ -429,6 +500,10 @@ export class MapDisplayController {
     return title;
   }
 
+  /**
+   * Compile the info window body based on what the marker has assigned to it
+   * @param marker Marker
+   */
   compileInfoWindowBody(marker: google.maps.Marker): HTMLElement {
     let hasStreetViews = marker.get('hasStreetViews') as boolean;
     let region = marker.get('region') as string;
@@ -454,6 +529,10 @@ export class MapDisplayController {
     return bodyDiv;
   }
 
+  /**
+   * On take me there button click
+   * @param marker Marker
+   */
   onTakeMeThereButtonClick(marker: google.maps.Marker): void {
     let hasStreetViews = marker.get('hasStreetViews') as boolean;
     let region = marker.get('region') as string;
@@ -476,6 +555,10 @@ export class MapDisplayController {
     }
   }
 
+  /**
+   * On give now button click
+   * @param marker Marker
+   */
   onGiveNowButtonClick(marker: google.maps.Marker): void {
     this.onGiveNowButtonClickCallback!(marker);
     this.infoWindow?.close();

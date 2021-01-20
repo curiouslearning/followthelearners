@@ -3,6 +3,9 @@ import { Config } from "./config";
 import { Helpers } from "./helpers";
 import { MapDisplayController } from "./mapDisplayController";
 
+/**
+ * Your learners display controller
+ */
 export class YourLearnersDisplayController extends MapDisplayController {
   private percentFilledTextId: string = '';
   private percentFilledText: HTMLElement | null = null;
@@ -36,6 +39,9 @@ export class YourLearnersDisplayController extends MapDisplayController {
     this.panoramaParentId = this.config.ylPanoramaParentId;
   }
 
+  /**
+   * Initialize the controls
+   */
   public init(): void {
     this.percentFilledTextId = this.config.ylPercentFilledTextId;
     this.percentFilledText = this.percentFilledTextId === "" ? null : 
@@ -70,10 +76,17 @@ export class YourLearnersDisplayController extends MapDisplayController {
     super.init();
   }
 
+  /**
+   * Set on give again button click listener
+   * @param callback Callback
+   */
   public SetOnGiveAgainButtonClickListener(callback: { (): void }): void {
     this.onGiveAgainButtonClick = callback;
   }
 
+  /**
+   * Override for updateUI
+   */
   public updateUI(): void {
     super.updateUI();
     let aggregateDonationAmount: number = 0;
@@ -161,10 +174,6 @@ export class YourLearnersDisplayController extends MapDisplayController {
       aggregateLearnerCount);
     Helpers.createCountUpTextInElement(this.dntCountElement!,
       aggregateDNTUserCount);
-  }
-
-  public plotData(): void {
-    super.plotData();
   }
 
   /**

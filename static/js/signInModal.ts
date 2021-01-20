@@ -6,9 +6,6 @@ import { Modal } from "./modal";
 
 /* Sign in modal */
 export class SignInModal extends Modal {
-
-  // TODO: add logic for input validation and submission
-  
   private hiddenClass: string = '';
   private formId: string = '';
   private form: HTMLFormElement | null = null;
@@ -43,6 +40,9 @@ export class SignInModal extends Modal {
     this.hiddenClass = this.config.hiddenClass;
   }
 
+  /**
+   * Initialize the modal elements and add control listeners
+   */
   public init(): void {
     super.init();
     this.form = this.formId === '' ? null :
@@ -68,7 +68,7 @@ export class SignInModal extends Modal {
         return;
       }
       
-      if (this.isValidEmail(this.emailInput!.value)) {
+      if (Helpers.isValidEmail(this.emailInput!.value)) {
         this.submitButon!.disabled = false;
         this.donorInfoText?.classList.add(this.hiddenClass);
       } else {
@@ -88,14 +88,25 @@ export class SignInModal extends Modal {
     });
   }
 
+  /**
+   * Authenticated submit click listener assignment
+   * @param callback Callback
+   */
   public SetOnAuthenticatedSubmitClickListener(callback: { (email: string): void }) {
     this.onAuthenticatedSubmitClick = callback;
   }
 
+  /**
+   * Go to donate button click listener assignment
+   * @param callback Callback
+   */
   public SetOnGoToDonateButtonClickListener(callback: { (): void }) {
     this.onGoToDonateButtonClick = callback;
   }
 
+  /**
+   * Called when the form submission is initiated
+   */
   public onFormSubmit(): void {
     if (this.authController?.isAuthenticated()) {
        let email = this.authController.getEmail();
@@ -126,15 +137,9 @@ export class SignInModal extends Modal {
 
   }
 
-  public isValidEmail(email: string): boolean {
-    if (email === null || email === undefined) return false;
-    const result = email.match(/[[\w\d-\.]+\@]?[[\w\d-]*[\.]+[\w\d-\.]+]*/);
-    if (result !== null && result !== undefined && result !== ['']) {
-      return true;
-    }
-    return false;
-  }
-
+  /**
+   * Close the modal
+   */
   public close(): void {
     this.instructionText?.classList.remove(this.hiddenClass);
     super.close();
