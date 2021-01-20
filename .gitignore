@@ -115,6 +115,8 @@ temp/
 /keys
 /functions/keys
 
+.idea
+
 # End of https://www.gitignore.io/api/node
 *.psd
 .vs
