@@ -14,6 +14,24 @@ export class HamburgerMenu {
     this.activeClass = this.config.activeClass;
     this.menuClass = this.config.hamburgerMenuClass;
     this.colorTransparent = this.config.colorTransparent;
+
+
+    const $navbarBurgers = Array.prototype.slice.call(
+      document.querySelectorAll(this.menuClass), 0);
+
+    if ($navbarBurgers.length > 0) {
+      $navbarBurgers.forEach((el: HTMLElement) => {
+        el.addEventListener('click', () => {
+          const targetId = el.dataset.target;
+          const target = Helpers.getElement('#' + targetId) as HTMLElement;
+
+          el.classList.toggle(this.activeClass);
+          target!.classList.toggle(this.activeClass);
+          target.style.backgroundColor =
+            target.classList.contains(this.activeClass) ? '#FFF' : 'rgba(0,0,0,0)';
+        });
+      });
+    }
   }
 
   /**
