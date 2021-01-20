@@ -108,14 +108,25 @@ export class AuthController {
     });
   }
 
+  /**
+   * Returns the current email or null if the user is not signed in
+   */
   public getEmail(): string | null {
     return this.currentDonorEmail ? this.currentDonorEmail : null;
   }
 
+  /**
+   * Returns the current user token or null if the user is not signed in
+   */
   public getToken(): string | null {
     return this.token ? this.token : null;
   }
 
+  /**
+   * Send a magic link to a user with the given email
+   * @param email Email
+   * @param callback Callback after successfully sending a magic link
+   */
   public sendMagicLink(email: string, callback: { (): void }): void {
     const actionCodeSettings = {
       url: 'https://followthelearners.curiouslearning.org/',
@@ -129,6 +140,9 @@ export class AuthController {
       });
   }
 
+  /**
+   * Sign in
+   */
   public signIn(): void {
     if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
       let email: string | null = window.localStorage.getItem('emailForSignIn');
@@ -151,10 +165,18 @@ export class AuthController {
     }
   }
 
+  /**
+   * Initiate sign out
+   */
   public signOut(): void {
     firebase.auth().signOut();
   }
 
+  /**
+   * Add event listener
+   * @param event Event name 'signIn' | 'signOut'
+   * @param callback Callback when such event happens
+   */
   addEventListener(event: string, callback: () => void) {
     if (event === 'signIn') {
       this.signInCallback = callback;
@@ -163,8 +185,11 @@ export class AuthController {
     }
   }
 
+  /**
+   * Refresh the token and call sign in callback if necessary
+   */
   refreshToken(): void {
-    if (this.lastRefreshDate! <= (Date.now() - this.config.tokenTimeout)) {
+    if (this.lastRefreshDate! <= (Date.now() - this.tokenTimeout)) {
       firebase.auth().currentUser?.getIdToken(true).then((newToken: string) => {
         this.token = newToken;
         this.lastRefreshDate = Date.now();
@@ -177,6 +202,9 @@ export class AuthController {
     }
   }
 
+  /**
+   * Check to see if the user is authenticated
+   */
   isAuthenticated(): boolean {
     return this.token !== undefined;
   }
