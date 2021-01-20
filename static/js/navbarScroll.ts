@@ -1,6 +1,9 @@
 import { Config } from "./config";
 import { Helpers } from "./helpers";
 
+/**
+ * Navbar Scroll class enables the navbar to change size when scrolling the page
+ */
 export class NavbarScroll {
   protected config: Config;
 
@@ -12,6 +15,9 @@ export class NavbarScroll {
     this.navbarId = this.config.navbarId;
   }
 
+  /**
+   * Initialize navbar elements and add on scroll event listener
+   */
   public init(): void {
     this.navbar = this.navbarId === '' ? null :
       Helpers.getElement(this.navbarId) as HTMLElement;
