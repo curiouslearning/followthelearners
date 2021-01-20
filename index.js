@@ -54,6 +54,7 @@ const memcachedDeleteKey = (req)=> {
 };
 
 webpack({
+  // target: 'node',
   entry: './static/js/index.ts',
   module: {
     rules: [
@@ -61,6 +62,7 @@ webpack({
         test: /\.ts$/,
         use: 'ts-loader',
         include: [path.resolve(__dirname, 'static/js')],
+        exclude: [path.resolve(__dirname, '/node_modules/')],
       },
     ],
   },
