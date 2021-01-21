@@ -7,7 +7,7 @@ let generatedStreetViews = null;
 let streetViewService = null;
 let pinMap = null;
 let loadedPins = [];
-let activeButtonId= 'street-views-btn';
+let activeButtonId= 'dashboard-metrics-btn';
 
 const toastType = {
   primary: 'primary',
@@ -40,13 +40,13 @@ $(document).ready(()=>{
             activeButtonId = 'dashboard-metrics-btn';
           }
           break;
-        case 'logs':
-          if (activeButtonId !== 'logs-btn') {
+        case 'status':
+          if (activeButtonId !== 'status-btn') {
             document.getElementById(activeButtonId)
                 .classList.toggle('is-active');
-            document.getElementById('logs-btn')
+            document.getElementById('status-btn')
                 .classList.toggle('is-active');
-            activeButtonId = 'logs-btn';
+            activeButtonId = 'status-btn';
           }
           break;
         case 'campaigns':

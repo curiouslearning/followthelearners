@@ -18,21 +18,21 @@ html
     section()
       .tabs.is-boxed
         ul#tab-buttons
-          li#street-views-btn.is-active
-            a.button(onclick='tabSelector.ToggleTab("street-views")')
-              span.icon.is-small
-                i.fas.fa-street-view
-              span Street Views
-          li#dashboard-metrics-btn
+          li#dashboard-metrics-btn.is-active
             a.button(onclick='tabSelector.ToggleTab("dashboard-metrics")')
               span.icon.is-small
                 i.fas.fa-tachometer-alt
               span Dashboard Metrics
-          li#logs-btn
-            a.button(onclick='tabSelector.ToggleTab("logs")')
+          li#status-btn
+            a.button(onclick='tabSelector.ToggleTab("status")')
               span.icon.is-small
                 i.fas.fa-cogs
-              span Logs
+              span Status
+          li#street-views-btn
+            a.button(onclick='tabSelector.ToggleTab("street-views")')
+              span.icon.is-small
+                i.fas.fa-street-view
+              span Street Views
           li#campaigns-btn
             a.button(onclick='tabSelector.ToggleTab("campaigns")')
               span.icon.is-small
@@ -44,7 +44,77 @@ html
                 i.fas.fa-users
               span Users
     sections#tabs-parent 
-      .section#street-views
+      .section#dashboard-metrics
+        .columns
+          .column.is-one-fifth
+          .column
+            h2.title(style="margin-right: 1rem; margin-top: 1rem;") Learner Ingestion
+            iframe(width="1000" height="800" src="https://datastudio.google.com/embed/reporting/1653e525-8da5-4722-b555-06031e61f6f1/page/pAuxB" frameborder="0" style="border:0" allowfullscreen)
+            h2.title(style="margin-right: 1rem; margin-top: 1rem;") Donors Acquired
+            iframe(width="1000" height="700" src="https://datastudio.google.com/embed/reporting/ce94e595-e135-47d6-aad1-721d492f3adc/page/5MtxB" frameborder="0" style="border:0" allowfullscreen)
+            h2.title(style="margin-right: 1rem; margin-top: 1rem;") Donations by Amount
+            iframe(width="1000" height="700" src="https://datastudio.google.com/embed/reporting/8c3b974d-296e-4b70-8257-7a6b7844143d/page/x5txB" frameborder="0" style="border:0" allowfullscreen)
+      .section#status.is-hidden
+        .columns
+          .column.is-one-fifth
+          .column
+            h1.title(style="margin-right: 1rem;") Follow the Learners: Status
+            table.table.is-bordered.is-striped.is-narrow.is-hoverable.is-fullwidth(style="alignment: center; height: 400; width: 1200;")
+              thead
+                tr
+                  th Service
+                  th Status
+              tfoot
+                tr
+                  th
+                    span.icon-text(style="padding-left: 200;")
+                      span.icon.is-small
+                        i.fas.fa-check
+                      span(style="padding-right: 100;") - No Issues
+                      span.icon.is-small
+                        i.fas.fa-exclamation-triangle 
+                      span(style="padding-right: 100;") - Errors Reported
+                      span.icon.is-small
+                        i.fas.fa-exclamation-circle
+                      span(style="padding-right: 100;") - Service Interruption
+              tbody
+                tr
+                  td 
+                    span(style="vertical-align: center; text-align: center; font-weight: bold") Cloud Functions
+                  td 
+                    span.icon.is-small
+                      i.fas.fa-check
+                tr
+                  td 
+                    span(style="vertical-align: center; text-align: center; font-weight: bold") Server
+                  td 
+                    span.icon.is-small
+                      i.fas.fa-exclamation-circle
+                tr
+                  td 
+                    span(style="vertical-align: center; text-align: center; font-weight: bold") Firestore
+                  td
+                    span.icon.is-small
+                      i.fas.fa-check
+                tr
+                  td 
+                    span(style="vertical-align: center; text-align: center; font-weight: bold") Stripe
+                  td
+                    span.icon.is-small
+                      i.fas.fa-exclamation-triangle
+                tr
+                  td 
+                    span(style="vertical-align: center; text-align: center; font-weight: bold") Cronjobs
+                  td
+                    span.icon.is-small
+                      i.fas.fa-check
+                tr
+                  td 
+                    span(style="vertical-align: center; text-align: center; font-weight: bold") Postman
+                  td
+                    span.icon.is-small
+                      i.fas.fa-exclamation-circle
+      .section#street-views.is-hidden
         .columns
           .column.is-two-fifths
             div#pano(style='height: 600px;')
@@ -74,86 +144,6 @@ html
           .column.is-two-fifths(style='padding: 0; pointer-events:all;')
             #map-pins(style="width: 100%; height: 600px;")
           .column(style='pointer-events: none;')
-      .section#dashboard-metrics.is-hidden
-        .columns
-          .column
-            h2.title(style="margin-right: 1rem;") Learner Ingestion
-            iframe(width="800" height="700" src="https://datastudio.google.com/embed/reporting/1653e525-8da5-4722-b555-06031e61f6f1/page/pAuxB" frameborder="0" style="border:0" allowfullscreen)
-            h2.title Donations by amount
-            iframe(width="800" height="700" src="https://datastudio.google.com/embed/reporting/8c3b974d-296e-4b70-8257-7a6b7844143d/page/x5txB" frameborder="0" style="border:0" allowfullscreen)
-          .column
-            h2.title Donors and Donations
-            iframe(width="800" height="700" src="https://datastudio.google.com/embed/reporting/ce94e595-e135-47d6-aad1-721d492f3adc/page/5MtxB" frameborder="0" style="border:0" allowfullscreen)
-      .section#logs.is-hidden
-        .columns
-              .column.is-one-fifth
-                span.has-text-centered Logs
-                .select
-                  select#logSelect(style='border: solid; margin-left: 50; margin-bottom: 10; width: auto; -webkit-appearance: none; -moz-appearance: none; appearance:none;' name='logSourceSelection')
-                    option Source
-                    option Cronjobs
-                    option Server
-                    option Cloud Functions
-                div(style='height: 400px; width: 300px; position: relative; border-style: solid; margin-top: 20;')
-                    ul
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                      li all work and no play makes jack a dull boy
-                    button.button.is-dark(onclick="", style="position: absolute; top: 350: left: 300") Refresh
-              .column.is-two-fifths
-                span.has-text-centered Postman Results
-                div(style='height: 400px; width: 500px; position: relative; border-style: solid;')
-                    ul
-                      li Endpoint: /logDonation          | result: 200 | Response time 20ms 
-                      li Endpoint: /Sign In              | result: 200 | Response time 15ms 
-                      li Endpoint: /forceAggregateUpdate | result: 200 | Response time 200ms 
-                      li Endpoint: /getYourLearnersData  | result: 200 | Response time 20ms 
-                      li Endpoint: /getAllCountriesData  | result: 200 | Response time 20ms 
-                      li Endpoint: /fetchCampaigns       | result: 200 | Response time 20ms 
-                button.button.is-dark(onclick="", style=" top: 350: left: 300") Refresh
-              .column.is-two-fifths
-                span.has-text-centered Stripe Logs
-                div(style='height: 400px; width: 500px; position: relative; border-style: solid;')
-                    ul
-                      li event ID: n76sfg78shs | result: PASS        | Response Time: 7ms
-                      li event ID: vm4v76jh43k | result: PASS        | Response Time: 5ms
-                      li event ID: xxh6243gfhd | result: PASS        | Response Time: 8ms
-                      li event ID: 5yuio125y2i | result: PASS        | Response Time: 4ms
-                      li event ID: 6a8sdf4zcv3 | result: FAIL (400)  | Response Time: 100ms
-                button.button.is-dark(onclick="", style="position: absolute; top: 350: left: 300") Refresh
       .section#campaigns.is-hidden
         .columns
           .column.is-two-fifths
