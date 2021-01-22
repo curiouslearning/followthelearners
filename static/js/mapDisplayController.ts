@@ -108,6 +108,10 @@ export class MapDisplayController {
         this.panoramaParentElement?.classList.add(this.hiddenClass);
       });
     }
+
+    this.map?.addListener('click', (event) => {
+      this.infoWindow?.close();
+    });
   }
 
   /** 
