@@ -95,6 +95,37 @@ app.get('/sw.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'sw.js'));
 });
 
+app.get('/pop_up_test', function(req, res) {
+  const utmSource = req.query.utm_source;
+  const dbRef = firestore.collection('campaigns');
+  const campaigns =[];
+  dbRef.where('isActive', '==', true).where('isVisible', '==', true)
+      .get().then((snapshot)=>{
+        if (snapshot.empty) {
+          console.log('no active campaigns');
+          return;
+        }
+        snapshot.forEach((doc)=>{
+          const data = doc.data();
+          console.log('data: ', data);
+          campaigns.push({
+            country: data.country,
+            imgRef: data.imgRef,
+            body: data.summary,
+            learnerCount: data.learnerCount,
+            amount: '20.00',
+            campaignID: data.campaignID,
+            country: data.country,
+            donateRef: data.donateRef,
+            isFeatured: data.isFeatured,
+          });
+        });
+        return campaigns;
+      }).then((snapshot)=>{
+        res.render('index-popup-test', {campaigns: campaigns, utmSource: utmSource});
+      }).catch((err)=> console.error(err));
+});
+
 app.get('/', function(req, res) {
   const utmSource = req.query.utm_source;
   const dbRef = firestore.collection('campaigns');
