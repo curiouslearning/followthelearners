@@ -61,29 +61,9 @@
     - const utmValue = utmSource ? "/?utm_source=" + utmSource : '/';
     header
       nav.navbar.is-fixed-top#navbar(role="navigation" style='background-image: url("/static/imgs/hero-cover-sticky-header.jpg"); background-size: cover; background-repeat: no-repeat; color: white; background-position: center center; z-index: 100; max-height: 120px; height: 120px; padding-left: 1.5rem; border-radius: 0; padding-right: 1.5rem; ')
-        .navbar-brand
-          .column(style="width: auto;")
-            .row
-              a.title.has-text-grey-dark.is-large(href=utmValue style="margin-bottom: 0.5rem; color: white !important;") Follow The Learners™
-                span.is-small.subtitle(style="color: white;") (Beta)
-            .row
-              a(href='https://www.facebook.com/CuriousLearningGLP/' target="_blank")
-                span.icon.is-large
-                  i.fab.fa-facebook-square(style='font-size: 1.5rem; color: white')
-              a(href='https://twitter.com/curiouslearnglp' target="_blank")
-                span.icon.is-large
-                  i.fab.fa-twitter-square(style='font-size: 1.5rem; color: white')
-              a(href='https://www.instagram.com/curiouslearning_glp/' target="_blank")
-                span.icon.is-large
-                  i.fab.fa-instagram-square(style='font-size: 1.5rem; color: white')
-              a(href='https://www.linkedin.com/company/curious-learning' target="_blank")
-                span.icon.is-large
-                  i.fab.fa-linkedin(style='font-size: 1.5rem; color: white')
-              button.button.is-text(style='margin: 0.4rem; text-decoration: none')
-                span.icon.is-large
-                  i.far.fa-envelope(style='font-size: 1.5em; color: white')
-
-          
+        .navbar-brand(style="align-items: center;")
+          a.title.has-text-grey-dark.is-large(href=utmValue style="margin-bottom: 0.5rem; color: white !important;") Follow The Learners™
+            span.is-small.subtitle(style="color: white;") (Beta)
           a.navbar-burger.is-large(data-target="navbarHeroMenu" role="button" aria-label="menu" aria-expanded="false" style="background-color: #404040;")
             span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
             span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
