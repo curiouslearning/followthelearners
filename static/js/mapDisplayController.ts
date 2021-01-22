@@ -425,6 +425,13 @@ export class MapDisplayController {
     this.infoWindow?.setContent(this.compileInfoWindowContent(marker));
     this.infoWindow?.open(this.map!);
     this.infoWindow?.setPosition({lat: marker.get('lat'), lng: marker.get('lng')});
+    let closeButtons: HTMLCollection = Helpers.getElement('.gm-ui-hover-effect') as HTMLCollection;
+    if (closeButtons.length > 0) {
+      let imgElement = closeButtons[0].children[0] as HTMLElement;
+      imgElement.style.width = '20px';
+      imgElement.style.height = '20px';
+      imgElement.style.margin = '10px 10px 0px 0px';
+    }
   }
 
   /**
