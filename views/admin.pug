@@ -1,5 +1,6 @@
 html
   include mixins/_campaign
+  include mixins/_adminMixins
   head
     meta(charset='UTF-8')
     //- meta(name="viewport" content='width=device-width, initial-scale=1.0')
@@ -51,9 +52,9 @@ html
             h2.title(style="margin-right: 1rem; margin-top: 1rem;") Learner Ingestion
             iframe(width="1000" height="800" src="https://datastudio.google.com/embed/reporting/1653e525-8da5-4722-b555-06031e61f6f1/page/pAuxB" frameborder="0" style="border:0" allowfullscreen)
             h2.title(style="margin-right: 1rem; margin-top: 1rem;") Donors Acquired
-            iframe(width="1000" height="800" src="https://datastudio.google.com/embed/reporting/ce94e595-e135-47d6-aad1-721d492f3adc/page/5MtxB" frameborder="0" style="border:0" allowfullscreen)
-            h2.title(style="margin-right: 1rem; margin-top: 1rem;") Donations by Amount
             iframe(width="1000" height="800" src="https://datastudio.google.com/embed/reporting/8c3b974d-296e-4b70-8257-7a6b7844143d/page/x5txB" frameborder="0" style="border:0" allowfullscreen)
+            h2.title(style="margin-right: 1rem; margin-top: 1rem;") Donations by Amount
+            iframe(width="1000" height="800" src="https://datastudio.google.com/embed/reporting/ce94e595-e135-47d6-aad1-721d492f3adc/page/5MtxB" frameborder="0" style="border:0" allowfullscreen)
       .section#status.is-hidden
         .columns
           .column.is-one-fifth
@@ -80,40 +81,59 @@ html
               tbody
                 tr
                   td 
-                    span(style="vertical-align: center; text-align: center; font-weight: bold") Cloud Functions
+                    span(onclick="onServiceSelected('cloud');" style="vertical-align: center; text-align: center; font-weight: bold") Cloud Functions
                   td 
                     span.icon.is-small
                       i.fas.fa-check
                 tr
                   td 
-                    span(style="vertical-align: center; text-align: center; font-weight: bold") Server
+                    span(onclick="onServiceSelected('server');" style="vertical-align: center; text-align: center; font-weight: bold") Server
                   td 
                     span.icon.is-small
                       i.fas.fa-exclamation-circle
                 tr
                   td 
-                    span(style="vertical-align: center; text-align: center; font-weight: bold") Firestore
+                    span(onclick="onServiceSelected('firestore');" style="vertical-align: center; text-align: center; font-weight: bold") Firestore
                   td
                     span.icon.is-small
                       i.fas.fa-check
                 tr
                   td 
-                    span(style="vertical-align: center; text-align: center; font-weight: bold") Stripe
+                    span(onclick="onServiceSelected('stripe');" style="vertical-align: center; text-align: center; font-weight: bold") Stripe
                   td
                     span.icon.is-small
                       i.fas.fa-exclamation-triangle
                 tr
                   td 
-                    span(style="vertical-align: center; text-align: center; font-weight: bold") Cronjobs
+                    span(onclick="onServiceSelected('cronjob');" style="vertical-align: center; text-align: center; font-weight: bold") Cronjobs
                   td
                     span.icon.is-small
                       i.fas.fa-check
                 tr
                   td 
-                    span(style="vertical-align: center; text-align: center; font-weight: bold") Postman
+                    span(onclick="onServiceSelected('postman');" style="vertical-align: center; text-align: center; font-weight: bold") Postman
                   td
                     span.icon.is-small
                       i.fas.fa-exclamation-circle
+        .modal#deep-dive-modal
+          .modal-background(onclick="document.getElementById('deep-dive-modal').classList.remove('is-active');")
+          .modal-card(style="width: 1000")
+            header.modal-card-head(style='border: none;')
+              p#deep-dive-header-text.modal-card-title.has-text-grey-dark.has-text-centered Deep Dive:
+              button.delete(aria-label='close' onclick="document.getElementById('deep-dive-modal').classList.remove('is-active');")
+            .modal-card-body
+              .section#cloud-console
+                +cloud-console()
+              .section#server-console.is-hidden
+                +server-console()
+              .section#firestore-console.is-hidden
+                +firestore-console()
+              .section#stripe-console.is-hidden
+                +stripe-console()
+              .section#cronjob-console.is-hidden
+                +cronjob-console()
+              .section#postman-console.is-hidden
+                +postman-console()
       .section#street-views.is-hidden
         .columns
           .column.is-two-fifths
@@ -131,8 +151,7 @@ html
               .columns
                 span.column
                   input.input.is-medium#inputRadius(type='number' step="0.1" placeholder='Radius in Miles (1.5)')
-                span.column
-                  input.input.is-medium#inputCount(type='number' placeholder='Street Views Count')
+                span.column                  input.input.is-medium#inputCount(type='number' placeholder='Street Views Count')
                 span.column.has-text-centered
                   button.button.is-dark.is-medium(onclick='OnGenerateStreetViewsClick()') Generate Street Views
                 span.column.has-text-centered

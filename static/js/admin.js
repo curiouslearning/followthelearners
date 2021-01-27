@@ -8,6 +8,9 @@ let streetViewService = null;
 let pinMap = null;
 let loadedPins = [];
 let activeButtonId= 'dashboard-metrics-btn';
+let deepDiveModal = 'deep-dive-modal';
+let deepDiveTitle = 'deep-dive-header-text';
+let currentActiveModal = 'cloud-console';
 
 const toastType = {
   primary: 'primary',
@@ -406,7 +409,31 @@ function saveSingleStreetViewInDB(region, streetViewIndex) {
     }
   });
 }
+// *************************Status Page****************************************
+const dropdown = document.querySelector('.dropdown');
+dropdown.addEventListener('click', (event) => {
+  event.stopPropagation();
+  dropdown.classList.toggle('is-active');
+});
+dropdown.addEventListener('focusout', (event) => {
+  event.stopPropagation();
+  dropdown.classList.remove('is-active');
+});
+/**
+ * Configure the Deep Dive Modal based on which service was selected
+ * @param {String} service The service selected by the user
+ */
+function onServiceSelected(service) {
+  document.getElementById(deepDiveModal).classList.add('is-active');
+  document.getElementById(deepDiveTitle).innerHTML = `Deep Dive: ${service}`;
+  if (currentActiveModal !== `${service}-console`) {
+    document.getElementById(currentActiveModal).classList.add('is-hidden');
+    currentActiveModal = `${service}-console`;
+    document.getElementById(currentActiveModal).classList.remove('is-hidden');
+  }
+}
 
+// *************************Helper Functions***********************************
 /**
  * Displays a toast message on the page
  * @param {String} type Type of the toast out of: primary, link, info,
