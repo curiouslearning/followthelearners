@@ -10,8 +10,9 @@ export class Config {
   public readonly colorTransparent: string = 'rgba(0, 0, 0, 0)';
   public readonly millisecondsInADay: number = 86400000;
 
-  /* Navbar Scroll */
+  /* Navbar */
   public readonly navbarId: string = '#navbar';
+  public readonly mailchimpButtonId: string = '#mailchimp-button';
 
   /* For Tab Selector */
   public readonly tabButtonsId: string = '#tab-buttons';
@@ -89,6 +90,11 @@ export class Config {
   public readonly signInModalSubmitButtonId: string = '#donor-email-submit';
   public readonly signInModalGoToDonateButtonId: string = '#go-to-donate-button';
   public readonly singInModalFormId: string = '#sign-in-form';
+
+  /* Mailchimp Modal */
+  public readonly mailchimpModalId: string = '#mailchimp-modal';
+  public readonly mailchimpModalCloseButtonId: string = '#mailchimp-modal-close-button';
+  public readonly mailchimpModalOverlayId: string = '#mailchimp-modal-overlay';
 
   /* Donate Modal */
   public readonly donateModalId: string = '#donate-modal';
