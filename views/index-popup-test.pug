@@ -23,6 +23,7 @@
     link(rel="shortcut icon" type="image/jpg" href="/static/imgs/appicon.ico")
     link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css')
     script(src="https://kit.fontawesome.com/89be96593a.js" crossorigin="anonymous")
+    <script id="mcjs">!function(c,h,i,m,p){m=c.createElement(h),p=c.getElementsByTagName(h)[0],m.async=1,m.src=i,p.parentNode.insertBefore(m,p)}(document,"script","https://chimpstatic.com/mcjs-connected/js/users/e7fc6811b410d9e7d8d5704ad/4ca2fe433d58314a32e654522.js");</script>
     style(type='text/css').
       body
       {
@@ -61,14 +62,33 @@
     - const utmValue = utmSource ? "/?utm_source=" + utmSource : '/';
     header
       nav.navbar.is-fixed-top#navbar(role="navigation" style='background-image: url("/static/imgs/hero-cover-sticky-header.jpg"); background-size: cover; background-repeat: no-repeat; color: white; background-position: center center; z-index: 100; max-height: 120px; height: 120px; padding-left: 1.5rem; border-radius: 0; padding-right: 1.5rem; ')
-        .navbar-brand(style="align-items: center;")
-          a.title.has-text-grey-dark.is-large(href=utmValue style="margin-bottom: 0.5rem; color: white !important;") Follow The Learners™
-            span.is-small.subtitle(style="color: white;") (Beta)
+        .navbar-brand
+          .column(style="width: auto;")
+            .row
+              a.title.has-text-grey-dark.is-large(href=utmValue style="margin-bottom: 0.5rem; color: white !important;") Follow The Learners™
+                span.is-small.subtitle(style="color: white;") (Beta)
+            .row
+              a(href='https://www.facebook.com/CuriousLearningGLP/' target="_blank")
+                span.icon.is-large
+                  i.fab.fa-facebook-square(style='font-size: 1.5rem; color: white; background-color: grey; border-radius: 30px;')
+              a(href='https://twitter.com/curiouslearnglp' target="_blank")
+                span.icon.is-large
+                  i.fab.fa-twitter-square(style='font-size: 1.5rem; color: white; background-color: grey; border-radius: 30px;')
+              a(href='https://www.instagram.com/curiouslearning_glp/' target="_blank")
+                span.icon.is-large
+                  i.fab.fa-instagram-square(style='font-size: 1.5rem; color: white; background-color: grey; border-radius: 30px;')
+              a(href='https://www.linkedin.com/company/curious-learning' target="_blank")
+                span.icon.is-large
+                  i.fab.fa-linkedin(style='font-size: 1.5rem; color: white; background-color: grey; border-radius: 30px;')
+              button.button#mailchimp-button(style='margin: 0.4rem; text-decoration: none; background-color: rgba(0, 0, 0, 0); border: none')
+                span.icon.is-large
+                  i.far.fa-envelope(style='font-size: 1.5rem; color: white; background-color: grey; border-radius: 30px;')
+
+          
           a.navbar-burger.is-large(data-target="navbarHeroMenu" role="button" aria-label="menu" aria-expanded="false" style="background-color: #404040;")
             span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
             span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
             span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
-
         .navbar-menu#navbarHeroMenu(style='background-color: rgba(0, 0, 0, 0)')
           .navbar-end#tab-buttons(style='align-items: center;  padding-left: 1.5rem')
             // Campaigns Button
@@ -213,7 +233,56 @@
               //-   span(style="font-weight: bold;") Prev
               //- button.button.is-medium(onclick="onPanoramaNextButtonClick()" style='pointer-events: auto; margin: 10px; position: absolute; right: 0; top: 45%; background-color: rgba(30, 30, 30, 0.3); font-weight: bold; font-size: 1.2rem; color: white; border: none;')
               //-   span(style="font-weight: bold;") Next
-    
+
+    .modal#mailchimp-modal
+      .modal-background#mailchimp-modal-overlay
+      .modal-card
+        header.modal-card-head(style='border: none')
+          p.modal-card-title.hast-text-grey-dark.has-text-centered Subscribe to the Follow The Learners mailing list
+          button.delete#mailchimp-modal-close-button(aria-label='close')
+        .modal-card-body
+          link(href="//cdn-images.mailchimp.com/embedcode/classic-10_7.css" rel="stylesheet" type="text/css")
+          style(type='text/css').
+            #mc_embed_signup{background:#fff; clear:left; font:14px Helvetica,Arial,sans-serif; }
+          div#mc_embed_signup
+            form#mc-embedded-subscribe-form(action="https://curiouslearning.us14.list-manage.com/subscribe/post?u=e7fc6811b410d9e7d8d5704ad&amp;id=4b508ae5f2" method="post" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate)
+              //- div#mc_embed_signup_scroll
+              //-   <h2>Subscribe to the Follow The Learners mailing list</h2>
+              div.indicates-required
+                span.asterisk *
+                span indicates required
+              div.mc-field-group
+                label(for="mce-EMAIL") Email Address
+                  span.asterisk *
+                input.required.email#mce-EMAIL(type="email" value="" name="EMAIL")
+              div.mc-field-group
+                label(for="mce-MMERGE1") First Name
+                input#mce-MMERGE1(type="text" value="" name="MMERGE1")
+              div.mc-field-group.input-group
+                  strong Notifications (check all that apply):
+                  br
+                  ul
+                    li
+                      input(type="checkbox" value="1" name="group[43829][1]" id="mce-group[43829]-43829-0")
+                      label(for="mce-group[43829]-43829-0") &nbsp;&nbsp;I wish to be reminded of the opportunity to sponsor more children in the future.
+                    br
+                    li
+                      input(type="checkbox" value="2" name="group[43829][2]" id="mce-group[43829]-43829-1")
+                      label(for="mce-group[43829]-43829-1") &nbsp;&nbsp;Please alert me to urgent or specific needs.
+                    br
+                    li
+                      input(type="checkbox" value="4" name="group[43829][4]" id="mce-group[43829]-43829-2")
+                      label(for="mce-group[43829]-43829-2") &nbsp;&nbsp;New features or updates to the Follow The Learners™.
+              div#mce-responses.clear
+                div.response#mce-error-response(style="display:none")
+                div.response#mce-success-response(style="display:none")
+                <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+              div(style="position: absolute; left: -5000px;" aria-hidden="true")
+                input(type="text" name="b_e7fc6811b410d9e7d8d5704ad_4b508ae5f2" tabindex="-1" value="")
+              div.clear
+                input.button(type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe")
+              <script type='text/javascript' src='//s3.amazonaws.com/downloads.mailchimp.com/js/mc-validate.js'></script><script type='text/javascript'>(function($) {window.fnames = new Array(); window.ftypes = new Array();fnames[0]='EMAIL';ftypes[0]='email';fnames[1]='MMERGE1';ftypes[1]='text';}(jQuery));var $mcj = jQuery.noConflict(true);</script>
+
     .modal#donate-modal
       .modal-background#donate-modal-overlay
       .modal-card
