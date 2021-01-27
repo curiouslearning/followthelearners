@@ -84,6 +84,7 @@ export class App {
       this.hamburgerMenu.close();
       this.signInModal.close();
       this.donateModal.close();
+      this.mailchimpModal.close();
       if (btnId.includes('sign-in')) {
         this.TabSelector.preventDefault();
         if (this.authController.isAuthenticated()) {
