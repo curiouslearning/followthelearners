@@ -8,7 +8,8 @@ import { YourLearnersDisplayController } from "./yourLearnersDisplayController";
 import { HamburgerMenu } from "./hamburgerMenu";
 import { SignInModal } from "./signInModal";
 import { DonateModal } from "./donateModal";
-import { NavbarScroll } from "./navbarScroll";
+import { Navbar } from "./navbar";
+import { MailchimpModal } from "./mailchimpModal";
 
 /**
  * App class that consists of different controllers for different functionlity
@@ -22,8 +23,9 @@ export class App {
   private authController: AuthController;
   private signInModal: SignInModal;
   private donateModal: DonateModal;
+  private mailchimpModal: MailchimpModal;
   private hamburgerMenu: HamburgerMenu;
-  private navbarScroll: NavbarScroll;
+  private navbar: Navbar;
 
   constructor() {
     this.config = new Config();
@@ -36,7 +38,8 @@ export class App {
     this.hamburgerMenu = new HamburgerMenu(this.config);
     this.signInModal = new SignInModal(this.config, this.authController);
     this.donateModal = new DonateModal(this.config);
-    this.navbarScroll = new NavbarScroll(this.config);
+    this.mailchimpModal = new MailchimpModal(this.config);
+    this.navbar = new Navbar(this.config);
     this.hamburgerMenu.close();
   }
   
@@ -60,8 +63,6 @@ export class App {
       this.TabSelector.toggleWithName('tab-campaigns');
     });
 
-    this.navbarScroll.init();
-
     this.signInModal.init();
     this.signInModal.SetOnAuthenticatedSubmitClickListener((email: string) => {
       this.authController.refreshToken();
@@ -70,6 +71,14 @@ export class App {
       this.TabSelector.toggleWithName('tab-campaigns');
     });
     this.donateModal.init();
+    this.mailchimpModal.init();
+
+    this.navbar.init();
+    this.navbar.setMailChimpButtonClickListener(() => {
+      if (this.mailchimpModal) {
+        this.mailchimpModal.open();
+      }
+    });
 
     this.TabSelector.addEventListener('preTabToggle', (btnId: string, tabId: string) => {
       this.hamburgerMenu.close();
