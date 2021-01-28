@@ -7,10 +7,20 @@ let generatedStreetViews = null;
 let streetViewService = null;
 let pinMap = null;
 let loadedPins = [];
-let activeButtonId= 'dashboard-metrics-btn';
+let activeButtonId= 'business-metrics-btn';
 let deepDiveModal = 'deep-dive-modal';
 let deepDiveTitle = 'deep-dive-header-text';
 let currentActiveModal = 'cloud-console';
+const businessIframes = [
+  'biz-ingestion-iframe',
+  'biz-donor-iframe',
+  'biz-donation-iframe',
+];
+const dashIframes = [
+  'dash-ingestion-iframe',
+  'dash-donation-iframe',
+  'dash-assignment-iframe',
+];
 
 const toastType = {
   primary: 'primary',
@@ -24,58 +34,33 @@ const toastType = {
 $(document).ready(()=>{
   if (tabSelector) {
     tabSelector.addEventListener('preTabToggle', (tabId) => {
+      const selectedBtn = `${tabId}-btn`;
+      if (activeButtonId !== selectedBtn) {
+        document.getElementById(activeButtonId)
+            .classList.toggle('is-active');
+        document.getElementById(selectedBtn)
+            .classList.toggle('is-active');
+        activeButtonId = selectedBtn;
+      }
+      // reload iFrames to prevent sizing issues
+      // if frame was loaded on inactive tag
       switch (tabId) {
-        case 'street-views':
-          if (activeButtonId !== 'street-views-btn') {
-            document.getElementById(activeButtonId)
-                .classList.toggle('is-active');
-            document.getElementById('street-views-btn')
-                .classList.toggle('is-active');
-            activeButtonId = 'street-views-btn';
-          }
+        case 'business-metrics':
+          reloadIFrames(businessIframes);
           break;
         case 'dashboard-metrics':
-          if (activeButtonId !== 'dashboard-metrics-btn') {
-            document.getElementById(activeButtonId)
-                .classList.toggle('is-active');
-            document.getElementById('dashboard-metrics-btn')
-                .classList.toggle('is-active');
-            activeButtonId = 'dashboard-metrics-btn';
-          }
-          break;
-        case 'status':
-          if (activeButtonId !== 'status-btn') {
-            document.getElementById(activeButtonId)
-                .classList.toggle('is-active');
-            document.getElementById('status-btn')
-                .classList.toggle('is-active');
-            activeButtonId = 'status-btn';
-          }
-          break;
-        case 'campaigns':
-          if (activeButtonId !== 'campaigns-btn') {
-            document.getElementById(activeButtonId)
-                .classList.toggle('is-active');
-            document.getElementById('campaigns-btn')
-                .classList.toggle('is-active');
-            activeButtonId = 'campaigns-btn';
-          }
-          break;
-        case 'users':
-          if (activeButtonId !== 'users-btn') {
-            document.getElementById(activeButtonId)
-                .classList.toggle('is-active');
-            document.getElementById('users-btn')
-                .classList.toggle('is-active');
-            activeButtonId = 'users-btn';
-          }
-          break;
-        default:
+          reloadIFrames(dashIframes);
           break;
       }
     });
   }
 });
+
+function reloadIFrames(frameList) {
+  frameList.forEach((frame) => {
+    document.getElementById(frame).src = document.getElementById(frame).src;
+  });
+}
 
 /**
  * Entry point after the goolge maps has finished loading on the page
