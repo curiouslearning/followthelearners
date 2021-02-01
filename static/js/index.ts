@@ -115,9 +115,9 @@ export class App {
     });
 
     this.authController.addEventListener('signOut', () => {
-      // console.log('Signed out!');
-      // console.log(this.authController.isAuthenticated());
-      this.TabSelector.toggleWithName('tab-all-learners');
+      if (!this.TabSelector.GetCurrentTabId().includes('tab-all-learners')) {
+        this.TabSelector.toggleWithName('tab-all-learners');
+      }
     });
     
     this.authController.signIn();
