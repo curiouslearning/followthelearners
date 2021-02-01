@@ -22,6 +22,8 @@ export class TabSelector
 
   private initializedSuccessfully: boolean;
   private preventDefaultAction: boolean;
+
+  private currentlySelectedTabId: string = '';
   
   constructor(config: Config) {
     this.config = config;
@@ -139,8 +141,15 @@ export class TabSelector
         this.onToggleListeners.forEach((listener) => {
           listener(btnId, tabId);
         });
+
+        this.currentlySelectedTabId = tabId;
       }
     }
+  }
+
+  /** Return current tab id */
+  public GetCurrentTabId(): string {
+    return this.currentlySelectedTabId;
   }
 
   /** Prevent default click action */
