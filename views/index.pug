@@ -68,37 +68,37 @@
   body(style="padding-top: 8rem !important;")
     - const utmValue = utmSource ? "/?utm_source=" + utmSource : '/';
     header
-      nav.navbar.is-fixed-top#navbar(role="navigation" style='background-image: url("/static/imgs/hero-cover-sticky-header.jpg"); background-size: cover; background-repeat: no-repeat; color: white; background-position: center center; z-index: 100; max-height: 120px; height: 120px; padding-left: 1.5rem; border-radius: 0; padding-right: 1.5rem; ')
-        .navbar-brand
-          .column(style="width: auto;")
-            .row
+      nav.navbar.is-fixed-top#navbar(role="navigation" style='background-image: url("/static/imgs/hero-cover-sticky-header.jpg"); height: 17vh; background-size: cover; background-repeat: no-repeat; color: white; background-position: center center; z-index: 100; padding-left: 1.5rem; border-radius: 0; padding-right: 1.5rem; ')
+        .navbar-brand(style='display: flex;')
+          div(style="width: auto; margin-top: 2vh;")
+            div
               a.title.has-text-grey-dark.is-large(href=utmValue style="margin-bottom: 0.5rem; color: white !important;") Follow The Learners™
                 span.is-small.subtitle(style="color: white;") (Beta)
-            .row
+            div#under-title-social-icons.is-hidden(style='margin-left: -12px;')
               a(href='https://www.facebook.com/CuriousLearningGLP/' target="_blank")
                 span.icon.is-large
-                  i.fab.fa-facebook-square(style='font-size: 1.5rem; color: white; background-color: grey; border-radius: 30px;')
+                  i.fab.fa-facebook-square(style='font-size: 1.5rem; color: white; ')
               a(href='https://twitter.com/curiouslearnglp' target="_blank")
                 span.icon.is-large
-                  i.fab.fa-twitter-square(style='font-size: 1.5rem; color: white; background-color: grey; border-radius: 30px;')
+                  i.fab.fa-twitter-square(style='font-size: 1.5rem; color: white; ')
               a(href='https://www.instagram.com/curiouslearning_glp/' target="_blank")
                 span.icon.is-large
-                  i.fab.fa-instagram-square(style='font-size: 1.5rem; color: white; background-color: grey; border-radius: 30px;')
+                  i.fab.fa-instagram-square(style='font-size: 1.5rem; color: white; ')
               a(href='https://www.linkedin.com/company/curious-learning' target="_blank")
                 span.icon.is-large
-                  i.fab.fa-linkedin(style='font-size: 1.5rem; color: white; background-color: grey; border-radius: 30px;')
+                  i.fab.fa-linkedin(style='font-size: 1.5rem; color: white; ')
               button.button#mailchimp-button(style='margin: 0.4rem; text-decoration: none; background-color: rgba(0, 0, 0, 0); border: none')
                 span.icon.is-large
-                  i.far.fa-envelope(style='font-size: 1.5rem; color: white; background-color: grey; border-radius: 30px;')
+                  i.far.fa-envelope(style='font-size: 1.5rem; color: white;')
 
-          
-          a.navbar-burger.is-large(data-target="navbarHeroMenu" role="button" aria-label="menu" aria-expanded="false" style="background-color: #404040; margin-top: 1.5rem;")
-            span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
-            span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
-            span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
+          div(style='margin-left: auto;')
+            a.navbar-burger.is-large(data-target="navbarHeroMenu" role="button" aria-label="menu" aria-expanded="false" style="background-color: #404040; margin-top: 1.5rem;")
+              span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
+              span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
+              span(aria-hidden="true" style="color: white; width: 40%; left: 30%; height: 0.1rem;")
 
         .navbar-menu#navbarHeroMenu(style='background-color: rgba(0, 0, 0, 0)')
-          .navbar-end#tab-buttons(style='align-items: center;  padding-left: 1.5rem')
+          .navbar-end#tab-buttons(style='align-items: center; padding-left: 1.5rem; padding-right: 1.5rem;')
             // Campaigns Button
             a.button.is-medium.navbar-item#btn-tab-campaigns(style='margin-right: 0.25rem; margin-left: 0.25rem; margin-bottom: 0.5rem;')
               span.icon.is-small
@@ -120,8 +120,25 @@
               span.icon.is-small
                   i.fas.fa-sign-in-alt#auth-button-icon(aria-hidden='true' style='pointer-events: none;')
               span#sign-in-text Sign In
+          
+            .column#hamburger-social-icons.is-hidden(style='')
+              a(href='https://www.facebook.com/CuriousLearningGLP/' target="_blank")
+                span.icon.is-large
+                  i.fab.fa-facebook-square(style='font-size: 1.5rem; color: #707070; ')
+              a(href='https://twitter.com/curiouslearnglp' target="_blank")
+                span.icon.is-large
+                  i.fab.fa-twitter-square(style='font-size: 1.5rem; color: #707070; ')
+              a(href='https://www.instagram.com/curiouslearning_glp/' target="_blank")
+                span.icon.is-large
+                  i.fab.fa-instagram-square(style='font-size: 1.5rem; color: #707070; ')
+              a(href='https://www.linkedin.com/company/curious-learning' target="_blank")
+                span.icon.is-large
+                  i.fab.fa-linkedin(style='font-size: 1.5rem; color: #707070; ')
+              button.button#mailchimp-hamburger-button(style='margin: 0.4rem; text-decoration: none; background-color: rgba(0, 0, 0, 0); border: none')
+                span.icon.is-large
+                  i.far.fa-envelope(style='font-size: 1.5rem; color: #707070;')
 
-    .section#tabs-parent(style='z-index: 100; padding: 0;')
+    .section#tabs-parent(style='z-index: 100; padding-right: 0; padding-left: 0;')
       .section.is-hidden#tab-campaigns(style='padding: 0;')
         //- div.has-text-centered
         //- h3.subtitle.is-3.has-text-grey(style='margin-top: 0.5rem') Pick a Region
@@ -242,7 +259,7 @@
               //- button.button.is-medium(onclick="onPanoramaNextButtonClick()" style='pointer-events: auto; margin: 10px; position: absolute; right: 0; top: 45%; background-color: rgba(30, 30, 30, 0.3); font-weight: bold; font-size: 1.2rem; color: white; border: none;')
               //-   span(style="font-weight: bold;") Next
 
-    .modal#mailchimp-modal
+    .modal#mailchimp-modal(style='z-index: 101;')
       .modal-background#mailchimp-modal-overlay
       .modal-card
         header.modal-card-head(style='border: none; display: flex; justify-content: center;')
@@ -292,7 +309,7 @@
               <script type='text/javascript' src='//s3.amazonaws.com/downloads.mailchimp.com/js/mc-validate.js'></script><script type='text/javascript'>(function($) {window.fnames = new Array(); window.ftypes = new Array();fnames[0]='EMAIL';ftypes[0]='email';fnames[1]='MMERGE1';ftypes[1]='text';}(jQuery));var $mcj = jQuery.noConflict(true);</script>
 
 
-    .modal#donate-modal
+    .modal#donate-modal(style='z-index: 101;')
       .modal-background#donate-modal-overlay
       .modal-card
         header.modal-card-head(style='border: none')
@@ -303,7 +320,7 @@
           br
           div.gl-simple-donation-widget#give-lively-widget
     
-    .modal#donor-email-modal
+    .modal#donor-email-modal(style='z-index: 101;')
       .modal-background#sign-in-modal-overlay
       .modal-card
         header.modal-card-head(style='border: none')
