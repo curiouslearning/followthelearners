@@ -39,7 +39,7 @@ export class App {
     this.signInModal = new SignInModal(this.config, this.authController);
     this.donateModal = new DonateModal(this.config);
     this.mailchimpModal = new MailchimpModal(this.config);
-    this.navbar = new Navbar(this.config);
+    this.navbar = new Navbar(this.config, this.hamburgerMenu);
     this.hamburgerMenu.close();
   }
   
@@ -72,6 +72,8 @@ export class App {
     });
     this.donateModal.init();
     this.mailchimpModal.init();
+
+    this.hamburgerMenu.init();
 
     this.navbar.init();
     this.navbar.setMailChimpButtonClickListener(() => {
