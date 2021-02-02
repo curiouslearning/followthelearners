@@ -14,8 +14,9 @@ export class HamburgerMenu {
     this.activeClass = this.config.activeClass;
     this.menuClass = this.config.hamburgerMenuClass;
     this.colorTransparent = this.config.colorTransparent;
+  }
 
-
+  public init(): void {
     const $navbarBurgers = Array.prototype.slice.call(
       document.querySelectorAll(this.menuClass), 0);
 
@@ -32,6 +33,15 @@ export class HamburgerMenu {
         });
       });
     }
+  }
+
+  public isHamburgerIconShown() {
+    const $navbarBurgers = Array.prototype.slice.call(
+      document.querySelectorAll(this.menuClass), 0);
+    if ($navbarBurgers.length === 1) {
+      return getComputedStyle($navbarBurgers[0]).display === 'block';
+    }
+    return false;
   }
 
   /**
