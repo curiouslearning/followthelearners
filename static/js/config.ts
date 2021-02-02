@@ -13,6 +13,12 @@ export class Config {
   /* Navbar */
   public readonly navbarId: string = '#navbar';
   public readonly mailchimpButtonId: string = '#mailchimp-button';
+  public readonly mailchimpHamburgerButtonId: string = '#mailchimp-hamburger-button';
+  public readonly underTitleSocialIconsId: string = '#under-title-social-icons';
+  public readonly hamburgerMenuSocialIconsId: string = '#hamburger-social-icons';
+
+  /* Hamburger Menu */
+  public readonly hamburgerMenuClass: string = '.navbar-burger';
 
   /* For Tab Selector */
   public readonly tabButtonsId: string = '#tab-buttons';
@@ -86,6 +92,8 @@ export class Config {
   public readonly signInModalOverlayId: string = '#sign-in-modal-overlay';
   public readonly signInModalInstructionTextId: string = '#modal-instruction-text';
   public readonly signInModalDonorInfoTextId: string = '#new-donor-info-text';
+  public readonly signInModalGoogleButtonId: string = '#sign-in-button-google';
+  public readonly signInModalFacebookButtonId: string = '#sign-in-button-fb';
   public readonly signInModalDonorEmailInputId: string = '#donor-email';
   public readonly signInModalSubmitButtonId: string = '#donor-email-submit';
   public readonly signInModalGoToDonateButtonId: string = '#go-to-donate-button';
@@ -100,9 +108,6 @@ export class Config {
   public readonly donateModalId: string = '#donate-modal';
   public readonly donateModalCloseButtonId: string = '#donate-modal-close-button';
   public readonly donateModalOverlayId: string = '#donate-modal-overlay';
-
-  /* Hamburger Menu */
-  public readonly hamburgerMenuClass: string = '.navbar-burger';
 
   constructor() {
     
