@@ -133,6 +133,7 @@ export class AllLearnersDisplayController extends MapDisplayController {
 
     if (this.currentCountrySelection === this.allCountriesValue) {
       for (let key = 0; key < locationData.length; key++) {
+        if (this.learnersData.campaignData[key.toString()].country === 'no-country') continue;
         const learnerCount = this.learnersData.campaignData[key.toString()].learnerCount;
         this.addNewMarkerOnMap(locationData[key], null, learnerCount);
         this.resetMapView();
