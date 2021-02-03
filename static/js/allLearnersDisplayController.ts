@@ -86,15 +86,26 @@ export class AllLearnersDisplayController extends MapDisplayController {
     if (this.currentCountrySelection !== this.allCountriesValue) {
       this.inCountryText!.innerHTML = `in ${this.currentCountrySelection}`;
       this.dntCountParent?.classList.remove(this.hiddenClass);
-      Helpers.createCountUpTextInElement(this.dntCountElement!,
-      this.learnersData.masterCounts.allLearnersWithDoNotTrack);
+      let countryLearnerCount = 0;
+
+      let countryObj: any = this.learnersData.campaignData.find((loc: any) => { 
+        return loc.country === this.currentCountrySelection; });
+      Helpers.createCountUpTextInElement(this.learnerCountElement!, 
+        countryObj.learnerCount);
+      
+      let noRegion = countryObj.regions.find((r: any) => { 
+        return r.region === "no-region"; });
+
+      if (noRegion && noRegion.hasOwnProperty('learnerCount')) {
+        Helpers.createCountUpTextInElement(this.dntCountElement!,
+          noRegion.learnerCount);
+      }
     } else {
       this.inCountryText!.innerHTML = 'Worldwide';
       this.dntCountParent?.classList.add(this.hiddenClass);
+      Helpers.createCountUpTextInElement(this.learnerCountElement!,
+        this.learnersData.masterCounts.allLearnersCount);
     }
-
-    Helpers.createCountUpTextInElement(this.learnerCountElement!,
-      this.learnersData.masterCounts.allLearnersCount);
   }
 
   /**
