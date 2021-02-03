@@ -324,33 +324,59 @@
       .modal-background#sign-in-modal-overlay
       .modal-card
         header.modal-card-head(style='border: none')
-          p.modal-card-title.hast-text-grey-dark.has-text-centered.is-size-5 Sign In to Follow The Learners™
+          p.modal-card-title.hast-text-grey-dark.has-text-centered.is-size-5 &nbsp;&nbsp;&nbsp;Sign In to Follow The Learners™
           button.delete#sign-in-modal-close-btn(aria-label='close')
         .modal-card-body
-          p.has-text-info.is-hidden#new-donor-info-text
+          p.has-text-info.is-hidden#new-donor-info-text(style='text-align: center;')
             span.icon.is-small.is-left
               i.fas.fa-info-circle
             span#new-donor-info-content Please enter a valid email address
             br
             br
-          p.has-text-grey#modal-instruction-text
-            span We’ll email you a magic code for a password-free sign in.
+          //- p.has-text-grey#modal-instruction-text
+            //- span We’ll email you a magic code for a password-free sign in.
             //- br
             //- span Or make a donation to create your account and start following your learners!
-          form#sign-in-form
-            //- .help Go to your Donor Summary
-            br
-            label.has-text-grey(for='email') E-mail
-            .control.has-icons-left
-              input.input#donor-email(name='email', type='email', title="Email" placeholder='user-name@example.com')
-              span.icon.is-small.is-left
-                i.fas.fa-envelope
-            br
-            p.is-pulled-right(style="font-size: 0.6rem;") New to Follow the Learners™?
-            br
-            .control
-              input.button#donor-email-submit(type='button' disabled=true value='Send Me a Magic Link')
-              input.button.is-pulled-right#go-to-donate-button(type='button' value='Make a Donation')
+          div(style="text-align: center")
+            form#sign-in-form(style="width: 70%; display: inline-block;")
+              //- .help Go to your Donor Summary
+              .control(style='text-align: center;')
+                input#sign-in-button-google(type='image' src='/static/imgs/gsb/web/1x/btn_google_signin_light_normal_web.png' style='')
+                //- button.button#sign-in-button-google(type='button' style='justify-content: flex-start; color: #757575; width: 200; height: 40; background-color: white')
+                //-   span.icon
+                //-     i.fab.fa-google(style='font-size: 1.5rem;')
+                //-   span(style='font-size: 0.9rem; margin-left: auto;') Sign In with Google
+              br
+              .control(style='text-align: center;')
+                //- input#sign-in-button-google(type='image' src='/static/imgs/gsb/web/2x/btn_google_signin_light_normal_web@2x.png' style='')
+                button.button#sign-in-button-fb(type='button' style='justify-content: flex-start; color: white; width: 188; height: 46; background-color: #4267B2')
+                  span.icon
+                    i.fab.fa-facebook-square(style='font-size: 1.5rem;')
+                  span(style='font-size: 0.8rem; margin-left: auto;') Sign In with Facebook
+              //- .control(style='display: flex; justify-content: flex-start;')
+              //-   input#sign-in-button-google(type='image' src='/static/imgs/gsb/web/1x/btn_google_signin_light_normal_web.png' style='')
+              //-   //- button.button#sign-in-button-google(type='button' style='justify-content: flex-start; color: #757575; width: 200; height: 40; background-color: white')
+              //-   //-   span.icon
+              //-   //-     i.fab.fa-google(style='font-size: 1.5rem;')
+              //-   //-   span(style='font-size: 0.9rem; margin-left: auto;') Sign In with Google
+              //-   button.button#sign-in-button-fb(type='button' style='justify-content: flex-start; margin-left: auto; color: white; width: 188; height: 46; background-color: #4267B2')
+              //-     span.icon
+              //-       i.fab.fa-facebook-square(style='font-size: 1.5rem;')
+              //-     span(style='font-size: 0.8rem; margin-left: auto;') Sign In with Facebook
+              br
+              label.has-text-grey(for='email') —————————OR—————————
+              br
+              br
+              .control.has-icons-left
+                input.input#donor-email(name='email', type='email', title="Email" placeholder='user-name@example.com')
+                span.icon.is-small.is-left
+                  i.fas.fa-envelope
+              br
+              .control
+                input.button.is-primary#donor-email-submit(type='button' style='width: 100%' disabled=true value='Send Me An E-mail Link')
+              br
+              p(style="") New to Follow the Learners™?&nbsp;
+              input.button.is-text#go-to-donate-button(type='button' style='display: inline-block' value='Make a Donation')
 
     script(src="https://secure.givelively.org/widgets/simple_donation/curious-learning-a-global-literacy-project-inc.js?show_suggested_amount_buttons=false&show_in_honor_of=false&address_required=false&has_required_custom_question=null&prefilled_donation_amount=20")
 
