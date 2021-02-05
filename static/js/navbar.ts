@@ -71,7 +71,7 @@ export class Navbar {
     window.onscroll = () => {
       if (document.body.scrollTop > 60 || document.documentElement.scrollTop > 60) {
         this.navbar!.style.boxShadow = '2px 2px 8px #808080';
-        this.navbar!.style.maxHeight = '12vh';
+        this.navbar!.style.maxHeight = '14vh';
       } else {
         this.navbar!.style.boxShadow = '0px 0px 0px #808080';
         this.navbar!.style.maxHeight = '17vh';
