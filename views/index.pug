@@ -65,12 +65,12 @@
         transition: max-height 0.5s ease-in-out;
       }
 
-  body(style="padding-top: 8rem !important;")
+  body(style="padding-top: 19vh !important;")
     - const utmValue = utmSource ? "/?utm_source=" + utmSource : '/';
     header
       nav.navbar.is-fixed-top#navbar(role="navigation" style='background-image: url("/static/imgs/hero-cover-sticky-header.jpg"); height: 17vh; background-size: cover; background-repeat: no-repeat; color: white; background-position: center center; z-index: 100; padding-left: 1.5rem; border-radius: 0; padding-right: 1.5rem; ')
         .navbar-brand(style='display: flex;')
-          div(style="width: auto; margin-top: 2vh;")
+          div(style="width: auto; margin-top: 4vh;")
             div
               a.title.has-text-grey-dark.is-large(href=utmValue style="margin-bottom: 0.5rem; color: white !important;") Follow The Learners™
                 span.is-small.subtitle(style="color: white;") (Beta)
@@ -138,7 +138,7 @@
                 span.icon.is-large
                   i.far.fa-envelope(style='font-size: 1.5rem; color: #707070;')
 
-    .section#tabs-parent(style='z-index: 100; padding-right: 0; padding-left: 0;')
+    .section#tabs-parent(style='z-index: 100; padding-right: 0; padding-top: 0; padding-left: 0;')
       .section.is-hidden#tab-campaigns(style='padding: 0;')
         //- div.has-text-centered
         //- h3.subtitle.is-3.has-text-grey(style='margin-top: 0.5rem') Pick a Region
