@@ -89,11 +89,11 @@ export class SignInModal extends Modal {
     });
 
     this.signInWithGoogleButton?.addEventListener('click', () => {
-      console.log('Sign in with google');
+      this.authController?.signInWithGoogle();
     });
 
     this.signInWithFacebookButton?.addEventListener('click', () => {
-      console.log('Sign in with facebook');
+      this.authController?.signInWithFacebook();
     });
 
     this.submitButon?.addEventListener('click', () => {
