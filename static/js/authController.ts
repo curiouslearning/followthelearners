@@ -122,6 +122,16 @@ export class AuthController {
     return this.token ? this.token : null;
   }
 
+  public signInWithGoogle(): void {
+    const googleAuth = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithPopup(googleAuth);
+  }
+
+  public signInWithFacebook(): void {
+    const facebookAuth = new firebase.auth.FacebookAuthProvider();
+    firebase.auth().signInWithPopup(facebookAuth); 
+  }
+
   /**
    * Send a magic link to a user with the given email
    * @param email Email
