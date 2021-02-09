@@ -149,7 +149,6 @@ export class SignInModal extends Modal {
       } else {
         this.donorInfoText?.classList.remove(this.hiddenClass);
         this.donorInfoText!.innerHTML = data.displayText;
-        // this.instructionText?.classList.add(this.hiddenClass);
       }
     });
 
