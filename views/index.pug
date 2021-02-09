@@ -263,7 +263,7 @@
       .modal-background#mailchimp-modal-overlay
       .modal-card
         header.modal-card-head(style='border: none; display: flex; justify-content: center;')
-          h5.is-size-5.hast-text-grey-dark.has-text-centered Subscribe to our mailing list
+          p.modal-card-title.hast-text-grey-dark.has-text-centered.is-size-5 Subscribe to our mailing list
           button.delete#mailchimp-modal-close-button(aria-label='close' style="margin-left: auto;")
         .modal-card-body
           link(href="//cdn-images.mailchimp.com/embedcode/classic-10_7.css" rel="stylesheet" type="text/css")
@@ -323,9 +323,9 @@
     .modal#donor-email-modal(style='z-index: 101;')
       .modal-background#sign-in-modal-overlay
       .modal-card
-        header.modal-card-head(style='border: none')
+        header.modal-card-head(style='border: none; display: flex; justify-content: center;')
           p.modal-card-title.hast-text-grey-dark.has-text-centered.is-size-5 &nbsp;&nbsp;&nbsp;Sign In to Follow The Learners™
-          button.delete#sign-in-modal-close-btn(aria-label='close')
+          button.delete#sign-in-modal-close-btn(aria-label='close' style='margin-left: auto')
         .modal-card-body
           p.has-text-info.is-hidden#new-donor-info-text(style='text-align: center;')
             span.icon.is-small.is-left
@@ -364,7 +364,7 @@
               //-       i.fab.fa-facebook-square(style='font-size: 1.5rem;')
               //-     span(style='font-size: 0.8rem; margin-left: auto;') Sign In with Facebook
               br
-              label.has-text-grey(for='email') —————————OR—————————
+              label.has-text-grey(for='email') —————OR—————
               br
               br
               .control.has-icons-left
