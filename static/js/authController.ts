@@ -124,12 +124,16 @@ export class AuthController {
 
   public signInWithGoogle(): void {
     const googleAuth = new firebase.auth.GoogleAuthProvider();
-    firebase.auth().signInWithPopup(googleAuth);
+    firebase.auth().signInWithPopup(googleAuth).catch((error) => {
+      console.log('Authentication was unsuccessful!');
+    });
   }
 
   public signInWithFacebook(): void {
     const facebookAuth = new firebase.auth.FacebookAuthProvider();
-    firebase.auth().signInWithPopup(facebookAuth); 
+    firebase.auth().signInWithPopup(facebookAuth).catch((error) => {
+      console.log('Authentication was unsuccessful!');
+    });
   }
 
   /**
