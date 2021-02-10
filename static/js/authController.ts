@@ -124,8 +124,22 @@ export class AuthController {
 
   public signInWithGoogle(): void {
     const googleAuth = new firebase.auth.GoogleAuthProvider();
-    firebase.auth().signInWithPopup(googleAuth).catch((error) => {
-      console.log('Authentication was unsuccessful!');
+    
+    firebase.auth().signInWithPopup(googleAuth).then(() => {
+      firebase.auth().fetchSignInMethodsForEmail("gdzavashvili@curiouslearning.org").then(function(methods: any) {
+        console.log(methods);
+      });
+    }).catch((error) => {
+      if (error.code === 'auth/account-exists-with-different-credential') {
+        console.log(error);
+        // let pendingCredential = error.credential;
+        // let email = error.email;
+
+        // var provider = getProviderForProviderId(methods[0]);
+        // firebase.auth().fetchSignInMethodsForEmail(email).then(function(methods: any) {
+        //   console.log();
+        // });
+      }
     });
   }
 
