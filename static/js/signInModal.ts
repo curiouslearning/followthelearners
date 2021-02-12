@@ -57,8 +57,8 @@ export class SignInModal extends Modal {
       Helpers.getElement(this.submitButtonId) as HTMLButtonElement;
     this.goToDonateButton = this.goToDonateButtonId === '' ? null :
       Helpers.getElement(this.goToDonateButtonId) as HTMLButtonElement;
-    
-    this.form?.addEventListener('submit', (event) => { 
+
+    this.form?.addEventListener('submit', (event) => {
       event.preventDefault();
       this.onFormSubmit();
     });
@@ -67,7 +67,7 @@ export class SignInModal extends Modal {
       if (Helpers.isKeyCodeSpecial(event.keyCode)) {
         return;
       }
-      
+
       if (Helpers.isValidEmail(this.emailInput!.value)) {
         this.submitButon!.disabled = false;
         this.donorInfoText?.classList.add(this.hiddenClass);
@@ -120,7 +120,7 @@ export class SignInModal extends Modal {
     }
     let emailValue = this.emailInput?.value;
 
-    Helpers.get(`/isUser/?email=${emailValue}`, (data) => {
+    Helpers.get(`/isUser/?email=${emailValue}`, {}, (data) => {
       if (data.isUser) {
         this.authController?.sendMagicLink(emailValue!, () => {
           window.localStorage.setItem('emailForSignIn', emailValue!);

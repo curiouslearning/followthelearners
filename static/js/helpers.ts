@@ -5,7 +5,7 @@ import { CountUp } from "countup.js";
  * Module for helper functions
  */
 export abstract class Helpers {
-  
+
   /**
    * Get an element(s) from DOM with either their id or class
    * @param tag A string that contains either an id of an element or a class starting
@@ -46,7 +46,7 @@ export abstract class Helpers {
       console.error(counter.error);
     }
   }
-  
+
   /**
    * Check if a passed keycode is a special character
    * @param keyCode Keycode
@@ -143,18 +143,46 @@ export abstract class Helpers {
    * @param url URL
    * @param callback Callback that return data
    */
-  public static async get(url: string, callback: (data: any | null) => void) {
-    const xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = () => {
-      if (xhttp.readyState === 4 && xhttp.status === 200) {
-        callback(JSON.parse(xhttp.responseText));
-      } else if (xhttp.status === 400) {
-        callback(null);
-      }
-    };
-    xhttp.open('GET', url, true);
-    xhttp.send();
+  public static async get(url: string,
+    options: any,
+    callback: (data: any | null)=> void): Promise<any> {
+      url = Helpers.formatQuery(url, options);
+      const xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = () => {
+        if (xhttp.readyState === 4 && xhttp.status === 200) {
+          callback(JSON.parse(xhttp.responseText));
+        } else if (xhttp.status >= 400) {
+          callback(null);
+        }
+      };
+      xhttp.open('GET', url, true);
+      xhttp.send(null);
+    }
+  private static formatQuery(url: string, options: any): string {
+    if (options === {}) {
+      return url;
+    }
+    return url + '?' + Object
+      .keys(options)
+      .map(function (key): string {
+        return key+'='+encodeURIComponent(options[key]);
+      })
   }
+  public static async post(
+    url: string,
+    options: any,
+    callback: (data: any | null) => void): Promise<any> {
+      const xhttp = new XMLHttpRequest();
+      const body = JSON.stringify (options)
+      xhttp.onreadystatechange = () => {
+        if (xhttp.readyState === 4 && xhttp.status === 200) {
+          callback(JSON.parse(xhttp.responseText));
+        } else if (xhttp.status >= 400) {
+          callback(null);
+        }
+      };
+      xhttp.open('POST', url, true);
+      xhttp.setRequestHeader('Content-Type', 'application/json')
+      xhttp.send(body);
+    }
 }
-
-
