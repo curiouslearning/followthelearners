@@ -250,18 +250,19 @@ app.post('/getAllCountriesList', function(req, res) {
     querySnapshot.forEach(function(doc) {
       countryNames.push(doc.data().country);
     });
-    res.json({countryNames: countryNames});
+    res.status(200).json({countryNames: countryNames});
   }).catch((err)=>{
     console.error(err);
+    res.status(500).send({error: err});
   });
 });
 
-app.post('/getAllCountryRegions', function(req, res) {
+app.get('/getAllCountryRegions', function(req, res) {
   if (!req.session.loggedin) {
     res.redirect('/admin');
     return;
   }
-  const country = req.body.country;
+  const country = req.query.country;
   const dbRef = firestore.collection('loc_ref').doc(country);
   let regionData = [];
   dbRef.get().then((doc)=>{
@@ -291,13 +292,13 @@ app.post('/getAllCountryRegions', function(req, res) {
   });
 });
 
-app.post('/generateRandomGeoPoints', function(req, res) {
+app.get('/generateRandomGeoPoints', function(req, res) {
   if (!req.session.loggedin) {
     res.redirect('/admin');
   }
-  const country = req.body.country;
-  const radius = req.body.radius * 1.60934; // Convert to metric
-  const svCount = parseFloat(req.body.svCount);
+  const country = req.query.country;
+  const radius = req.query.radius * 1.60934; // Convert to metric
+  const svCount = parseFloat(req.query.svCount);
   const dbRef = firestore.collection('loc_ref').doc(country);
   const svGenData = {};
 
@@ -328,9 +329,10 @@ app.post('/generateRandomGeoPoints', function(req, res) {
           lng: randomPoint.longitude});
       }
     }
-    res.json({streetViewGenData: svGenData});
+    res.status(200).send({streetViewGenData: svGenData});
   }).catch((err)=>{
     console.error(err);
+    res.status(500).send({err: err});
   });
 
   // console.log('https://maps.google.com/maps/search/' + randomPoint.latitude + ',' + randomPoint.longitude);
