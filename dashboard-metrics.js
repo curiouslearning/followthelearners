@@ -23,16 +23,16 @@ console.log('day: ', args[0].substring(6,8));
 
 async function main(date) {
   console.log('date is: ', date);
-  const job = await saveJob({jobName, jobStatus: 'started', dateStarted: Date.now()});
+  const job = await saveJob({jobName, jobStatus: 'started', dateStarted: new Date(Date.now()).toISOString()});
   const pivotDate = getPivot(PRUNEDATE, date);
   const today = getPivot(1, date);
-  let learners = getLearnersPerCountry();
-  let learners2 = getLearnersPerCountryOld();
-  let latestLearners = getTodaysLearners(today, date);
-  let assignments = getTodaysAssignments(today, date);
-  let expirations = getTodaysExpirations(today, date);
-  let demand = checkDemand(date);
-  let amounts = getDonationsByCountry(pivotDate, date);
+  let learners = await getLearnersPerCountry();
+  // let learners2 = await getLearnersPerCountryOld();
+  let latestLearners = await getTodaysLearners(today, date);
+  let assignments = await getTodaysAssignments(today, date);
+  let expirations = await getTodaysExpirations(today, date);
+  let demand = await checkDemand(date);
+  let amounts = await getDonationsByCountry(pivotDate, date);
 
   let vals;
   try {
@@ -48,9 +48,9 @@ async function main(date) {
   } catch(err) {
     console.error(err);
     await saveJob({
-      jobId: job.jobId,
+      jobId: job.job_id,
       jobStatus: 'Failed',
-      dateCompleted: (new Date()).getUTCMilliseconds(),
+      dateCompleted: new Date(Date.now()).toISOString(),
       jobResults: 'Failed to update dashboard metrics',
       errorLogs: JSON.stringify(err)
     });
@@ -65,10 +65,12 @@ async function main(date) {
   //   console.log('Successfully wrote file');
   // });
   // await loadIntoBigQuery(filename);
+  //TODO delete file
   await saveJob({
-    jobId: job.jobId,
+    jobId: job.job_id,
     jobStatus: 'completed',
-    dateCompleted: (new Date()).getUTCMilliseconds(),
+    recordsProcessed: Object.values(latestLearners).reduce((p, c) => p + c),
+    dateCompleted: new Date(Date.now()).toISOString(),
     jobResults: 'Successfully updated dashboard metrics'
   });
 }
@@ -216,10 +218,10 @@ function getTodaysExpirations(pivotDate, now) {
 function getLearnersPerCountry() {
   return firestore.collection('aggregate_data').get().then((snapshot) => {
     let countries = {};
-    const regions = snapshot.data().RegionSummary;
+    const regions = snapshot.docs.find(s => s.data().hasOwnProperty('countries'));
 
-    for(const region of regions) {
-      countries[region.country] = learnerCount;
+    for(const region of regions.data().countries) {
+      countries[region.country] = region.learnerCount;
     }
     return countries;
   }).catch((err)=>{
@@ -324,8 +326,11 @@ function getDonationsByCountry(pivotDate, now) {
 async function saveJob({jobId, jobName, jobStatus, jobResults, recordsProcessed, errorLogs, dateStarted, dateCompleted}) {
   const bigqueryClient = new BigQuery();
 
-  const sqlQuery = `call ftl_functions.jobs_save(${jobId}, ${jobName},${jobStatus},${jobResults},${recordsProcessed},
-            ${errorLogs},${dateStarted},${dateCompleted})`;
+  const wrap = s => s ? `"${s}"` : null;
+
+  const sqlQuery = `call \`follow-the-learners.ftl_dataset.jobs_save\`(${wrap(jobId)}, ${wrap(jobName)},` +
+      `${wrap(jobStatus)},${wrap(jobResults)},${wrap(recordsProcessed)},` +
+      `${wrap(errorLogs)},${wrap(dateStarted)},${wrap(dateCompleted)})`;
 
   const options = {
     query: sqlQuery,
@@ -338,7 +343,6 @@ async function saveJob({jobId, jobName, jobStatus, jobResults, recordsProcessed,
   } catch(err) {
     console.error(`Error when trying to save the job: ${JSON.stringify(err)}`);
   }
-
 }
 
 function getPivot(interval = 0, startDate = new Date()) {
