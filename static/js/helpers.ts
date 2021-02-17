@@ -1,6 +1,9 @@
 import { updateLanguageServiceSourceFile } from "typescript";
 import { CountUp } from "countup.js";
-
+interface Header {
+    key: string,
+    val: string
+  }
 /**
  * Module for helper functions
  */
@@ -138,12 +141,56 @@ export abstract class Helpers {
     return iconOptions;
   }
 
-  /**
+  public static async get(
+    url: string,
+    options: any
+  ): Promise<any> {
+    url = Helpers.formatQuery(url, options);
+    const response = await fetch(url, {method: 'GET'}).catch((error) => {
+      console.error(error);
+      return {json:{data: {}, error: error}};
+    });
+    return response.json;
+  }
+
+  public static async post(
+    url: string,
+    options: any,
+    headers: Array<Header> = []
+  ): Promise<any> {
+    let formattedHeaders: {[index:string]: string}
+      = {'Content-Type': 'application/json'};
+    headers.forEach((header) => {
+      formattedHeaders[header.key] = header.val;
+    });
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: formattedHeaders,
+      body: JSON.stringify(options),
+    }).catch((error) => {
+      console.error(error);
+      return {json:{data: {}, status: error}};
+    });
+    return response.json;
+  }
+
+  private static formatQuery(url: string, options: any): string {
+    if (options === {}) {
+      return url;
+    }
+    return url + '?' + Object
+      .keys(options)
+      .map(function (key): string {
+        return key+'='+encodeURIComponent(options[key]);
+      })
+  }
+
+  /** DEPRECATED, use Helpers.get
    * Quivalent of JQuery $.get() with XMLHttpRequest
    * @param url URL
    * @param callback Callback that return data
    */
-  public static async get(url: string,
+  public static async getXHR(url: string,
     options: any,
     callback: (data: any | null)=> void): Promise<any> {
       url = Helpers.formatQuery(url, options);
@@ -158,31 +205,33 @@ export abstract class Helpers {
       xhttp.open('GET', url, true);
       xhttp.send(null);
     }
-  private static formatQuery(url: string, options: any): string {
-    if (options === {}) {
-      return url;
-    }
-    return url + '?' + Object
-      .keys(options)
-      .map(function (key): string {
-        return key+'='+encodeURIComponent(options[key]);
-      })
-  }
-  public static async post(
+
+  // DEPRECATED, use Helpers.post
+  public static async postXHR (
     url: string,
     options: any,
-    callback: (data: any | null) => void): Promise<any> {
-      const xhttp = new XMLHttpRequest();
-      const body = JSON.stringify (options)
-      xhttp.onreadystatechange = () => {
-        if (xhttp.readyState === 4 && xhttp.status === 200) {
-          callback(JSON.parse(xhttp.responseText));
-        } else if (xhttp.status >= 400) {
-          callback(null);
-        }
-      };
-      xhttp.open('POST', url, true);
-      xhttp.setRequestHeader('Content-Type', 'application/json')
-      xhttp.send(body);
+    callback: (data: any | null) => void,
+    headers: Array<Header> = []
+  ): Promise<any> {
+    const xhttp = new XMLHttpRequest();
+    const body = JSON.stringify (options)
+    xhttp.onreadystatechange = () => {
+      if (xhttp.readyState === 4 && xhttp.status === 200) {
+        callback(JSON.parse(xhttp.responseText));
+      } else if (xhttp.status >= 400) {
+        callback(null);
+      }
+    };
+    xhttp.open('POST', url, true);
+    xhttp.setRequestHeader('Content-Type', 'application/json')
+    if (headers) {
+      headers.forEach((header)=> {
+        xhttp.setRequestHeader(header.key, header.val);
+      });
     }
+    xhttp.send(body);
+    return new Promise((resolve: any) => {
+      resolve('resolved');
+    });
+  }
 }

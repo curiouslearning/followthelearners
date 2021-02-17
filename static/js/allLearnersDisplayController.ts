@@ -1,4 +1,3 @@
-import { } from "googlemaps";
 import { Config } from "./config";
 import { Helpers } from "./helpers";
 import { MapDisplayController } from "./mapDisplayController";
@@ -65,7 +64,7 @@ export class AllLearnersDisplayController extends MapDisplayController {
       return;
     }
 
-    Helpers.get(url, {}, (data: any | null)=> {
+    Helpers.getXHR(url, {}, (data: any | null)=> {
       if (!data) {
         callback(false);
       } else {

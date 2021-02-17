@@ -120,7 +120,7 @@ export class SignInModal extends Modal {
     }
     let emailValue = this.emailInput?.value;
 
-    Helpers.get(`/isUser/?email=${emailValue}`, {}, (data) => {
+    Helpers.getXHR(`/isUser/?email=${emailValue}`, {}, (data) => {
       if (data.isUser) {
         this.authController?.sendMagicLink(emailValue!, () => {
           window.localStorage.setItem('emailForSignIn', emailValue!);

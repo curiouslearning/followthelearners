@@ -114,39 +114,7 @@ export class Config {
   public readonly donateModalCloseButtonId: string = '#donate-modal-close-button';
   public readonly donateModalOverlayId: string = '#donate-modal-overlay';
 
-  /* Admin Page Vars*/
-  public readonly loadCountriesId = '#load-countries';
-  public readonly loadRegionsId = '#load-regions';
-  public readonly generateStreetViewsId = '#gen-street-views';
-  public readonly toggleMapId = '#toggle-map';
-  public readonly saveAllId = '#save-street-views';
-  public readonly dropdownParent = '#dropdown-parent';
-  public readonly panoramaId = '#pano';
-  public readonly countrySelectId = '#countrySelect';
-  public readonly mapViewParentId = '#map-view-parent';
-  public readonly deepDiveModalId = '#deep-dive-modal';
-  public readonly deepDiveTitleId = '#deep-dive-header-text';
-  public readonly currentActiveDeepDive = '#cloud-console';
-  public activeButtonId: string = '#business-metrics-btn';
-  public readonly stoplightRows: Array<string> = [
-    'cloud',
-    'server',
-    'firestore',
-    'stripe',
-    'cronjob',
-    'postman',
-  ];
-  public readonly businessIframes: string[] = [
-    'biz-ingestion-iframe',
-    'biz-donor-iframe',
-    'biz-donation-iframe',
-  ];
-  public readonly dashIframes: string[] = [
-    'dash-ingestion-iframe',
-    'dash-donation-iframe',
-    'dash-assignment-iframe',
-  ];
-  constructor() {
+    constructor() {
 
   }
 

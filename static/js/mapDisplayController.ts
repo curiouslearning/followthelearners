@@ -1,5 +1,4 @@
 import { Helpers } from "./helpers";
-import { } from "googlemaps";
 import { Config } from "./config";
 
 /**
@@ -118,7 +117,7 @@ export class MapDisplayController {
    * Fetch learner data
    */
   public fetchData(url: string, callback: (hasData: boolean) => void): void {
-    Helpers.get(url, {}, (data: any | null)=> {
+    Helpers.getXHR(url, {}, (data: any | null)=> {
       if (!data) {
         callback(false);
       } else {
