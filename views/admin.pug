@@ -96,37 +96,37 @@ html
                     span#cloud-row( style="vertical-align: center; text-align: center; font-weight: bold") Cloud Functions
                   td 
                     span.icon.is-small
-                      i.fas.fa-check
-                tr
-                  td 
-                    span#server-row(style="vertical-align: center; text-align: center; font-weight: bold") Server
-                  td 
-                    span.icon.is-small
-                      i.fas.fa-exclamation-circle
-                tr
-                  td 
-                    span#firestore-row(style="vertical-align: center; text-align: center; font-weight: bold") Firestore
-                  td
-                    span.icon.is-small
-                      i.fas.fa-check
-                tr
-                  td 
-                    span#stripe-row(style="vertical-align: center; text-align: center; font-weight: bold") Stripe
-                  td
-                    span.icon.is-small
-                      i.fas.fa-exclamation-triangle
-                tr
-                  td 
-                    span#cronjob-row(style="vertical-align: center; text-align: center; font-weight: bold") Cronjobs
-                  td
-                    span.icon.is-small
-                      i.fas.fa-check
+                      i#cloud-icon.fas.fa-check
                 tr
                   td 
                     span#postman-row(style="vertical-align: center; text-align: center; font-weight: bold") Postman
                   td
                     span.icon.is-small
-                      i.fas.fa-exclamation-triangle
+                      i#postman-icon.fas.fa-check
+                tr
+                  td 
+                    span#stripe-row(style="vertical-align: center; text-align: center; font-weight: bold") Stripe
+                  td
+                    span.icon.is-small
+                      i#stripe-row.fas.fa-exclamation-triangle
+                tr
+                  td 
+                    span#firestore-row(style="vertical-align: center; text-align: center; font-weight: bold") Firestore
+                  td
+                    span.icon.is-small
+                      i#firestore-icon.fas.fa-check
+                tr
+                  td 
+                    span#server-row(style="vertical-align: center; text-align: center; font-weight: bold") Server
+                  td 
+                    span.icon.is-small
+                      i#server-icon.fas.fa-exclamation-circle
+                tr
+                  td 
+                    span#cronjob-row(style="vertical-align: center; text-align: center; font-weight: bold") Cronjobs
+                  td
+                    span.icon.is-small
+                      i#cronjob-icon.fas.fa-check
         .modal#deep-dive-modal
           .modal-background(onclick="document.getElementById('deep-dive-modal').classList.remove('is-active');")
           .modal-card(style="width: 1000")

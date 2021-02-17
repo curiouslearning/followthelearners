@@ -1,5 +1,5 @@
 import { Helpers } from '../helpers';
-import { Config } from '../config';
+import { AdminConfig } from './adminConfig';
 import { Modal } from '../modal';
 
 
@@ -15,7 +15,7 @@ export class StoplightChart {
   private activeClass: string;
   private stoplightRows: Array<string>;
 
-  constructor(config: Config) {
+  constructor(config: AdminConfig) {
     this.deepDiveModalId = config.deepDiveModalId;
     this.deepDiveTitleId = config.deepDiveTitleId;
     this.currentActiveDeepDive = config.currentActiveDeepDive;
@@ -60,8 +60,31 @@ export class StoplightChart {
       }
     }
   }
-  protected updateStoplightCell(cell: string, status: string): void {
 
+  protected updateStoplightCell(cell: string, status: string): void {
+    console.log('nyello');
+    const cls = [
+      'fa-check',
+      'fa-exclamation-triangle',
+      'fa-exclamation-circle',
+    ];
+    const elemId = `#${cell}-icon`;
+    let element = Helpers.getElement(elemId) as HTMLElement;
+    element!.classList.remove(...cls);
+    switch(status) {
+      case 'good':
+        console.log('good');
+        element!.classList.add('fa-check');
+        break;
+      case 'error':
+        console.log('error');
+        element!.classList.add('fa-exclamation-triangle');
+        break;
+      case 'outage':
+        console.log('outage');
+        element!.classList.add('fa-exclamation-circle');
+        break;
+    }
   }
 
 }

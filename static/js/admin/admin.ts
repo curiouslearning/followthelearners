@@ -1,5 +1,6 @@
 import { Helpers } from '../helpers';
 import { Config } from '../config';
+import { AdminConfig } from './adminConfig';
 import { StreetViewController } from './streetViewController';
 import { Modal } from '../modal';
 import { TabSelector } from '../tabSelector';
@@ -7,17 +8,18 @@ import { AdminStoplightChart }  from './adminStoplightChart';
 
 
 export class AdminApp {
-  private config: Config;
+  private config: AdminConfig;
   private tabSelector: TabSelector;
   private streetViewController: StreetViewController;
   private stoplightChart: AdminStoplightChart;
   private activeButtonId: string;
   private dropdown: HTMLSelectElement;
-  private businessIframes: string[];
-  private dashIframes: string[];
+  private businessIframes: Array<string>;
+  private dashIframes: Array<string>;
+  private tabClickMap: Array<any>;
 
   constructor() {
-    this.config = new Config();
+    this.config = new AdminConfig();
     this.tabSelector = new TabSelector(this.config);
     this.streetViewController = new StreetViewController(this.config);
     this.stoplightChart = new AdminStoplightChart(this.config);
@@ -27,11 +29,34 @@ export class AdminApp {
     this.dropdown = <HTMLSelectElement>Helpers.getElement(
         this.config.dropdownParent
       )!;
+    this.tabClickMap = this.config.tabButtonTabClickMap;
   }
 
   init(): void {
-    // gets data and update stoplight chart
-    this.OnTabButtonClicked(this.activeButtonId);
+    if (this.tabSelector) {
+      this.tabSelector.addEventListener('preTabToggle', (tabId) => {
+        console.log(`switching to ${tabId} from ${this.activeButtonId}`);
+        if (this.activeButtonId !== tabId) {
+          const activeRef =
+            Helpers.getElement(this.activeButtonId)! as HTMLElement;
+          activeRef.classList.toggle(this.config.activeClass);
+          const selectedRef = Helpers.getElement(tabId)! as HTMLElement;
+          selectedRef.classList.toggle(this.config.activeClass);
+          this.activeButtonId = tabId;
+        }
+        // reload iFrames to prevent sizing issues
+        // if frame was loaded on inactive tag
+        switch (tabId) {
+          case 'business-metrics-btn':
+            this.reloadIFrames(this.businessIframes);
+            break;
+          case 'dashboard-metrics-btn':
+            this.reloadIFrames(this.dashIframes);
+            break;
+        }
+      });
+    }
+        // gets data and update stoplight chart
     if (this.dropdown !== null) {
       this.dropdown!.addEventListener('click', (event: Event) => {
         event.stopPropagation();
@@ -44,32 +69,6 @@ export class AdminApp {
     }
     this.streetViewController.init();
     this.stoplightChart.init();
-  }
-
-  public OnTabButtonClicked (tabId: string): void {
-    if (this.tabSelector) {
-      this.tabSelector.addEventListener('preTabToggle', (tabId) => {
-        const selectedBtn: string = `${tabId}-btn`;
-        if (this.activeButtonId !== selectedBtn) {
-          const activeRef =
-            Helpers.getElement(this.config.activeButtonId)! as HTMLElement;
-          activeRef.classList.toggle(this.config.activeClass);
-          const selectedRef = Helpers.getElement(selectedBtn)! as HTMLElement;
-          selectedRef.classList.toggle(this.config.activeClass);
-          this.activeButtonId = selectedBtn;
-        }
-        // reload iFrames to prevent sizing issues
-        // if frame was loaded on inactive tag
-        switch (tabId) {
-          case 'business-metrics':
-            this.reloadIFrames(this.businessIframes);
-            break;
-          case 'dashboard-metrics':
-            this.reloadIFrames(this.dashIframes);
-            break;
-        }
-      });
-    }
   }
 
   public reloadIFrames(frameList: string[]): void {

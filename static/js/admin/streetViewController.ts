@@ -1,7 +1,5 @@
-
 import { Helpers } from '../helpers';
-import { } from 'googlemaps';
-import { Config } from '../config';
+import { AdminConfig } from './adminConfig';
 import { toast as makeToast, ToastType } from 'bulma-toast';
 
 interface RawRegionData {
@@ -62,7 +60,7 @@ export class StreetViewController {
   private saveAllButton: HTMLButtonElement;
   private saveAllId: string;
 
-  constructor(config: Config) {
+  constructor(config: AdminConfig) {
     this.panoramaId = config.panoramaId;
     this.countrySelectId = config.countrySelectId;
     this.mapViewParentId = config.mapViewParentId;
@@ -215,7 +213,7 @@ private showToast(type: ToastType, message: string): void {
       bounds.extend(<google.maps.LatLng>regionPin.getPosition());
     }
 
-    Helpers.get('/generateRandomGeoPoints', {
+    Helpers.getXHR('/generateRandomGeoPoints', {
       country: countrySelection,
       radius: radiusValue,
       svCount: countValue,
@@ -336,7 +334,7 @@ private showToast(type: ToastType, message: string): void {
         }
       }
 
-      Helpers.post('/saveStreetView', {sv: sv}, (data: any|null) => {
+      Helpers.postXHR('/saveStreetView', {sv: sv}, (data: any|null) => {
           callback({message: data.message, error: null});
         });
   }
@@ -347,7 +345,7 @@ private showToast(type: ToastType, message: string): void {
     if (countrySelectElement!.options.length > 2) {
       return;
     }
-    Helpers.post('/getAllCountriesList', { }, (data: any) => {
+    Helpers.postXHR('/getAllCountriesList', { }, (data: any) => {
         this.addCountriesToList(data, status, countrySelectElement, callback)
     });
   }
@@ -388,7 +386,7 @@ private showToast(type: ToastType, message: string): void {
       return;
     }
 
-    Helpers.get('/getAllCountryRegions', {country: countrySelection},
+    Helpers.getXHR('/getAllCountryRegions', {country: countrySelection},
         (data: any | null) => {
           this.addAllCountryRegionsToList(data, status, callback);
       });
@@ -495,7 +493,7 @@ private showToast(type: ToastType, message: string): void {
         = <HTMLSelectElement> Helpers.getElement(this.countrySelectId);
     const countrySelection = countrySelectElement.
         options[countrySelectElement.selectedIndex].value;
-    Helpers.post('/saveStreetView', {sv: [{country: countrySelection, region: region,
+    Helpers.postXHR('/saveStreetView', {sv: [{country: countrySelection, region: region,
       svData: [sv]}]}, (data: {message: string}) => {
         callback(data.message);
     });
