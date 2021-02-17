@@ -1,4 +1,4 @@
-import { Config } from '../config.js';
+import { Config } from '../config';
 export class AdminConfig extends Config {
   public readonly tabButtonTabClickMap: any = [
     {btnId: '#business-metrics-btn' ,tabId: '#business-metrics' },

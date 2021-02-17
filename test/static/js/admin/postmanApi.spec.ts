@@ -43,23 +43,25 @@ describe('PostmanApi', function () {
   });
   describe('runMonitor', function () {
     let monitor: string;
-    let getStub: sinon.SinonStub;
+    let postStub: sinon.SinonStub;
     let response: any;
     let expected: any;
     let run: () => Promise<any>;
     beforeEach(() =>{
       monitor = 'frontEnd';
       response = {
-        data: {
+        json: {
           run: {info: {status: 'success'}},
         },
-      };
-      expected = {
-        data: response.data,
+        ok: true,
         error: null,
       };
-      getStub = sandbox.stub(Helpers, 'post');
-      getStub.callsArgWith(2, response);
+      expected = {
+        data: response.json,
+        error: null,
+      };
+      postStub = sandbox.stub(Helpers, 'post');
+      postStub.returns(response);
       run = async () => {
         const api = new PostmanApi(new AdminConfig());
         return await api.runMonitor(monitor);
@@ -78,8 +80,8 @@ describe('PostmanApi', function () {
       data.should.deep.equal(expected);
     });
     it('should return a "no-data" object on no data', async () => {
-      response.data = {};
-      getStub.callsArgWith(2, response);
+      response.json = {};
+      postStub.returns(response);
       expected = {
         data: 'no-data',
         error: null
@@ -88,7 +90,6 @@ describe('PostmanApi', function () {
       data.should.deep.equal(expected);
     });
     it('should error on bad data', async () => {
-      expected = {data: {}, error: 'Postman returned a server error!'};
       monitor = 'badMonitor';
       const spy = sandbox.spy(PostmanApi.prototype, 'runMonitor');
       try {

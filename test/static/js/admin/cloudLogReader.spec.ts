@@ -34,14 +34,14 @@ describe('CloudLogReader', function () {
         pageSize: 50,
         pageToken: '',
       };
-      res = [
+      res = {json:[
         {severity: 'LOG', message: 'testLog', source: 'cloudfunctions/method1'},
         {severity: 'LOG', message: 'testLog', source: 'cloudfunctions/method2'},
         {severity: 'LOG', message: 'testLog', source: 'cloudfunctions/method3'},
         {severity: 'LOG', message: 'testLog', source: 'cloudfunctions/method4'},
         {severity: 'LOG', message: 'testLog', source: 'cloudfunctions/method5'},
-      ];
-      postStub.callsArgWith(2, res);
+      ], ok: true, error: null};
+      postStub.returns(res);
       formatStub = sandbox.stub(
         CloudLogReader.prototype,
         <any>'formatOptionsObject');
@@ -61,15 +61,15 @@ describe('CloudLogReader', function () {
     });
     it('should return a list of logs', async () => {
       const data = await run();
-      data.should.deep.equal({data: res, error: null});
+      data.should.deep.equal({data: res.json, error: null});
     });
     it('should return a no data object if no logs', async () => {
-      postStub.callsArgWith(2, []);
+      postStub.returns({json:[], ok: true, error: null});
       const data = await run();
       data.should.deep.equal({data: 'no-data', error: null});
     });
     it('should log and return an error on error from server', async () => {
-      postStub.callsArgWith(2, null);
+      postStub.returns({json: undefined, ok: false, error: {status: 400}});
       const data = await run();
       data.should.deep.equal({
         data: null,
@@ -91,17 +91,17 @@ describe('CloudLogReader', function () {
         pageSize:50,
         pageToken: '',
       };
-      res = [
+      res = {json: [
         {severity: 'ERROR', message: 'testLog', source: 'cloudfunctions/method1'},
         {severity: 'ERROR', message: 'testLog', source: 'cloudfunctions/method2'},
         {severity: 'ERROR', message: 'testLog', source: 'cloudfunctions/method3'},
         {severity: 'ERROR', message: 'testLog', source: 'cloudfunctions/method4'},
         {severity: 'ERROR', message: 'testLog', source: 'cloudfunctions/method5'},
-      ];
+      ], ok: true, error: null};
       formatStub =
         sandbox.stub(CloudLogReader.prototype, <any>'formatOptionsObject');
       formatStub.returns(options);
-      postStub.callsArgWith(2, res);
+      postStub.returns(res);
       run = async () => {
         const app = new CloudLogReader(new AdminConfig());
         return await app.getLatestErrors();
@@ -118,15 +118,15 @@ describe('CloudLogReader', function () {
     });
     it('should return errors received from logging api', async () => {
       const data = await run();
-      data.should.deep.equal({data: res, error: null});
+      data.should.deep.equal({data: res.json, error: null});
     });
     it('should return no data object if no logs received', async () => {
-      postStub.callsArgWith(2, []);
+      postStub.returns({json:[], ok: true, error: null});
       const data = await run();
       data.should.deep.equal({data: 'no-data', error: null});
     });
     it('should return and log an error if an error is received', async () => {
-      postStub.callsArgWith(2, null);
+      postStub.returns({json: undefined, ok: false, error: {status: 400}});
       const data = await run();
       data.should.deep.equal({
         data: null,

@@ -148,9 +148,9 @@ export abstract class Helpers {
     url = Helpers.formatQuery(url, options);
     const response = await fetch(url, {method: 'GET'}).catch((error) => {
       console.error(error);
-      return {json:{data: {}, error: error}};
+      return {json: {}, error: error, ok: false};
     });
-    return response.json;
+    return response;
   }
 
   public static async post(
@@ -169,9 +169,9 @@ export abstract class Helpers {
       body: JSON.stringify(options),
     }).catch((error) => {
       console.error(error);
-      return {json:{data: {}, status: error}};
+      return {json: {}, status: error, ok: false};
     });
-    return response.json;
+    return response;
   }
 
   private static formatQuery(url: string, options: any): string {

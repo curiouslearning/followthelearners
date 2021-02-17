@@ -35,11 +35,11 @@ export class CloudLogReader {
       const errorString = 'could not fetch data from CloudLogging API';
       console.error(errorString);
       return {data: null, error: errorString};
-    } else if (data.length === 0) {
+    } else if (data.json.length === 0) {
       console.log('no data!');
       return {data: 'no-data', error: null};
     } else {
-      return {data: data, error: null};
+      return {data: data.json, error: null};
     }
     return data;
   }
@@ -53,11 +53,11 @@ export class CloudLogReader {
       const errorString = 'could not fetch data from CloudLogging API'
       console.error (errorString);
       return {data: null, error: errorString};
-    } else if (data.length === 0) {
+    } else if (data.json.length === 0) {
       console.log('no data!');
       return {data: 'no-data', error: null};
     } else {
-      return {data: data, error: null};
+      return {data: data.json, error: null};
     }
   }
 

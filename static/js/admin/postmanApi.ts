@@ -24,11 +24,11 @@ export class PostmanApi {
       const errString = 'Postman returned a server error!';
       console.error(errString);
       return {data: {}, error: errString};
-    } else if(!response.run) {
+    } else if(!response.json.run) {
       return {data: 'no-data', error: null}
     } else {
       console.log(`response: ${response}`);
-      return {data: response.data, error: null};
+      return {data: response.json, error: null};
     }
     return response;
   }
