@@ -53,7 +53,7 @@ export class AdminConfig extends Config {
   ];
   
   public readonly gcloudResourceNames = [
-    'projects/follow-the-learners',
+    'projects/follow-the-learners/logs/cloudfunctions.googleapis.com%2Fcloud-functions"',
   ];
 
   public readonly gcloudEntriesURL =

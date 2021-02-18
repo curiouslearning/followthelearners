@@ -1,5 +1,6 @@
 import * as sinon from 'sinon';
 import * as proxyquire from 'proxyquire';
+import { Logging } from '@google-cloud/logging';
 import { Helpers } from '../../../../static/js/helpers';
 import { CloudLogReader, TimestampFormat } from
   '../../../../static/js/admin/cloudLogReader';
@@ -14,41 +15,48 @@ afterEach(() => {
 });
 
 describe('CloudLogReader', function () {
-  let postStub: sinon.SinonStub;
   beforeEach(() => {
-    postStub = sandbox.stub(Helpers, 'post');
   });
   afterEach(() => {
     sandbox.restore();
   });
-  describe('getLatestLogs', function() {
+  describe('getData', function() {
     let formatStub: sinon.SinonStub;
+    let logStub: sinon.SinonStub;
+    let getStub: sinon.SinonStub;
+    let resourceName ='projects/follow-the-learners';
+    let filter: string;
     let options: any;
     let res: any;
     let run: () => any;
     beforeEach(() => {
+      filter = '';
       options = {
-        resources: ['projects/follow-the-learners'],
-        filter: '',
+        resources: [resourceName],
+        filter: filter,
         orderBy: '',
         pageSize: 50,
         pageToken: '',
       };
-      res = {json:[
-        {severity: 'LOG', message: 'testLog', source: 'cloudfunctions/method1'},
-        {severity: 'LOG', message: 'testLog', source: 'cloudfunctions/method2'},
-        {severity: 'LOG', message: 'testLog', source: 'cloudfunctions/method3'},
-        {severity: 'LOG', message: 'testLog', source: 'cloudfunctions/method4'},
-        {severity: 'LOG', message: 'testLog', source: 'cloudfunctions/method5'},
-      ], ok: true, error: null};
-      postStub.returns(res);
+      res = [[
+        {metadata: {severity: 'LOG', source: 'cloudfunctions/method1'}, data: 'testLog'},
+        {metadata: {severity: 'LOG', source: 'cloudfunctions/method2'}, data: 'testLog'},
+        {metadata: {severity: 'LOG', source: 'cloudfunctions/method3'}, data: 'testLog'},
+        {metadata: {severity: 'LOG', source: 'cloudfunctions/method1'}, data: 'testLog'},
+        {metadata: {severity: 'LOG', source: 'cloudfunctions/method3'}, data: 'testLog'},
+      ], options];
       formatStub = sandbox.stub(
         CloudLogReader.prototype,
         <any>'formatOptionsObject');
       formatStub.returns(options);
+      getStub.returns(res);
+      logStub = sandbox.stub(Logging.prototype, 'log');
+      logStub.returns({
+        getEntries: getStub,
+      });
       run = async () => {
         const app = new CloudLogReader(new AdminConfig());
-        return await app.getLatestLogs();
+        return await app['getData'](resourceName, filter);
       };
     });
     afterEach(() => {
@@ -61,47 +69,65 @@ describe('CloudLogReader', function () {
     });
     it('should return a list of logs', async () => {
       const data = await run();
-      data.should.deep.equal({data: res.json, error: null});
+      data.should.deep.equal({data: res[0], error: null});
     });
     it('should return a no data object if no logs', async () => {
-      postStub.returns({json:[], ok: true, error: null});
+      getStub.returns([[], options]);
       const data = await run();
       data.should.deep.equal({data: 'no-data', error: null});
     });
     it('should log and return an error on error from server', async () => {
-      postStub.returns({json: undefined, ok: false, error: {status: 400}});
+      getStub.returns([null, options]);
       const data = await run();
       data.should.deep.equal({
         data: null,
         error: 'could not fetch data from CloudLogging API'
       });
-    }); });
-  describe('getLatestErrors', function() {
-    let formatStub: sinon.SinonStub;
-    let options: any;
+    });
+  });
+  describe('getLatestLogs', function () {
+    let getStub: sinon.SinonStub;
+    let resourceName: string;
     let cutoff: string;
+    let expectedFilter: string;
     let res: any;
     let run: () => any;
     beforeEach(() => {
-      let cutoff = '2020-01-15T15:01:23.0350z';
-      options = {
-        resources: ['projects/follow-the-learners'],
-        filter: `severity > = "ERROR" AND timestamp >= ${cutoff}`,
-        orderBy: '',
-        pageSize:50,
-        pageToken: '',
-      };
-      res = {json: [
-        {severity: 'ERROR', message: 'testLog', source: 'cloudfunctions/method1'},
-        {severity: 'ERROR', message: 'testLog', source: 'cloudfunctions/method2'},
-        {severity: 'ERROR', message: 'testLog', source: 'cloudfunctions/method3'},
-        {severity: 'ERROR', message: 'testLog', source: 'cloudfunctions/method4'},
-        {severity: 'ERROR', message: 'testLog', source: 'cloudfunctions/method5'},
-      ], ok: true, error: null};
-      formatStub =
-        sandbox.stub(CloudLogReader.prototype, <any>'formatOptionsObject');
-      formatStub.returns(options);
-      postStub.returns(res);
+      getStub = sandbox.stub(CloudLogReader.prototype, <any>'getData');
+      resourceName = 'projects/follow-the-learners';
+      cutoff = '2020-01-15T15:01:23.0350z';
+      expectedFilter = `timestamp >= ${cutoff}`;
+      run = async () => {
+        const app = new CloudLogReader(new AdminConfig());
+        return await app.getLatestLogs();
+      }
+    });
+    afterEach(() => {
+      sandbox.restore();
+    });
+
+    it('should call getLatestLogs', async() => {
+      const spy = sandbox.spy(CloudLogReader.prototype, 'getLatestLogs');
+      await run();
+      spy.should.have.been.called;
+    });
+    it('call get with good data', async () => {
+      const data = await run();
+      getStub.should.have.been.calledWith(resourceName, expectedFilter);
+    });
+  });
+  describe('getLatestErrors', function() {
+    let getStub: sinon.SinonStub;
+    let resourceName: string;
+    let cutoff: string;
+    let expectedFilter: string;
+    let res: any;
+    let run: () => any;
+    beforeEach(() => {
+      getStub = sandbox.stub(CloudLogReader.prototype, <any>'getData');
+      resourceName = 'projects/follow-the-learners';
+      cutoff = '2020-01-15T15:01:23.0350z';
+      expectedFilter = `severity > = "ERROR" AND timestamp >= ${cutoff}`;
       run = async () => {
         const app = new CloudLogReader(new AdminConfig());
         return await app.getLatestErrors();
@@ -116,22 +142,9 @@ describe('CloudLogReader', function () {
       await run();
       spy.should.have.been.called;
     });
-    it('should return errors received from logging api', async () => {
+    it('call get with good data', async () => {
       const data = await run();
-      data.should.deep.equal({data: res.json, error: null});
-    });
-    it('should return no data object if no logs received', async () => {
-      postStub.returns({json:[], ok: true, error: null});
-      const data = await run();
-      data.should.deep.equal({data: 'no-data', error: null});
-    });
-    it('should return and log an error if an error is received', async () => {
-      postStub.returns({json: undefined, ok: false, error: {status: 400}});
-      const data = await run();
-      data.should.deep.equal({
-        data: null,
-        error: 'could not fetch data from CloudLogging API',
-      });
+      getStub.should.have.been.calledWith(resourceName, expectedFilter);
     });
   });
   describe('getCutoff', function() {

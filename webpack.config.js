@@ -23,4 +23,5 @@ module.exports = {
     path: path.resolve(__dirname, 'static/js/public'),
   },
   mode: 'development',
+  externals: [/@google-cloud/],
 };

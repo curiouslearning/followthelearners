@@ -1,5 +1,6 @@
 import { Helpers } from '../helpers';
 import { AdminConfig } from './adminConfig';
+import { Logging } from '@google-cloud/logging';
 
 interface CloudLogOptions {
   resources: Array<string>,
@@ -23,11 +24,13 @@ export class CloudLogReader {
   private resourceNames: Array<string>;
   private nextPageToken: string;
   private entriesURL: string;
+  private logReader: Logging;
   
   constructor(config: AdminConfig) {
     this.resourceNames = config.gcloudResourceNames;
     this.entriesURL = config.gcloudEntriesURL;
     this.nextPageToken = '';
+    this.logReader = new Logging();
     this.init();
   }
 
@@ -35,37 +38,45 @@ export class CloudLogReader {
 
   }
 
-  public async getLatestLogs(): Promise<any> {
-    const options = this.formatOptionsObject(this.resourceNames);
-    const data = await Helpers.post(this.entriesURL, options);
-    if (!data.ok || data.error) {
-      const errorString = 'could not fetch data from CloudLogging API';
-      console.error(errorString);
-      return {data: null, error: errorString};
-    } else if (data.json.length === 0) {
-      console.log('no data!');
-      return {data: 'no-data', error: null};
-    } else {
-      return {data: data.json, error: null};
-    }
-    return data;
+  public async listAllLogs(): Promise<Array<string>>{
+    const [logs] = await this.logReader.getLogs();
+    let logNames: Array<string> = [];
+    console.log('Logs: ');
+    logs.forEach((log) => {
+      console.log(`\t${log.name}`);
+      logNames.push(log.name);
+    });
+    return logNames;
   }
 
-  public async getLatestErrors(): Promise<{data: any, error: string | null}> {
+  public async getLatestLogs(): Promise<{data: any|null, error: string|null}> {
+    const cutoff = this.getCutoff(TimestampFormat.RSC, 1);
+    const filter = `timestamp >= ${cutoff}`;
+    return await this.getData(this.resourceNames[0], filter);
+  }
+
+  public async getLatestErrors(): Promise<{data:any|null, error:string|null}> {
     const cutoff = this.getCutoff(TimestampFormat.RSC, 1);
     const filter = `severity >= "ERROR" AND timestamp >= ${cutoff}`;
+    return await this.getData(this.resourceNames[0], filter);
+  }
+
+  private async getData(
+    resourceName: string,
+    filter: string
+  ): Promise<{data: any | null, error: string | null}> {
     const options = this.formatOptionsObject(this.resourceNames, filter);
-    const data = await Helpers.post(this.entriesURL, options);
-    if (!data.ok || data.error) {
+    const log = await this.logReader.log(resourceName);
+    const entries = await log.getEntries({filter: filter});
+    if (!entries[0]) {
       const errorString = 'could not fetch data from CloudLogging API'
-      console.error (errorString);
+      console.error(errorString);
       return {data: null, error: errorString};
-    } else if (data.json.length === 0) {
+    } else if (entries[0].length === 0) {
       console.log('no data!');
       return {data: 'no-data', error: null};
-    } else {
-      return {data: data.json, error: null};
     }
+    return {data: entries[0], error: null};
   }
 
   private getCutoff(
