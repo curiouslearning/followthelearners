@@ -11,7 +11,7 @@ export class AdminStoplightChart extends StoplightChart {
   }
   public init(): void {
     super.init();
-    this.updateStoplightData();
+    // this.updateStoplightData();
   }
   public activateDeepDive(service: string) {
     super.activateDeepDive(service);

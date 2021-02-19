@@ -12,6 +12,6 @@ afterEach((): void =>{
 });
 
 describe('admin', function(): void {
-  const test = new AdminApp();
+  // const test = new AdminApp();
 
 });

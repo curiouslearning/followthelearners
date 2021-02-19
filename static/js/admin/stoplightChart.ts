@@ -31,7 +31,7 @@ export class StoplightChart {
         Helpers.getElement(`#${this.stoplightRows[row]}-row`)as HTMLElement;
       rowElem.addEventListener(
         'click', () => {
-          this.activateDeepDive(row);
+          this.activateDeepDive(this.stoplightRows[row]);
         });
     }
   }

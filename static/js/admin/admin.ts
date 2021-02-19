@@ -33,6 +33,7 @@ export class AdminApp {
   }
 
   init(): void {
+    this.stoplightChart.init();
     if (this.tabSelector) {
       this.tabSelector.addEventListener('preTabToggle', (tabId) => {
         console.log(`switching to ${tabId} from ${this.activeButtonId}`);
@@ -46,11 +47,12 @@ export class AdminApp {
         }
         // reload iFrames to prevent sizing issues
         // if frame was loaded on inactive tag
+        console.log(`tabId is ${tabId}`);
         switch (tabId) {
-          case 'business-metrics-btn':
+          case '#business-metrics-btn':
             this.reloadIFrames(this.businessIframes);
             break;
-          case 'dashboard-metrics-btn':
+          case '#dashboard-metrics-btn':
             this.reloadIFrames(this.dashIframes);
             break;
         }
@@ -67,8 +69,10 @@ export class AdminApp {
         this.dropdown!.classList.remove(this.config.activeClass);
       });
     }
-    this.streetViewController.init();
-    this.stoplightChart.init();
+  }
+
+  public initMaps(): void {
+    // this.streetViewController.init();
   }
 
   public reloadIFrames(frameList: string[]): void {
@@ -83,14 +87,15 @@ let googleMapsLoaded: boolean = false;
 
 function initGoogleMaps(): void {
   if (app !== null) {
-    app.init();
+    app.initMaps();
   }
   googleMapsLoaded = true;
 }
 (window as any).initGoogleMaps = initGoogleMaps;
 window.onload = (): void =>{
   let app = new AdminApp();
+  app.init();
   if (googleMapsLoaded) {
-    app.init();
+    app.initMaps();
   }
 };

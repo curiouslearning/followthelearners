@@ -72,23 +72,32 @@ mixin server-console(data)
 mixin firestore-console(data)
   .tile.is-ancestor
     .tile.is-2
-    .tile.is-8
+    .tile.is-8.is-vertical
       .tile
         .tile.is-parent.is-vertical
-          .tile.is-child.box
-            +consoleCard("Cumulative Reads","133", "k")
-          .tile.is-child.box
-            +consoleCard("Cumulative Writes","0", "")
-          .tile.is-child.box
-            +consoleCard("Cumulative Deletes","0", "")
+          .tile-is-child.box
+            .is-flex(style="justify-content: center;" )
+              a.button(href="https://console.firebase.google.com/u/0/project/follow-the-learners/firestore/usage/last-24h/reads" target = "_blank")
+                span Open Firestore Usage Panel 
+                span.is-icon.is-small
+                  i.fas.fa-external-link-alt(style="margin-left: .75rem")
       .tile
-        .tile.is-parent.is-vertical
-          .tile.is-child.box
-            +consoleCard("Peak Reads (1 minute)","75", "k")
-          .tile.is-child.box
-            +consoleCard("Peak Writes (1 minute)","0", "")
-          .tile.is-child.box
-            +consoleCard("Peak Deletes (1 minute)","0", "")
+        .tile
+          .tile.is-parent.is-vertical
+            .tile.is-child.box
+              +consoleCard("Cumulative Reads","133", "k")
+            .tile.is-child.box
+              +consoleCard("Cumulative Writes","0", "")
+            .tile.is-child.box
+              +consoleCard("Cumulative Deletes","0", "")
+        .tile
+          .tile.is-parent.is-vertical
+            .tile.is-child.box
+              +consoleCard("Peak Reads (1 minute)","75", "k")
+            .tile.is-child.box
+              +consoleCard("Peak Writes (1 minute)","0", "")
+            .tile.is-child.box
+              +consoleCard("Peak Deletes (1 minute)","0", "")
 mixin stripe-console(data)
   .tile.is-ancestor
     .tile.is-parent

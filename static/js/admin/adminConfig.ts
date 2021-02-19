@@ -32,14 +32,14 @@ export class AdminConfig extends Config {
     'postman',
   ];
   public readonly businessIframes: string[] = [
-    'biz-ingestion-iframe',
-    'biz-donor-iframe',
-    'biz-donation-iframe',
+    '#biz-ingestion-iframe',
+    '#biz-donor-iframe',
+    '#biz-donation-iframe',
   ];
   public readonly dashIframes: string[] = [
-    'dash-ingestion-iframe',
-    'dash-donation-iframe',
-    'dash-assignment-iframe',
+    '#dash-ingestion-iframe',
+    '#dash-donation-iframe',
+    '#dash-assignment-iframe',
   ];
 
   /* Postman Config */
