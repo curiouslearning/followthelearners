@@ -12,6 +12,9 @@ export enum TimestampFormat {
   'RSC',
   'ISO',
 }
+
+// a class for interfacing with the Google Cloud Logging API to
+// retrieve data on Cloud Functions health
 export class CloudLogReader {
   private DAYINMILLIS = 86400000;
   private resourceNames: Array<string>;

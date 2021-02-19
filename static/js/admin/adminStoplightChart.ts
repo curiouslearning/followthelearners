@@ -16,6 +16,7 @@ export class AdminStoplightChart extends StoplightChart {
   public activateDeepDive(service: string) {
     super.activateDeepDive(service);
   }
+  // Query services for latest data and update stoplight icons accordingly
   public async updateStoplightData() {
     const postmanData = await this.getPostmanData();
     this.updateStoplightCell('postman', postmanData.status);

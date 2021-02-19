@@ -7,6 +7,8 @@ interface Cell {
   r: number;
   c: number;
 }
+// base class for creating a stoplight chart of service/project health, with
+// support for in-depth modal breakdowns of underlying data
 export class StoplightChart {
   private deepDiveModalId: string;
   private deepDiveTitleId: string;
@@ -61,6 +63,8 @@ export class StoplightChart {
     }
   }
 
+  // change the icon in the table according to the data returned from the
+  // queried service or project component
   protected updateStoplightCell(cell: string, status: string): void {
     console.log('nyello');
     const cls = [

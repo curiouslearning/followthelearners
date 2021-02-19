@@ -2,6 +2,8 @@ const PostmanKey = require( '../../../keys/postman.json');
 import { Helpers } from '../helpers';
 import { AdminConfig } from './adminConfig';
 
+// Interfaces with Postman to programatically run collections and monitors that
+// watch FtL front end health
 export class PostmanApi {
   private config: AdminConfig;
   private monitorIds: Array<{name: string, id: string}>;
