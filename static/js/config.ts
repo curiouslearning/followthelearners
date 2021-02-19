@@ -16,6 +16,9 @@ export class Config {
   public readonly mailchimpHamburgerButtonId: string = '#mailchimp-hamburger-button';
   public readonly underTitleSocialIconsId: string = '#under-title-social-icons';
   public readonly hamburgerMenuSocialIconsId: string = '#hamburger-social-icons';
+  public readonly navbarScrollTopValue: number = 20;
+  public readonly navbarMaxHeightLowValue : string = '14vh';
+  public readonly navbarMaxHeightHighValue : string = '17vh';
 
   /* Hamburger Menu */
   public readonly hamburgerMenuClass: string = '.navbar-burger';
