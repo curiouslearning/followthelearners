@@ -29,4 +29,6 @@ jobs:
     - run: mkdir ./functions/keys
     - run: touch ./functions/keys/nodemailerConfig.json
     - run: echo "{}" >> ./functions/keys/nodemailerConfig.json
+    - run: touch ./functions/keys/postman.json
+    - run: echo "{}" >> ./functions/keys/postman.json
     - run: npm test
