@@ -2,15 +2,19 @@ const PostmanKey = require( '../../../keys/postman.json');
 import { Helpers } from '../helpers';
 import { AdminConfig } from './adminConfig';
 
-// Interfaces with Postman to programatically run collections and monitors that
-// watch FtL front end health
+/**
+* Interfaces with Postman to programatically run collections and monitors that
+* watch FtL front end health
+*/
 export class PostmanApi {
   private config: AdminConfig;
   private monitorIds: Array<{name: string, id: string}>;
+  
   constructor(config: AdminConfig) {
     this.config = config;
     this.monitorIds = config.monitorIds;
   }
+
   public async runMonitor(monitor: string): Promise<any> {
     let id = this.getMonitorId(monitor);
     if (id === '')  {

@@ -1,4 +1,9 @@
 import { Config } from '../config';
+
+/**
+* Extension of the Config class to overload some variables and add
+* new config options for the Admin Screen
+*/
 export class AdminConfig extends Config {
   public readonly tabButtonTabClickMap: any = [
     {btnId: '#business-metrics-btn' ,tabId: '#business-metrics' },
@@ -46,6 +51,7 @@ export class AdminConfig extends Config {
   public readonly monitorIds: Array<{name: string, id: string}> = [
     {name: 'frontEnd', id: '13484422-1eb70623-dd83-4ea0-8b1b-6eec4e787249'},
   ];
+  
   public readonly gcloudResourceNames = [
     'projects/follow-the-learners',
   ];

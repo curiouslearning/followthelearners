@@ -3,16 +3,22 @@ import { AdminConfig } from './adminConfig';
 import { PostmanApi } from './postmanApi';
 import { CloudLogReader } from './cloudLogReader';
 
+/**
+* A more concrete implementation of the StoplightChart class that
+* controls functionality for the Admin Screen's Status page
+*/
 export class AdminStoplightChart extends StoplightChart {
   private config: AdminConfig; //to pass to data handling classes
   constructor(config: AdminConfig) {
     super(config);
     this.config = config;
   }
+
   public init(): void {
     super.init();
     // this.updateStoplightData();
   }
+
   public activateDeepDive(service: string) {
     super.activateDeepDive(service);
   }

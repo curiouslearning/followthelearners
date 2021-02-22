@@ -8,18 +8,22 @@ interface CloudLogOptions {
   pageSize: number,
   pageToken: string,
 }
+
 export enum TimestampFormat {
   'RSC',
   'ISO',
 }
 
-// a class for interfacing with the Google Cloud Logging API to
-// retrieve data on Cloud Functions health
+/**
+* A class for interfacing with the Google Cloud Logging API to
+* retrieve data on Cloud Functions health
+*/
 export class CloudLogReader {
   private DAYINMILLIS = 86400000;
   private resourceNames: Array<string>;
   private nextPageToken: string;
   private entriesURL: string;
+  
   constructor(config: AdminConfig) {
     this.resourceNames = config.gcloudResourceNames;
     this.entriesURL = config.gcloudEntriesURL;

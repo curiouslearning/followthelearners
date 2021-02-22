@@ -6,7 +6,9 @@ import { Modal } from '../modal';
 import { TabSelector } from '../tabSelector';
 import { AdminStoplightChart }  from './adminStoplightChart';
 
-
+/**
+* A top level controller-of-controllers for the Admin Screen
+*/
 export class AdminApp {
   private config: AdminConfig;
   private tabSelector: TabSelector;
@@ -58,7 +60,7 @@ export class AdminApp {
         }
       });
     }
-        // gets data and update stoplight chart
+    // gets data and updates stoplight chart
     if (this.dropdown !== null) {
       this.dropdown!.addEventListener('click', (event: Event) => {
         event.stopPropagation();
@@ -82,6 +84,7 @@ export class AdminApp {
     });
   }
 }
+
 let app: AdminApp | null = null;
 let googleMapsLoaded: boolean = false;
 
@@ -91,7 +94,9 @@ function initGoogleMaps(): void {
   }
   googleMapsLoaded = true;
 }
+
 (window as any).initGoogleMaps = initGoogleMaps;
+
 window.onload = (): void =>{
   let app = new AdminApp();
   app.init();

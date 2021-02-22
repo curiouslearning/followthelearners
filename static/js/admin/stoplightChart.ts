@@ -2,13 +2,15 @@ import { Helpers } from '../helpers';
 import { AdminConfig } from './adminConfig';
 import { Modal } from '../modal';
 
-
 interface Cell {
   r: number;
   c: number;
 }
-// base class for creating a stoplight chart of service/project health, with
-// support for in-depth modal breakdowns of underlying data
+
+/**
+* base class for creating a stoplight chart of service/project health, with
+* support for in-depth modal breakdowns of underlying data
+*/
 export class StoplightChart {
   private deepDiveModalId: string;
   private deepDiveTitleId: string;
@@ -37,10 +39,11 @@ export class StoplightChart {
         });
     }
   }
-/**
- * Configure the Deep Dive Modal based on which service was selected
- * @param {String} service The service selected by the user
- */
+
+  /**
+  * Configure the Deep Dive Modal based on which service was selected
+  * @param {String} service The service selected by the user
+  */
   public activateDeepDive (service: string): void {
     const deepDiveModal = <HTMLElement>Helpers.getElement(this.deepDiveModalId);
     if (deepDiveModal) {
@@ -63,8 +66,10 @@ export class StoplightChart {
     }
   }
 
-  // change the icon in the table according to the data returned from the
-  // queried service or project component
+  /**
+  * change the icon in the table according to the data returned from the
+  * queried service or project component
+  */
   protected updateStoplightCell(cell: string, status: string): void {
     console.log('nyello');
     const cls = [

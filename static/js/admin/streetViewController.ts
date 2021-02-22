@@ -153,22 +153,22 @@ export class StreetViewController {
     });
   }
 
-private showToast(type: ToastType, message: string): void {
-  makeToast({
-    message: '<h1>' + message + '</h1>',
-    type: type,
-    dismissible: true,
-    closeOnClick: true,
-    animate: {in: 'fadeIn', out: 'fadeOut'},
-  });
+  private showToast(type: ToastType, message: string): void {
+    makeToast({
+      message: '<h1>' + message + '</h1>',
+      type: type,
+      dismissible: true,
+      closeOnClick: true,
+      animate: {in: 'fadeIn', out: 'fadeOut'},
+    });
 }
 
-/**
+ /**
  * Requests the server to generate random locations, then sends requests to the
  * Street Views service to get random street view panoramas close to those
  * locations and then displays a list of generated street views.
  */
- public generateStreetViews(callback: (res: {error: string |null})=>void) {
+  public generateStreetViews(callback: (res: {error: string |null})=>void) {
     const countrySelectElement = <HTMLSelectElement> Helpers.getElement(
       this.countrySelectId
     );
@@ -301,12 +301,12 @@ private showToast(type: ToastType, message: string): void {
                   this.pinMap!.fitBounds(bounds);
                   this.pinMap!.panToBounds(bounds);
                 }
-              });
-            }
+            });
           }
-          callback({error: null});
         }
-    }
+        callback({error: null});
+      }
+  }
 
   public toggleMap() {
     const mapView: any = Helpers.getElement(this.mapViewParentId);
@@ -349,6 +349,7 @@ private showToast(type: ToastType, message: string): void {
         this.addCountriesToList(data, status, countrySelectElement, callback)
     });
   }
+
   private addCountriesToList(this: StreetViewController,
     data: any | null,
     status: any,
@@ -371,6 +372,7 @@ private showToast(type: ToastType, message: string): void {
         callback({error: null});
       }
   }
+
   public loadCountryRegions(callback: (res:{error: string|null})=>void): void {
     const countrySelectElement=
         <HTMLSelectElement>Helpers.getElement(this.countrySelectId);
@@ -390,7 +392,7 @@ private showToast(type: ToastType, message: string): void {
         (data: any | null) => {
           this.addAllCountryRegionsToList(data, status, callback);
       });
-    }
+  }
 
   private addAllCountryRegionsToList(this: StreetViewController,
     data: any | null,
