@@ -1,4 +1,3 @@
-import { } from "googlemaps";
 import { Config } from "./config";
 import { Helpers } from "./helpers";
 import { MapDisplayController } from "./mapDisplayController";
@@ -65,7 +64,7 @@ export class AllLearnersDisplayController extends MapDisplayController {
       return;
     }
 
-    Helpers.get(url, (data: any | null)=> {
+    Helpers.getXHR(url, {}, (data: any | null)=> {
       if (!data) {
         callback(false);
       } else {
@@ -88,12 +87,12 @@ export class AllLearnersDisplayController extends MapDisplayController {
       this.dntCountParent?.classList.remove(this.hiddenClass);
       let countryLearnerCount = 0;
 
-      let countryObj: any = this.learnersData.campaignData.find((loc: any) => { 
+      let countryObj: any = this.learnersData.campaignData.find((loc: any) => {
         return loc.country === this.currentCountrySelection; });
-      Helpers.createCountUpTextInElement(this.learnerCountElement!, 
+      Helpers.createCountUpTextInElement(this.learnerCountElement!,
         countryObj.learnerCount);
-      
-      let noRegion = countryObj.regions.find((r: any) => { 
+
+      let noRegion = countryObj.regions.find((r: any) => {
         return r.region === "no-region"; });
 
       if (noRegion && noRegion.hasOwnProperty('learnerCount')) {
@@ -114,15 +113,15 @@ export class AllLearnersDisplayController extends MapDisplayController {
   protected initializeCountrySelect(): void {
     if (this.countrySelectElement && this.countrySelectElement.options.length === 0) {
       this.countrySelectElement.innerHTML = '';
-      this.countrySelectElement.options[0] = new Option('All Countries', 
+      this.countrySelectElement.options[0] = new Option('All Countries',
         this.allCountriesValue);
       // console.log(this.learnersData);
       for (const key in this.learnersData.campaignData) {
         const country = this.learnersData.campaignData[key].country;
         if (country !== 'no-country') {
           this.countrySelectElement.options.add(new Option(
-            country + ' - ' + 
-            this.learnersData.campaignData[key].learnerCount, 
+            country + ' - ' +
+            this.learnersData.campaignData[key].learnerCount,
             country)
           );
         }
@@ -154,7 +153,7 @@ export class AllLearnersDisplayController extends MapDisplayController {
           return c.country === this.currentCountrySelection;
         });
 
-      const campaignData = this.learnersData.campaignData.find((loc: any) => 
+      const campaignData = this.learnersData.campaignData.find((loc: any) =>
         { return loc.country === this.currentCountrySelection});
 
       let bounds = new google.maps.LatLngBounds();
@@ -169,7 +168,7 @@ export class AllLearnersDisplayController extends MapDisplayController {
             continue;
           }
 
-          
+
           let campaignRegion = campaignData.regions.find((reg: any) => {
             return reg.region === region.region;
           })
@@ -195,7 +194,7 @@ export class AllLearnersDisplayController extends MapDisplayController {
   }
 
   /**
-   * Override for the get icon options 
+   * Override for the get icon options
    * @param learnerCount Learner count
    */
   public getIconOptions(learnerCount: number) {

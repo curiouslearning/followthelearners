@@ -1,5 +1,6 @@
 html
   include mixins/_campaign
+  include mixins/_adminMixins
   head
     meta(charset='UTF-8')
     //- meta(name="viewport" content='width=device-width, initial-scale=1.0')
@@ -17,55 +18,223 @@ html
     h1.title.has-text-centered FTL Admin
     section()
       .tabs.is-boxed
-        ul
-          li.is-active
-            a
+        ul#tab-buttons
+          li#business-metrics-btn.is-active
+            a.button(onclick='tabSelector.ToggleTab("business-metrics")')
               span.icon.is-small
-                i.fas.fa-street-view
-              span Street Views
-          li
-            a
+                i.fas.fa-chart-line
+              span Overview
+          li#dashboard-metrics-btn
+            a.button(onclick='tabSelector.ToggleTab("dashboard-metrics")')
               span.icon.is-small
                 i.fas.fa-tachometer-alt
               span Dashboard Metrics
-          li
-            a
+          li#status-btn
+            a.button(onclick='tabSelector.ToggleTab("status")')
               span.icon.is-small
                 i.fas.fa-cogs
-              span Logs
-    section#street-views
-      .columns
-        .column.is-two-fifths
-          div#pano(style='height: 600px;')
-        .column
-          div#side-panel(style='margin-top: 1rem')
-            .select.is-large
-              select#countrySelect(style='border: none; width: auto; -webkit-appearance: none; -moz-appearance: none; appearance:none;' name='campaignSelection')
-                option Country
-            button.button.is-dark.is-large.has-tooltip-multiline(onclick='OnLoadCountriesClick()' style='margin-left: 1rem' data-tooltip="1. Loading country names in the dropdown should be the first thing to do.") Load Countries
-            button.button.is-dark.is-large.has-tooltip-multiline(onclick='OnLoadCountryRegionsClick()' data-tooltip="2. Load regions from the database after choosing the country from the dropdown." style='margin-left: 1rem') Load Regions From DB
-            .columns(style='margin: 0.5rem')
-              p.column.is-one-fifth Radius in Miles
-              p.column Street View Count to Generate
-            .columns
-              span.column
-                input.input.is-medium#inputRadius(type='number' step="0.1" placeholder='Radius in Miles (1.5)')
-              span.column
-                input.input.is-medium#inputCount(type='number' placeholder='Street Views Count')
-              span.column.has-text-centered
-                button.button.is-dark.is-medium(onclick='OnGenerateStreetViewsClick()') Generate Street Views
-              span.column.has-text-centered
-                button.button.is-dark.is-medium(onclick='OnToggleMapClick()') Toggle Map
-              span.column.has-text-centered
-                button.button.is-dark.is-medium(onclick='OnSaveAllStreetViewsClick()') Save All Street Views
-            section#regions(style='margin-top: 1rem')
-      .columns#map-view-parent(:hidden style="position: fixed; top: 7.1rem; z-index: 100; width: 100%; pointer-events: none; display: block")
-        .column.is-two-fifths(style='padding: 0; pointer-events:all;')
-          #map-pins(style="width: 100%; height: 600px;")
-        .column(style='pointer-events: none;')
-      
-
-    script(src='https://unpkg.com/bulma-toast')
-    script(src='/static/js/admin.js')
-    script(src='https://maps.googleapis.com/maps/api/js?key=AIzaSyDEl20cTMsc72W_TasuK5PlWYIgMrzyuAU&callback=initializeMaps')
+              span Status
+          li#street-views-btn
+            a.button(onclick='tabSelector.ToggleTab("street-views")')
+              span.icon.is-small
+                i.fas.fa-street-view
+              span Street Views
+          li#campaigns-btn
+            a.button(onclick='tabSelector.ToggleTab("campaigns")')
+              span.icon.is-small
+                i.fas.fa-globe
+              span Campaigns
+          li#users-btn
+            a.button(onclick='tabSelector.ToggleTab("users")')
+              span.icon.is-small
+                i.fas.fa-users
+              span Users
+    sections#tabs-parent 
+      .section#business-metrics
+        .columns
+          .column.is-one-fifth
+          .column
+            h2.title(style="margin-right: 1rem; margin-top: 1rem;") Learner Ingestion
+            iframe#biz-ingestion-iframe(width="1000" height="800" src="https://datastudio.google.com/embed/reporting/1653e525-8da5-4722-b555-06031e61f6f1/page/pAuxB" frameborder="0" style="border:0" allowfullscreen)
+            h2.title(style="margin-right: 1rem; margin-top: 1rem;") Donors Acquired
+            iframe#biz-donor-iframe(width="1000" height="800" src="https://datastudio.google.com/embed/reporting/8c3b974d-296e-4b70-8257-7a6b7844143d/page/x5txB" frameborder="0" style="border:0" allowfullscreen)
+            h2.title(style="margin-right: 1rem; margin-top: 1rem;") Donations by Amount
+            iframe#biz-donation-iframe(width="1000" height="800" src="https://datastudio.google.com/embed/reporting/ce94e595-e135-47d6-aad1-721d492f3adc/page/5MtxB" frameborder="0" style="border:0" allowfullscreen)
+      .section#dashboard-metrics.is-hidden
+        .columns
+          .column.is-one-fifth
+          .column
+            iframe#dash-ingestion-iframe(width="1000" height="800" src="https://datastudio.google.com/embed/reporting/7db6d407-ef59-45e7-a73a-6e64503131c1/page/zKzyB" frameborder="0" style="border:0" allowfullscreen)
+            iframe#dash-donation-iframe(width="1000" height="800" src="https://datastudio.google.com/embed/reporting/3d33bcaf-bedc-468d-9c80-f301c2bb656a/page/iA0yB" frameborder="0" style="border:0" allowfullscreen)
+            iframe#dash-assignment-iframe(width="1000" height="800" src="https://datastudio.google.com/embed/reporting/9defc2a0-2817-446d-b0a7-6edde81f66d6/page/nzEzB" frameborder="0" style="border:0" allowfullscreen)
+      .section#status.is-hidden
+        .columns
+          .column.is-one-fifth
+          .column
+            h1.title(style="margin-right: 1rem;") Follow the Learners: Status
+            table.table.is-bordered.is-striped.is-narrow.is-hoverable.is-fullwidth(style="alignment: center; height: 400; width: 1200;")
+              thead
+                tr
+                  th Service
+                  th Status
+              tfoot
+                tr
+                  th
+                    span.icon-text(style="padding-left: 200;")
+                      span.icon.is-small
+                        i.fas.fa-check
+                      span(style="padding-right: 100;") - No Issues
+                      span.icon.is-small
+                        i.fas.fa-exclamation-triangle 
+                      span(style="padding-right: 100;") - Errors Reported
+                      span.icon.is-small
+                        i.fas.fa-exclamation-circle
+                      span(style="padding-right: 100;") - Service Interruption
+              tbody
+                tr
+                  td 
+                    p
+                      span#cloud-row( style="vertical-align: center; text-align: center; font-weight: bold") Cloud Functions
+                    p
+                      span The endpoints and data change events that maintain the Follow the Learners database
+                  td 
+                    span.icon.is-small
+                      i#cloud-icon.fas
+                tr
+                  td 
+                    p
+                      span#postman-row(style="vertical-align: center; text-align: center; font-weight: bold") Postman
+                    p
+                      span Integration testing on key user flows, UI elements and public endpoints
+                  td
+                    span.icon.is-small
+                      i#postman-icon.fas
+                tr
+                  td 
+                    p
+                      span#stripe-row(style="vertical-align: center; text-align: center; font-weight: bold") Stripe
+                    p
+                      span donation processing metrics
+                  td
+                    span.icon.is-small
+                      i#stripe-row.fas.fa-exclamation-triangle
+                tr
+                  td 
+                    p
+                      span#firestore-row(style="vertical-align: center; text-align: center; font-weight: bold") Firestore
+                    p
+                      span daily read, write, and delete counts to the Follow the Learners database
+                  td
+                    span.icon.is-small
+                      i#firestore-icon.fas.fa-check
+                tr
+                  td 
+                    p
+                      span#server-row(style="vertical-align: center; text-align: center; font-weight: bold") Server
+                    p
+                      span logs from our Amazon EC-2 instance
+                  td 
+                    span.icon.is-small
+                      i#server-icon.fas.fa-exclamation-circle
+                tr
+                  td 
+                    p
+                      span#cronjob-row(style="vertical-align: center; text-align: center; font-weight: bold") Cronjobs
+                    p
+                      span logs from our learner ingestion and assignment, and metric calculation scripts
+                  td
+                    span.icon.is-small
+                      i#cronjob-icon.fas.fa-check
+        .modal#deep-dive-modal
+          .modal-background(onclick="document.getElementById('deep-dive-modal').classList.remove('is-active');")
+          .modal-card(style="width: 1000")
+            header.modal-card-head(style='border: none;')
+              p#deep-dive-header-text.modal-card-title.has-text-grey-dark.has-text-centered Deep Dive:
+              button.delete(aria-label='close' onclick="document.getElementById('deep-dive-modal').classList.remove('is-active');")
+            .modal-card-body
+              .section#cloud-console
+                +cloud-console()
+              .section#server-console.is-hidden
+                +server-console()
+              .section#firestore-console.is-hidden
+                +firestore-console()
+              .section#stripe-console.is-hidden
+                +stripe-console()
+              .section#cronjob-console.is-hidden
+                +cronjob-console()
+              .section#postman-console.is-hidden
+                +postman-console()
+      .section#street-views.is-hidden
+        .columns
+          .column.is-two-fifths
+            div#pano(style='height: 600px;')
+          .column
+            div#side-panel(style='margin-top: 1rem')
+              .select.is-large
+                select#countrySelect(style='border: none; width: auto; -webkit-appearance: none; -moz-appearance: none; appearance:none;' name='campaignSelection')
+                  option Country
+              button#load-countries.button.is-dark.is-large.has-tooltip-multiline(style='margin-left: 1rem' data-tooltip="1. Loading country names in the dropdown should be the first thing to do.") Load Countries
+              button#load-regions.button.is-dark.is-large.has-tooltip-multiline(data-tooltip="2. Load regions from the database after choosing the country from the dropdown." style='margin-left: 1rem') Load Regions From DB
+              .columns(style='margin: 0.5rem')
+                p.column.is-one-fifth Radius in Miles
+                p.column Street View Count to Generate
+              .columns
+                span.column
+                  input.input.is-medium#inputRadius(type='number' step="0.1" placeholder='Radius in Miles (1.5)')
+                span.column
+                  input.input.is-medium#inputCount(type='number' placeholder='Street Views Count')
+                span.column.has-text-centered
+                  button#gen-street-views.button.is-dark.is-medium Generate Street Views
+                span.column.has-text-centered
+                  button#toggle-map.button.is-dark.is-medium Toggle Map
+                span.column.has-text-centered
+                  button#save-street-views.button.is-dark.is-medium Save All Street Views
+              section#regions(style='margin-top: 1rem')
+        .columns#map-view-parent(:hidden style="position: fixed; top: 7.1rem; z-index: 100; width: 100%; pointer-events: none; display: block")
+          .column.is-two-fifths(style='padding: 0; pointer-events:all;')
+            #map-pins(style="width: 100%; height: 600px;")
+          .column(style='pointer-events: none;')
+      .section#campaigns.is-hidden
+        .columns
+          .column.is-two-fifths
+            div(style='height: 200px; width: 200px; position: relative; border-style: solid;')
+              ul#campaign-list(style='height:200px; width: 200px;')
+                li Kenya
+                li India
+                li South Africa
+                li All Countries
+              button.button.is-dark.has-tooltip-multiline(onclick="document.getElementById('new-campaign-form').classList.remove('is-hidden')" style='margin-left: 1rem; position: absolute; left: 150' data-tooltip="Create New Campaign") +
+          .column.is-two-fifths
+            div#new-campaign-form.is-hidden(style="position: relative; height:400px; width: 300px; border-style: solid;")
+              ul(style="height: 400px; width: 300px;")
+                li ID
+                li country
+                li cost per learner
+                li start date
+                li end date
+                li summary
+                li add a photo
+              button.button#campaign-submit.is-dark.has-tooltipe-multiline(onclick="document.getElementById('campaign-submit').classList.remove('is-dark')" style= "position: absolute; top: 350px; left: 215px" data-tooltip="Add New User to System") Submit
+      .section#users.is-hidden
+        .columns
+          .column.is-two-fifths
+            div(style='height: 200px; width: 200px; position: relative; border-style: solid;')
+              ul#user-list(style='height:200px; width: 200px;')
+                li user1
+                li user2
+                li user3
+                li user4
+              button.button.is-dark.has-tooltip-multiline(onclick="document.getElementById('new-user-form').classList.remove('is-hidden')" style='margin-left: 1rem; position: absolute; left: 150' data-tooltip="Create New Donor Profile") +
+          .column.is-two-fifths
+            div#new-user-form.is-hidden(style="position: relative; height:400px; width: 300px; border-style: solid;")
+              ul(style="height: 400px; width: 300px;")
+                li name
+                li email
+                li amount
+              button.button#user-submit.is-dark.has-tooltipe-multiline(onclick="document.getElementById('user-submit').classList.remove('is-dark')" style= "position: absolute; top: 350px; left: 215px" data-tooltip="Add New User to System") Submit
+              
+      script(src='https://unpkg.com/bulma-toast')
+    script(src='/static/js/tab-selector.js')
+    script(src='/static/js/public/admin.bundle.js')
+    script(src='https://maps.googleapis.com/maps/api/js?key=AIzaSyDEl20cTMsc72W_TasuK5PlWYIgMrzyuAU&callback=initGoogleMaps')
     

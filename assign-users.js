@@ -225,7 +225,7 @@ function sweepExpiredLearners() {
           let id = doc.id;
           data.userStatus = 'expired';
           data['expiredOn'] = admin.firestore.Timestamp.now();
-          batch.set(poolRef.doc(id), data, {merge: true});
+          batch.set(poolRef.doc(id), data, true);
         });
         return batch.commit();
       }).catch((err)=>{

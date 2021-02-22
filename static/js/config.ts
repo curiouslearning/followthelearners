@@ -90,7 +90,7 @@ export class Config {
   public readonly signInButtonSignedOutTextValue: string = "Sign In";
   public readonly signInButtonIconSignedInClass: string = "fa-sign-out-alt";
   public readonly signInButtonIconSignedOutClass: string = "fa-sign-in-alt";
-  
+
   /* Sign In Modal */
   public readonly signInModalId: string = '#donor-email-modal';
   public readonly signInModalCloseButtonId: string = '#sign-in-modal-close-btn';
@@ -114,8 +114,8 @@ export class Config {
   public readonly donateModalCloseButtonId: string = '#donate-modal-close-button';
   public readonly donateModalOverlayId: string = '#donate-modal-overlay';
 
-  constructor() {
-    
+    constructor() {
+
   }
 
 }

@@ -1,4 +1,3 @@
-import { } from "googlemaps";
 import { Config } from "./config";
 import { Helpers } from "./helpers";
 import { MapDisplayController } from "./mapDisplayController";
@@ -27,7 +26,7 @@ export class YourLearnersDisplayController extends MapDisplayController {
   private donationsNotFilledCongratsValue: string = '';
 
   private onGiveAgainButtonClick: { (): void } = () => { };
-  
+
   constructor(config: Config) {
     super(config);
     this.mapParentId = this.config.ylMapParentId;
@@ -44,13 +43,13 @@ export class YourLearnersDisplayController extends MapDisplayController {
    */
   public init(): void {
     this.percentFilledTextId = this.config.ylPercentFilledTextId;
-    this.percentFilledText = this.percentFilledTextId === "" ? null : 
+    this.percentFilledText = this.percentFilledTextId === "" ? null :
       Helpers.getElement(this.percentFilledTextId) as HTMLElement;
     this.giveAgainButtonId = this.config.ylGiveAgainButtonId;
-    this.giveAgainButton = this.giveAgainButtonId === "" ? null : 
+    this.giveAgainButton = this.giveAgainButtonId === "" ? null :
       Helpers.getElement(this.giveAgainButtonId) as HTMLButtonElement;
     this.congratsTextId = this.config.ylCongratsTextId;
-    this.congratsText = this.congratsTextId === "" ? null : 
+    this.congratsText = this.congratsTextId === "" ? null :
       Helpers.getElement(this.congratsTextId) as HTMLElement;
 
     this.donationAmountTextId = this.config.ylDonationAmountTextId;
@@ -146,17 +145,17 @@ export class YourLearnersDisplayController extends MapDisplayController {
           aggregateDNTUserCount += noRegion.learnerCount;
         }
       }
-    } 
+    }
 
     if (this.currentCountrySelection === this.allCountriesValue) {
       let allDonationsFilled = true;
-  
+
       for (let i = 0; i < allCountriesPercentFilled.length; i++) {
         if (allCountriesPercentFilled[i] < 100) {
           allDonationsFilled = false;
         }
       }
-  
+
       this.setDonationPercentage(allDonationsFilled ? 100 : 0);
       this.inCountryText!.innerText = ``;
     } else {
@@ -181,9 +180,9 @@ export class YourLearnersDisplayController extends MapDisplayController {
    * @param {Number} percentFilled Donation filled percentage
    */
   setDonationPercentage(percentFilled: number): void {
-    this.percentFilledText!.innerHTML = percentFilled < 100 ? 
+    this.percentFilledText!.innerHTML = percentFilled < 100 ?
       this.donationsNotFilledValue : this.donationsFilledValue;
-    this.giveAgainButton!.style.display = percentFilled < 100 ? 
+    this.giveAgainButton!.style.display = percentFilled < 100 ?
       'none' : 'block';
     this.congratsText!.innerHTML = percentFilled < 100 ?
       this.donationsNotFilledCongratsValue : this.donationsFilledCongratsValue;

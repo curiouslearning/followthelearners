@@ -1,7 +1,10 @@
 const path = require('path');
 
 module.exports = {
-  entry: './static/js/index.ts',
+  entry: {
+    index: './static/js/index.ts',
+    admin: './static/js/admin/admin.ts',
+  },
   module: {
     rules: [
       {
@@ -16,6 +19,7 @@ module.exports = {
   },
   output: {
     filename: 'bundle.js',
+    filename: '[name].bundle.js',
     path: path.resolve(__dirname, 'static/js/public'),
   },
   mode: 'development',
