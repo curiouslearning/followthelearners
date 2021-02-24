@@ -1,4 +1,3 @@
-import { } from "googlemaps";
 import { Config } from "./config";
 import { Helpers } from "./helpers";
 import { MapDisplayController } from "./mapDisplayController";
@@ -65,7 +64,7 @@ export class AllLearnersDisplayController extends MapDisplayController {
       return;
     }
 
-    Helpers.get(url, (data: any | null)=> {
+    Helpers.getXHR(url, {}, (data: any | null)=> {
       if (!data) {
         callback(false);
       } else {
@@ -86,15 +85,26 @@ export class AllLearnersDisplayController extends MapDisplayController {
     if (this.currentCountrySelection !== this.allCountriesValue) {
       this.inCountryText!.innerHTML = `in ${this.currentCountrySelection}`;
       this.dntCountParent?.classList.remove(this.hiddenClass);
-      Helpers.createCountUpTextInElement(this.dntCountElement!,
-      this.learnersData.masterCounts.allLearnersWithDoNotTrack);
+      let countryLearnerCount = 0;
+
+      let countryObj: any = this.learnersData.campaignData.find((loc: any) => {
+        return loc.country === this.currentCountrySelection; });
+      Helpers.createCountUpTextInElement(this.learnerCountElement!,
+        countryObj.learnerCount);
+
+      let noRegion = countryObj.regions.find((r: any) => {
+        return r.region === "no-region"; });
+
+      if (noRegion && noRegion.hasOwnProperty('learnerCount')) {
+        Helpers.createCountUpTextInElement(this.dntCountElement!,
+          noRegion.learnerCount);
+      }
     } else {
       this.inCountryText!.innerHTML = 'Worldwide';
       this.dntCountParent?.classList.add(this.hiddenClass);
+      Helpers.createCountUpTextInElement(this.learnerCountElement!,
+        this.learnersData.masterCounts.allLearnersCount);
     }
-
-    Helpers.createCountUpTextInElement(this.learnerCountElement!,
-      this.learnersData.masterCounts.allLearnersCount);
   }
 
   /**
@@ -103,15 +113,15 @@ export class AllLearnersDisplayController extends MapDisplayController {
   protected initializeCountrySelect(): void {
     if (this.countrySelectElement && this.countrySelectElement.options.length === 0) {
       this.countrySelectElement.innerHTML = '';
-      this.countrySelectElement.options[0] = new Option('All Countries', 
+      this.countrySelectElement.options[0] = new Option('All Countries',
         this.allCountriesValue);
       // console.log(this.learnersData);
       for (const key in this.learnersData.campaignData) {
         const country = this.learnersData.campaignData[key].country;
         if (country !== 'no-country') {
           this.countrySelectElement.options.add(new Option(
-            country + ' - ' + 
-            this.learnersData.campaignData[key].learnerCount, 
+            country + ' - ' +
+            this.learnersData.campaignData[key].learnerCount,
             country)
           );
         }
@@ -133,6 +143,7 @@ export class AllLearnersDisplayController extends MapDisplayController {
 
     if (this.currentCountrySelection === this.allCountriesValue) {
       for (let key = 0; key < locationData.length; key++) {
+        if (this.learnersData.campaignData[key.toString()].country === 'no-country') continue;
         const learnerCount = this.learnersData.campaignData[key.toString()].learnerCount;
         this.addNewMarkerOnMap(locationData[key], null, learnerCount);
         this.resetMapView();
@@ -142,7 +153,7 @@ export class AllLearnersDisplayController extends MapDisplayController {
           return c.country === this.currentCountrySelection;
         });
 
-      const campaignData = this.learnersData.campaignData.find((loc: any) => 
+      const campaignData = this.learnersData.campaignData.find((loc: any) =>
         { return loc.country === this.currentCountrySelection});
 
       let bounds = new google.maps.LatLngBounds();
@@ -157,7 +168,7 @@ export class AllLearnersDisplayController extends MapDisplayController {
             continue;
           }
 
-          
+
           let campaignRegion = campaignData.regions.find((reg: any) => {
             return reg.region === region.region;
           })
@@ -183,7 +194,7 @@ export class AllLearnersDisplayController extends MapDisplayController {
   }
 
   /**
-   * Override for the get icon options 
+   * Override for the get icon options
    * @param learnerCount Learner count
    */
   public getIconOptions(learnerCount: number) {

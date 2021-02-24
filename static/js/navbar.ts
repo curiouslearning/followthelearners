@@ -20,6 +20,12 @@ export class Navbar {
   private hamburgerMenuSocialIconsId: string = '';
   private hamburgerMenuSocialIcondsElement: HTMLElement | null = null;
 
+  private scrollTopValue: number = 0;
+  private maxHeightLowValue: string = '';
+  private boxShadowLowValue: string = '';
+  private maxHeightHighValue: string = '';
+  private boxShadowHighValue: string = '';
+
   public mailchimpButtonClickCallback : { (): void } = () => {};
 
   private hamburgerMenu: HamburgerMenu | null = null;
@@ -33,6 +39,11 @@ export class Navbar {
     this.underTitleSocialIconsId = this.config.underTitleSocialIconsId;
     this.hamburgerMenuSocialIconsId = this.config.hamburgerMenuSocialIconsId;
     this.hiddenClass = this.config.hiddenClass;
+    this.scrollTopValue = this.config.navbarScrollTopValue;
+    this.maxHeightLowValue = this.config.navbarMaxHeightLowValue;
+    this.maxHeightHighValue = this.config.navbarMaxHeightHighValue;
+    this.boxShadowLowValue = this.config.navbarBoxShadowLowValue;
+    this.boxShadowHighValue = this.config.navbarBoxShadowHighValue;
   }
 
   /**
@@ -69,12 +80,12 @@ export class Navbar {
     }
 
     window.onscroll = () => {
-      if (document.body.scrollTop > 60 || document.documentElement.scrollTop > 60) {
-        this.navbar!.style.boxShadow = '2px 2px 8px #808080';
-        this.navbar!.style.maxHeight = '12vh';
+      if (document.body.scrollTop > this.scrollTopValue || document.documentElement.scrollTop > this.scrollTopValue) {
+        this.navbar!.style.boxShadow = this.boxShadowLowValue;
+        this.navbar!.style.maxHeight = this.maxHeightLowValue;
       } else {
-        this.navbar!.style.boxShadow = '0px 0px 0px #808080';
-        this.navbar!.style.maxHeight = '17vh';
+        this.navbar!.style.boxShadow = this.boxShadowHighValue;
+        this.navbar!.style.maxHeight = this.maxHeightHighValue;
       }
     };
   }

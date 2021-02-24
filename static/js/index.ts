@@ -1,5 +1,4 @@
 import { Helpers } from "./helpers";
-import {} from 'googlemaps';
 import { Config } from "./config";
 import { AuthController } from "./authController";
 import { TabSelector } from "./tabSelector";
@@ -42,7 +41,7 @@ export class App {
     this.navbar = new Navbar(this.config, this.hamburgerMenu);
     this.hamburgerMenu.close();
   }
-  
+
   /**
    * Independent method that should be called after the initialization of
    * Google Maps
@@ -121,7 +120,7 @@ export class App {
         this.TabSelector.toggleWithName('tab-all-learners');
       }
     });
-    
+
     this.authController.signIn();
 
     this.allLearnersDisplayController.fetchData(`/allLearners`, (hasData) => {
@@ -163,5 +162,3 @@ window.onload = () => {
     app.init();
   }
 }
-
-

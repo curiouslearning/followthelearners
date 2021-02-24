@@ -62,15 +62,15 @@
         font-weight: bold;
       }
       #navbar {
-        transition: max-height 0.5s ease-in-out;
+        transition: max-height 0.2s ease-in-out;
       }
 
-  body(style="padding-top: 8rem !important;")
+  body(style="padding-top: 19vh !important;")
     - const utmValue = utmSource ? "/?utm_source=" + utmSource : '/';
     header
-      nav.navbar.is-fixed-top#navbar(role="navigation" style='background-image: url("/static/imgs/hero-cover-sticky-header.jpg"); height: 17vh; background-size: cover; background-repeat: no-repeat; color: white; background-position: center center; z-index: 100; padding-left: 1.5rem; border-radius: 0; padding-right: 1.5rem; ')
+      nav.navbar.is-fixed-top#navbar(role="navigation" style='background-image: url("/static/imgs/hero-cover-sticky-header.jpg"); max-height: 17vh; height: 17vh; background-size: cover; background-repeat: no-repeat; color: white; background-position: center center; z-index: 100; padding-left: 1.5rem; border-radius: 0; padding-right: 1.5rem; ')
         .navbar-brand(style='display: flex;')
-          div(style="width: auto; margin-top: 2vh;")
+          div(style="width: auto; margin-top: 3vh;")
             div
               a.title.has-text-grey-dark.is-large(href=utmValue style="margin-bottom: 0.5rem; color: white !important;") Follow The Learners™
                 span.is-small.subtitle(style="color: white;") (Beta)
@@ -138,7 +138,7 @@
                 span.icon.is-large
                   i.far.fa-envelope(style='font-size: 1.5rem; color: #707070;')
 
-    .section#tabs-parent(style='z-index: 100; padding-right: 0; padding-left: 0;')
+    .section#tabs-parent(style='z-index: 100; padding-right: 0; padding-top: 0; padding-left: 0;')
       .section.is-hidden#tab-campaigns(style='padding: 0;')
         //- div.has-text-centered
         //- h3.subtitle.is-3.has-text-grey(style='margin-top: 0.5rem') Pick a Region
@@ -215,13 +215,14 @@
         .section(style='position: relative; margin: 1rem; padding: 0;')
           #map-display-your-learners(style="width: 100%; height: 720px;")
           #map-overlay(style='width: 100%; height: 720px; position: absolute; top: 0; left: 0; z-index: 25; pointer-events: none;')
-            .select.is-medium(style='')
-              select#yourLearnersCountrySelect(style='pointer-events: auto; margin: 4px;' name='campaignSelection')
-            button.button.is-medium#btn-reset-map-yl(style='pointer-events: auto; margin: 4px;') Reset Map
+            div(style='position: -webkit-sticky; position: sticky; top: 15vh;')
+              .select.is-medium(style='margin: 4px;')
+                select#yourLearnersCountrySelect(style='pointer-events: auto;' name='campaignSelection')
+              button.button.is-medium#btn-reset-map-yl(style='pointer-events: auto; margin: 4px;') Reset Map
           div#your-learners-overlay-pano.is-hidden(style="width: 100%; height: 720px; position: absolute; top: 0; left: 0; z-index: 30; pointer-events: auto;")
             div#your-learners-panorama(style="width: 100%; height: 100%; pointer-events: auto;")
             div(style="width: 100%; height: 100%; position: absolute; left: 0; top: 0; z-index: 35; pointer-events: none;")
-              button.button.is-medium#your-learners-pano-close(style='pointer-events: auto; margin: 10px; float: right;')
+              button.button.is-medium#your-learners-pano-close(style='pointer-events: auto; margin: 10px; margin-top: 4px; float: right; position: -webkit-sticky; position: sticky; top: 15vh;')
                 span(style="font-weight: bold;") Close
               //- button.button.is-medium(onclick="onPanoramaPreviousButtonClick()" style='pointer-events: auto; margin: 10px; position: absolute; left: 0; top: 45%; background-color: rgba(30, 30, 30, 0.3); font-weight: bold; font-size: 1.2rem; color: white; border: none;')
               //-   span(style="font-weight: bold;") Prev
@@ -246,13 +247,14 @@
         .section(style='position: relative; padding: 0; margin-top: 1rem;')
           #map-display-all-learners(style="width: 100%; height: 720px;")
           #map-overlay(style='width: 100%; height: 720px; position: absolute; top: 0; left: 0; z-index: 25; pointer-events: none;')
-            .select.is-medium
-              select#all-learners-country-select(style='pointer-events: auto; margin: 4px;' name='campaignSelection')
-            button.button.is-medium#btn-reset-map(style='pointer-events: auto; margin: 4px;') Reset Map
+            div(style='position: -webkit-sticky; position: sticky; top: 15vh;')
+              .select.is-medium(style='margin: 4px;')
+                select#all-learners-country-select(style='pointer-events: auto;' name='campaignSelection')
+              button.button.is-medium#btn-reset-map(style='pointer-events: auto; margin: 4px;') Reset Map
           div#all-learners-overlay-pano.is-hidden(style="width: 100%; height: 720px; position: absolute; top: 0; left: 0; z-index: 30; pointer-events: auto;")
             div#all-learners-panorama(style="width: 100%; height: 100%; pointer-events: auto;")
             div(style="width: 100%; height: 100%; position: absolute; left: 0; top: 0; z-index: 35; pointer-events: none;")
-              button.button.is-medium#all-learners-pano-close(style='pointer-events: auto; margin: 10px; float: right;')
+              button.button.is-medium#all-learners-pano-close(style='pointer-events: auto; margin: 10px; margin-top: 4px; float: right; position: -webkit-sticky; position: sticky; top: 15vh;')
                 span(style="font-weight: bold;") Close
               //- button.button.is-medium(onclick="onPanoramaPreviousButtonClick()" style='pointer-events: auto; margin: 10px; position: absolute; left: 0; top: 45%; background-color: rgba(30, 30, 30, 0.3); font-weight: bold; font-size: 1.2rem; color: white; border: none;')
               //-   span(style="font-weight: bold;") Prev
@@ -371,6 +373,7 @@
             a(href='/privacy-policy' + utmValue) Privacy Policy
         h5.is-size-5 Copyright 2020 by Curious Learning.
         
+  script(src="/static/js/third/fbc.js")
   script(src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDEl20cTMsc72W_TasuK5PlWYIgMrzyuAU&callback=initGoogleMaps")
 
   noscript

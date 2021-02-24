@@ -36,7 +36,7 @@ class TabSelector {
 
   /**
    * Add event listener with give eventName and listener
-   * @param {String} eventName is the name of the event ('preTabToggle' | 
+   * @param {String} eventName is the name of the event ('preTabToggle' |
    * 'tabToggle')
    * @param {Method} listener method that's getting called upon event occurence
    * ('preTabToggle' event passes DOM tab element ID |
@@ -99,4 +99,3 @@ $(document).ready(function() {
   tabSelector = new TabSelector(
       'is-active', 'is-dark', 'tab-buttons', 'tabs-parent');
 });
-

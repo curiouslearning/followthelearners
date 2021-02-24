@@ -77,7 +77,7 @@ export class SignInModal extends Modal {
       if (Helpers.isKeyCodeSpecial(event.keyCode)) {
         return;
       }
-      
+
       if (Helpers.isValidEmail(this.emailInput!.value)) {
         this.submitButon!.disabled = false;
         this.donorInfoText?.classList.add(this.hiddenClass);
@@ -138,7 +138,7 @@ export class SignInModal extends Modal {
     }
     let emailValue = this.emailInput?.value;
 
-    Helpers.get(`/isUser/?email=${emailValue}`, (data) => {
+    Helpers.getXHR(`/isUser/?email=${emailValue}`, {}, (data) => {
       if (data.isUser) {
         this.authController?.sendMagicLink(emailValue!, () => {
           window.localStorage.setItem('emailForSignIn', emailValue!);
