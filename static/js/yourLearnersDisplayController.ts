@@ -166,8 +166,8 @@ export class YourLearnersDisplayController extends MapDisplayController {
 
     this.donationAmountText!.innerText = aggregateDonationAmount
       .toFixed(2);
-    this.donationDateText!.innerText = donationStartDate!
-      .toString();
+    this.donationDateText!.innerText = donationStartDate === undefined ?
+      '' : donationStartDate.toString();
 
     Helpers.createCountUpTextInElement(this.learnerCountElement!,
       aggregateLearnerCount);

@@ -122,6 +122,22 @@ export class AuthController {
     return this.token ? this.token : null;
   }
 
+  public signInWithGoogle(): void {
+    const googleAuth = new firebase.auth.GoogleAuthProvider();
+    
+    firebase.auth().signInWithPopup(googleAuth).catch((error) => {
+      window.alert("Following error has occurred while attempting to authenticate using Google: " + error.code);
+
+    });
+  }
+
+  public signInWithFacebook(): void {
+    const facebookAuth = new firebase.auth.FacebookAuthProvider();
+    firebase.auth().signInWithPopup(facebookAuth).catch((error) => {
+      window.alert("Following error has occurred while attempting to authenticate using Facebook: " + error.code);
+    });
+  }
+
   /**
    * Send a magic link to a user with the given email
    * @param email Email
@@ -189,7 +205,10 @@ export class AuthController {
    * Refresh the token and call sign in callback if necessary
    */
   refreshToken(): void {
-    if (this.lastRefreshDate! <= (Date.now() - this.tokenTimeout)) {
+    // Check to see if we need to get a new token if the current one is timed out
+    // or the is undefined to allow users to sign out and sign back in the same
+    // session
+    if (this.lastRefreshDate! <= (Date.now() - this.tokenTimeout) || this.token === undefined) {
       firebase.auth().currentUser?.getIdToken(true).then((newToken: string) => {
         this.token = newToken;
         this.lastRefreshDate = Date.now();
@@ -197,7 +216,7 @@ export class AuthController {
       }).catch((err) => {
         console.error(err);
       });
-    } else {
+    } else if (this.token !== undefined) {
       this.signInCallback();
     }
   }

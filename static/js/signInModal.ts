@@ -19,6 +19,10 @@ export class SignInModal extends Modal {
   private submitButon: HTMLButtonElement | null = null;
   private goToDonateButtonId: string = '';
   private goToDonateButton: HTMLButtonElement | null = null;
+  private signInWithGoogleButtonId: string = '';
+  private signInWithGoogleButton: HTMLButtonElement | null = null;
+  private signInWithFacebookButtonId: string = '';
+  private signInWithFacebookButton: HTMLButtonElement | null = null;
 
   private authController: AuthController | null = null;
 
@@ -37,6 +41,8 @@ export class SignInModal extends Modal {
     this.submitButtonId = this.config.signInModalSubmitButtonId;
     this.donorInfoTextId = this.config.signInModalDonorInfoTextId;
     this.goToDonateButtonId = this.config.signInModalGoToDonateButtonId;
+    this.signInWithGoogleButtonId = this.config.signInModalGoogleButtonId;
+    this.signInWithFacebookButtonId = this.config.signInModalFacebookButtonId;
     this.hiddenClass = this.config.hiddenClass;
   }
 
@@ -57,8 +63,12 @@ export class SignInModal extends Modal {
       Helpers.getElement(this.submitButtonId) as HTMLButtonElement;
     this.goToDonateButton = this.goToDonateButtonId === '' ? null :
       Helpers.getElement(this.goToDonateButtonId) as HTMLButtonElement;
-
-    this.form?.addEventListener('submit', (event) => {
+    this.signInWithGoogleButton = this.signInWithGoogleButtonId === '' ? null :
+      Helpers.getElement(this.signInWithGoogleButtonId) as HTMLButtonElement;
+    this.signInWithFacebookButton = this.signInWithFacebookButtonId === '' ? null :
+      Helpers.getElement(this.signInWithFacebookButtonId) as HTMLButtonElement;
+    
+    this.form?.addEventListener('submit', (event) => { 
       event.preventDefault();
       this.onFormSubmit();
     });
@@ -76,6 +86,14 @@ export class SignInModal extends Modal {
         this.donorInfoText!.innerHTML = 'Please enter a valid email address';
         this.donorInfoText?.classList.remove(this.hiddenClass);
       }
+    });
+
+    this.signInWithGoogleButton?.addEventListener('click', () => {
+      this.authController?.signInWithGoogle();
+    });
+
+    this.signInWithFacebookButton?.addEventListener('click', () => {
+      this.authController?.signInWithFacebook();
     });
 
     this.submitButon?.addEventListener('click', () => {
@@ -131,7 +149,6 @@ export class SignInModal extends Modal {
       } else {
         this.donorInfoText?.classList.remove(this.hiddenClass);
         this.donorInfoText!.innerHTML = data.displayText;
-        this.instructionText?.classList.add(this.hiddenClass);
       }
     });
 
