@@ -100,6 +100,8 @@ function matchLearnersToDonors(learners, donations) {
         data.sourceDonor = donation.sourceDonor;
         data.userStatus = 'assigned';
         data.sourceDonation = donation.donationID;
+        data['assignedCampaign'] = donation.campaignID;
+        data['learnerCost'] = donation.costPerLearner;
         data['assignedOn'] = admin.firestore.Timestamp.now();
         donation['learners'].push(data);
         learners.splice(0, 1);
