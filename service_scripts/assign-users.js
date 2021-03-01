@@ -1,6 +1,6 @@
 const admin = require('firebase-admin');
 // const firebase = require('firebase/app');
-const serviceAccount = require('./keys/firestore-key.json');
+const serviceAccount = require('../keys/firestore-key.json');
 const DONATIONFILLTIMELINE = 14; // The min number of days to fill a donation
 const PRUNEDATE = 7; // the number of days before a new user expires
 const DAYINMS = 86400000;
@@ -16,7 +16,7 @@ const BATCHMAX = 495;
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
-const {BatchManager} = require('./BatchManager');
+const {BatchManager} = require('../helpers/BatchManager');
 const firestore = admin.firestore();
 
 async function main() {

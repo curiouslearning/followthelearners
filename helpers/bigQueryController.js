@@ -1,9 +1,9 @@
 const {BigQuery} = require('@google-cloud/bigquery');
 
-exports.loadIntoBigQuery = async (filename) => {
+exports.loadIntoBigQuery = async (filename, tableName) => {
   const bigQueryClient = new BigQuery();
   const dataset = bigQueryClient.dataset('ftl_dataset');
-  const table = dataset.table('assigned_learners');
+  const table = dataset.table(tableName);
   const metadata = {
     encoding: 'UTF-8',
     createDisposition: 'CREATE_IF_NEEDED',
@@ -12,9 +12,13 @@ exports.loadIntoBigQuery = async (filename) => {
     schemaUpdateOption: 'ALLOW_FIELD_ADDITION',
     destinationTable: table,
   };
-  await table.load('./' + filename, metadata, (err, res) => {
-    if (err) throw err;
+  return await table.load('./' + filename, metadata).then((res) => {
     console.log('Successfully uploaded to BigQuery');
+    return true;
+  }).catch((err) => {
+    console.error(`could not successfully upload ${filename} to ${tableName}. Encountered error:`);
+    console.error(err);
+    return false;
   });
 };
 
