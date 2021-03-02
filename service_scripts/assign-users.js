@@ -1,6 +1,5 @@
 const admin = require('firebase-admin');
-// const firebase = require('firebase/app');
-const serviceAccount = require('../keys/firestore-key.json');
+const isNil = require('lodash/isNil');
 const DONATIONFILLTIMELINE = 14; // The min number of days to fill a donation
 const PRUNEDATE = 7; // the number of days before a new user expires
 const DAYINMS = 86400000;
@@ -12,49 +11,47 @@ const CONTINENTS = [
   'Europe',
   'Oceania',
 ];
-const BATCHMAX = 495;
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
+if (admin.apps.length === 0) {
+  admin.initializeApp();
+}
 const {BatchManager} = require('../helpers/BatchManager');
 const firestore = admin.firestore();
 
 async function main() {
   await assignExpiringLearners();
-};
+}
 (async () => {await main();})();
 
 async function assignExpiringLearners() {
-  let priorityQueue = 0;
-  getPriorityQueue().then((queue)=>{
-    if (queue === undefined) {
-      console.log('failed to create priority queue');
-      sweepExpiredLearners();
-      return 0;
-    } // early return for no donations
-    priorityQueue = queue;
-    return queue.len;
-  }).then((len)=>{
-    if (len === 0) return 0;
-    return getLearnerQueue(priorityQueue.length, PRUNEDATE).then((learnerSnap)=>{
-      if (learnerSnap === undefined || learnerSnap.empty) {
-        console.log('no new learners to assign');
-        sweepExpiredLearners();
-        return;
-      }
-      console.log('prioritizing snap of size ', learnerSnap.size);
-      let learnerQueue = prioritizeLearnerQueue(learnerSnap);
-      console.log('learnerQueue length: ', learnerQueue.length);
-      console.log('priority queue length:', priorityQueue.length);
-      matchLearnersToDonors(learnerQueue, priorityQueue);
-      batchLearnerAssignment(priorityQueue);
-      sweepExpiredLearners();
-    }).catch((err)=>{
-      console.error(err);
-    });
-  }).catch((err)=>{
+  let priorityQueue, learnerSnap;
+
+  try {
+    priorityQueue = await getPriorityQueue();
+    learnerSnap = await getLearnerQueue();
+  } catch(err) {
+    console.error('Error when trying to pull users and learners.  Aborting');
     console.error(err);
-  });
+    return;
+  }
+
+  if(priorityQueue.length === 0) {
+    console.warn('There are no donors to process');
+    return; // early return for no donations
+  }
+  if(isNil(learnerSnap) || learnerSnap.empty) {
+    console.warn('No new learners to assign');
+    return; // early return for no users
+  }
+
+  console.log('prioritizing snap of size ', learnerSnap.size);
+  let learnerQueue = learnerSnap.docs.sort(
+      (a, b) => {return a.data().region === 'no-region' ? 1 : b.data().region === 'no-region' ? -1 : 0});
+
+  console.log('learnerQueue length: ', learnerQueue.length);
+  console.log('priority queue length:', priorityQueue.length);
+  matchLearnersToDonors(learnerQueue, priorityQueue);
+  await batchLearnerAssignment(priorityQueue);
+  await sweepExpiredLearners();
 }
 
 /**
@@ -68,8 +65,7 @@ async function assignExpiringLearners() {
 function matchLearnersToDonors(learners, donations) {
   let fullDonations = 0;
   console.log(`matching ${learners.length} learners to ${donations.length} donors`);
-  while ((learners !== undefined)&&(learners.length > 1) &&
-        (fullDonations < donations.length)) {
+  while ((learners.length > 1) && (fullDonations < donations.length)) {
     if (learners[0] === undefined) {
       learners.splice(0, 1);
       continue;
@@ -78,8 +74,7 @@ function matchLearnersToDonors(learners, donations) {
     for (let i=0; i < donations.length; i++) {
       let donation = [];
       donation = donations[i];
-      let data = [];
-      data = learners[0].data();
+      let data = learners[0].data();
       if (!checkForMatch(data, donation)) {
         // only assign users to donations from matching campaigns
         continue;
@@ -91,6 +86,7 @@ function matchLearnersToDonors(learners, donations) {
       }
       const cap = calculateLearnerCap(donation);
       console.log('cap is ', cap);
+
       if (!donation.learners || (donation.learners.length < cap)) {
         console.log('found donor: ', donation.sourceDonor);
         foundDonor = true;
@@ -128,7 +124,6 @@ function matchLearnersToDonors(learners, donations) {
 }
 
 function calculateLearnerCap(donation) {
-  const learnerCount = donation.learnerCount;
   const amount = donation.amount;
   const costPerLearner = donation.costPerLearner;
   let maxLearners = Math.round(amount/costPerLearner);
@@ -136,13 +131,12 @@ function calculateLearnerCap(donation) {
   let maxDailyIncrease = Math.round(maxLearners/DONATIONFILLTIMELINE);
   if (maxDailyIncrease < 1) maxDailyIncrease = 1;
   return maxDailyIncrease;
-  // return Math.round((rawCap/maxLearners) *100);
 }
 
 /**
 * @param{Object[]} priorityQueue the list of donations to update in firestore
 */
-function batchLearnerAssignment(priorityQueue) {
+async function batchLearnerAssignment(priorityQueue) {
   let batch = new BatchManager();
   const poolRef = firestore.collection('user_pool');
   priorityQueue.forEach((donation, i)=>{
@@ -153,86 +147,86 @@ function batchLearnerAssignment(priorityQueue) {
       });
     }
   });
-  batch.commit();
+  await batch.commit();
 }
 
 /**
 * @return {QueryDocumentSnapshot} an unsorted QueryDocumentSnapshot of learners
 *                                 no greater than the size of donationCount
-* @param{num} donationCount the maximum length of the learnerQueue
-* @param{num} interval the age cap on any learner fetched from the database
 */
-async function getLearnerQueue(donationCount, interval) {
-  const pivotDate = new Date(Date.now()-(DAYINMS*interval));
-  return firestore.collection('user_pool')
-      .where('userStatus', '==', 'unassigned')
-      .orderBy('dateCreated', 'asc').get().then((snap)=>{
-        console.log('fetched snap of size ', snap.size);
-        return snap;
-      }).catch((err)=>{
-        console.error(err);
-      });
+async function getLearnerQueue() {
+  let snap;
+  try {
+    snap = await firestore.collection('user_pool')
+        .where('userStatus', '==', 'unassigned')
+        .orderBy('dateCreated', 'asc').get();
+  } catch(err) {
+    console.error(`Error when trying to retrieve the users: ${JSON.stringify(err)}`);
+    throw err;
+  }
+  console.log('fetched snap of size ', snap.size);
+  return snap;
 }
 
 /**
 * @return{QueryDocumentSnapshot} A QueryDocumentSnapshot of donations sorted by
 *                                percent filled and date started.
 */
-function getPriorityQueue() {
-  return firestore.collectionGroup('donations')
-      .where('percentFilled', '<', 100)
-      .orderBy('percentFilled', 'desc')
-      .orderBy('startDate', 'asc').get().then((snap)=>{
-        if (snap.empty) {
-          console.log('no un-filled donations');
-          return undefined;
-        }
-        let priorityQueue = [];
-        let monthlyQueue = [];
-        let oneTimeQueue = [];
-        snap.forEach((doc)=>{
-          let data = doc.data();
-          data['id'] = doc.id;
-          if (data.frequency === 'monthly') {
-            monthlyQueue.push(data);
-          } else {
-            oneTimeQueue.push(data);
-          }
-        });
-        monthlyQueue.forEach((elem)=>{
-          priorityQueue.push(elem);
-        });
-        oneTimeQueue.forEach((elem) => {
-          priorityQueue.push(elem);
-        });
-        return priorityQueue;
-      }).catch((err)=>{
-        console.error(err);
-      });
+async function getPriorityQueue() {
+  let snap;
+  try {
+    snap = await firestore.collectionGroup('donations')
+        .where('percentFilled', '<', 100)
+        .orderBy('percentFilled', 'desc')
+        .orderBy('startDate', 'asc').get();
+  } catch(err) {
+    console.err(`Error when trying to pull the donations: ${JSON.stringify(err)}`);
+    throw err;
+  }
+
+  if (snap.empty) {
+    console.log('no un-filled donations');
+    return [];
+  }
+
+  let monthlyQueue = [];
+  let oneTimeQueue = [];
+  snap.forEach((doc)=>{
+    let data = doc.data();
+    data['id'] = doc.id;
+    if (data.frequency === 'monthly') {
+      monthlyQueue.push(data);
+    } else {
+      oneTimeQueue.push(data);
+    }
+  });
+  return monthlyQueue.concat(oneTimeQueue);
 }
 
-function sweepExpiredLearners() {
+async function sweepExpiredLearners() {
   const pivot = getPivot();
   const poolRef = firestore.collection('user_pool');
   let batch = new BatchManager();
-  poolRef.where('userStatus', '==', 'unassigned')
-      .where('dateCreated', '<=', pivot).get()
-      .then((snap)=>{
-        if (snap.empty) {
-          console.log('empty snap');
-          return [];
-        }
-        snap.forEach((doc)=>{
-          let data = doc.data();
-          let id = doc.id;
-          data.userStatus = 'expired';
-          data['expiredOn'] = admin.firestore.Timestamp.now();
-          batch.set(poolRef.doc(id), data, true);
-        });
-        return batch.commit();
-      }).catch((err)=>{
-        console.error(err);
-      });
+  let snap;
+  try {
+    snap = await poolRef.where('userStatus', '==', 'unassigned')
+        .where('dateCreated', '<=', pivot).get();
+  } catch(err) {
+    console.error(`Error when trying to sweep expired users: ${JSON.stringify(err)}`);
+    return;
+  }
+
+  if (snap.empty) {
+    console.log('empty snap');
+    return [];
+  }
+  snap.forEach((doc)=>{
+    let data = doc.data();
+    data.userStatus = 'expired';
+    data['expiredOn'] = admin.firestore.Timestamp.now();
+    batch.set(poolRef.doc(doc.id), data, true);
+  });
+  return batch.commit();
 }
 
 // ************************Helper Functions********************************* //
@@ -244,14 +238,9 @@ function sweepExpiredLearners() {
 * @param {Object} donation the donation object to compare
 */
 function checkForMatch(learner, donation) {
-  if (donation.country === 'any') return true;
-  if (donation.country === learner.country) return true;
-  if (CONTINENTS.includes(donation.country)) {
-    if (donation.country === learner.continent) {
-      return true;
-    }
-    return false;
-  }
+  return donation.country === 'any' ||
+         donation.country === learner.country ||
+         (donation.country === learner.continent && CONTINENTS.includes(donation.country));
 }
 
 /**
@@ -293,30 +282,8 @@ function writeEndDate(donation) {
       });
 }
 
-/**
-* @return{Object[]} an array of LearnerObjects sorted by expiration date and
-*                   presence of detailed location data
-* @param{QueryDocumentSnapshot} queue an unsorted QueryDocumentSnapshot
-*/
-function prioritizeLearnerQueue(queue) {
-  if (queue.empty) {
-    return queue.docs;
-  }
-  let prioritizedQueue = [];
-  queue.forEach((doc)=>{
-    let data = doc.data();
-    if (data.region !== 'no-region') {
-      prioritizedQueue.unshift(doc);
-    } else {
-      prioritizedQueue.push(doc);
-    }
-  });
-  return prioritizedQueue;
-}
-
 function getPivot() {
   const nowInMillis = admin.firestore.Timestamp.now().toMillis();
   let pivot = nowInMillis - (DAYINMS * PRUNEDATE);
-  const timestamp = admin.firestore.Timestamp.fromMillis(pivot);
-  return timestamp;
+  return admin.firestore.Timestamp.fromMillis(pivot);
 }

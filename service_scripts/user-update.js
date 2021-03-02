@@ -1,8 +1,7 @@
 const {BigQuery} = require('@google-cloud/bigquery');
 const fireStoreAdmin = require('firebase-admin');
+const {get, isNil} = require('lodash');
 const {Client, Status} = require('@googlemaps/google-maps-services-js');
-// const firebase = require('firebase/app');
-const serviceAccount = require('../keys/firestore-key.json');
 const PRUNEDATE = 7;
 const DAYINMS = 86400000;
 const CONTINENTS = [
@@ -14,11 +13,13 @@ const CONTINENTS = [
   'Oceania',
 ];
 
-fireStoreAdmin.initializeApp({
-  credential: fireStoreAdmin.credential.cert(serviceAccount),
-});
+if (fireStoreAdmin.apps.length === 0) {
+  fireStoreAdmin.initializeApp();
+}
+const {BatchManager} = require('../helpers/batchManager');
 const firestore = fireStoreAdmin.firestore();
 const gmaps = new Client({});
+const countriesAddedOrExist = [];
 
 /**
 * main function
@@ -32,55 +33,7 @@ async function main() {
     console.log("updates for ", new Date(Date.now()));
     console.log('============================================================');
     const bigQueryClient = new BigQuery();
-    const tables =[
-      `tinkrplayer.analytics_175820453.events_*`,
-      `ftm-brazilian-portuguese.analytics_161789655.events_*`,
-      `ftm-hindi.analytics_174638281.events_*`,
-      `ftm-zulu.analytics_155849122.events_*`,
-      `ftm-swahili.analytics_160694316.events*`,
-      `ftm-english.analytics_152408808.events_*`,
-      `ftm-afrikaans.analytics_177200876.events_*`,
-      `ftm-australian-english.analytics_159083443.events_*`,
-      `ftm-brazilian-portuguese.analytics_161789655.events_*`,
-      `ftm-french.analytics_173880465.events_*`,
-      `ftm-hausa.analytics_164138311.events_*`,
-      `ftm-indian-english.analytics_160227348.events_*`,
-      `ftm-isixhosa.analytics_180747962.events_*`,
-      `ftm-kinayrwanda.analytics_177922191.events_*`,
-      `ftm-ndebele.analytics_181170652.events_*`,
-      `ftm-oromo.analytics_167539175.events_*`,
-      `ftm-sepedi.analytics_180755978.events_*`,
-      `ftm-sesotho.analytics_177536906.events_*`,
-      `ftm-siswati.analytics_181021951.events_*`,
-      `ftm-somali.analytics_159630038.events_*`,
-      `ftm-southafricanenglish.analytics_173750850.events_*`,
-      `ftm-spanish.analytics_158656398.events_*`,
-      `ftm-tsonga.analytics_177920210.events_*`,
-      `ftm-tswana.analytics_181020641.events_*`,
-      `ftm-venda.analytics_179631877.events_*`,
-    ];
-    let query = '';
-    tables.forEach((table)=>{
-      if (query != '') {
-        query = query.concat(' UNION ALL ');
-      }
-      const subquery = `SELECT
-        DISTINCT user_pseudo_id,
-        event_name,
-        event_date,
-        traffic_source.name,
-        geo.continent,
-        geo.country,
-        geo.region
-      FROM
-        \``+ table+`\`
-      WHERE
-        _TABLE_SUFFIX =
-          FORMAT_DATE('%Y%m%d', DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY))
-      AND
-        event_name = \"first_open\"`;
-      query = query.concat(subquery);
-    });
+    const query = 'SELECT * FROM `follow-the-learners.ftl_dataset.daily_new_users` WHERE event_date = FORMAT_DATE("%Y%m%d", DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY))'
 
     const options = {
       query: query,
@@ -88,34 +41,35 @@ async function main() {
     };
 
     try {
-      const [rows] = await bigQueryClient.query(options);
-      console.log('successful Query');
-      const batchMax = 490;
-      let batchCounter = 0;
-      let commitCounter = 0;
-      const batches = [];
-      const usedIDs = [];
+      const rows = await bigQueryClient.createQueryJob(options).then((data) => {
+        const job = data[0];
+        return job.getQueryResults();
+      }).then((res) => {
+        return res[0];
+      }).catch((err) => {
+        throw err;
+      });
+      console.log(`successful Query - retrieved ${rows.length} new users`);
+      let batchManager = new BatchManager();
+      let usedIDs = [];
       let counter = 0;
       let doubleCounter = 0;
-      batches[commitCounter] = firestore.batch();
-      rows.forEach((row)=>{
-        if (batchCounter >= batchMax) {
-          batchCounter = 0;
-          commitCounter++;
-          batches[commitCounter] = firestore.batch();
-        }
-        if (!usedIDs.includes(row.user_pseudo_id)) {
+      for (const row of rows) {
+      // If the list of userID's doesn't contain the new user,
+      // add it to the list
+        if (!usedIDs.includes(row.user)) {
           counter++;
-          usedIDs.push(row.user_pseudo_id);
-          addUserToPool(createUser(row), batches[commitCounter]);
-          insertLocation(row);
-          batchCounter++;
+          usedIDs.push(row.user);
+          addUserToPool(createUser(row), batchManager);
+          await insertLocation(row);
         } else {
+          console.log(`excluding ${row.user}, already counted`);
           doubleCounter++;
         }
-      });
-      console.log('created ', counter - doubleCounter, ' new users');
-      await writeToDb(batches);
+      }
+
+      console.log('created ', counter, ' new users');
+      await batchManager.commit();
       console.log('doubleCounter: ' + doubleCounter);
     } catch (err) {
       console.error('ERROR', err);
@@ -142,77 +96,95 @@ function waitForSecond() {
 */
 async function writeToDb(arr) {
   console.log('beginning write');
-  for (let i = 0; i < arr.length; i++) {
-    console.log('writing batch: ' + i);
-    await waitForSecond();
-    arr[i].commit().then(function() {
-      console.log('wrote batch: ' + i);
-    }).catch((err)=>{
+  for(const [index, a] of arr.entries()) {
+    console.log(`writing batch: ${index}`);
+    try {
+      await a.commit();
+    } catch(err) {
       console.error(err);
-    });
+    }
+    console.log(`wrote batch: ${index}`);
+    await waitForSecond();
   }
 }
 
 /**
-* add a new location reference to fireStore
+* add a new location reference to fireStore if not exists
 * @param{string[]} row the row containing the new location data
 */
-function insertLocation(row) {
-  if (row.country != null && row.country != '') {
-    const locationRef = firestore.collection('loc_ref').doc(row.country);
-    locationRef.get().then(async (doc)=>{
-      if (!doc.exists) {
-        await getPinForAddress(row.country, (markerLoc) => {
-          locationRef.set({
-            country: row.country,
-            continent: row.continent,
-            learnerCount: 0,
-            pin: {
-              lat: markerLoc.lat,
-              lng: markerLoc.lng,
-            },
-            regions: [],
-          }, {merge: true});
-        });
-      } else if (doc.exists && !doc.data().hasOwnProperty('pin') ||
-          (doc.exists && doc.data().pin.lat === 0 && doc.data().pin.lng === 0)) {
-        await getPinForAddress(row.country, (markerLoc) => {
-          locationRef.set({
-            pin: {
-              lat: markerLoc.lat,
-              lng: markerLoc.lng,
-            },
-          }, {merge: true});
-        });
-      }
-    }).catch((err)=>{
-      console.log(err);
-    });
+async function insertLocation(row) {
+  if(isNil(row.country) || row.country === '' || countriesAddedOrExist.includes(row.country)) return;
+
+  let doc, locationRef;
+  try {
+    locationRef = firestore.collection('loc_ref').doc(row.country);
+    doc = locationRef.get();
+  } catch(err) {
+    console.error(`Error when trying to retrieve the location for country: ${row.country}.  Skipping user: ${row.user_pseudo_id}`);
+    return;
+  }
+
+  if(doc.exists && doc.data().pin.lat !== 0 && doc.data().pin.lng !== 0) {
+    countriesAddedOrExist.push(row.country);
+    return;
+  }
+
+  if (!doc.exists) {
+    const markerLoc = await getPinForAddress(row.country);
+    if(!markerLoc) {
+      console.error(`Unable to retrieve a Google pin for address: ${row.country}.  Skipping user: ${row.user_pseudo_id}`);
+      return;
+    }
+
+    await locationRef.set({
+      country: row.country,
+      continent: row.continent,
+      learnerCount: 0,
+      pin: {
+        lat: markerLoc.lat,
+        lng: markerLoc.lng,
+      },
+      regions: [],
+      }, {merge: true});
+    countriesAddedOrExist.push(row.country);
+  } else if (doc.exists && !doc.data().hasOwnProperty('pin') ||
+        (doc.exists && doc.data().pin.lat === 0 && doc.data().pin.lng === 0)) {
+    const markerLoc = await getPinForAddress(row.country);
+
+    if(!markerLoc) {
+      console.error(`Unable to retrieve a Google pin for address: ${row.country}.  Skipping user: ${row.user_pseudo_id}`);
+      return;
+    }
+
+    await locationRef.set({
+      pin: {
+        lat: markerLoc.lat,
+        lng: markerLoc.lng,
+      },
+    }, {merge: true});
+    countriesAddedOrExist.push(row.country);
   }
 }
 
 /**
  * Returns a [lat, lng] pair of values for the given address
  * @param {String} address is the address in string format
- * @param {Function} callback is a function that's called after getting a marker
  */
-async function getPinForAddress(address, callback) {
+async function getPinForAddress(address) {
   if (address === 'Georgia') address = 'Country of Georgia';
-  await gmaps.geocode({
-    params: {
-      address: address,
-      key: "AIzaSyDEl20cTMsc72W_TasuK5PlWYIgMrzyuAU",
-    },
-    timeout: 1000, // milliseconds
-  }).then((r) => {
-    if (r.data.results[0]) {
-      // console.log(r.data.results[0]);
-      const markerLoc = r.data.results[0].geometry.location;
-      callback(markerLoc);
-    }
-  }).catch((e) => {
-    console.log(e.response.data.error_message);
-  });
+
+  try {
+    const r = await gmaps.geocode({
+      params: {
+        address: address,
+        key: "AIzaSyDEl20cTMsc72W_TasuK5PlWYIgMrzyuAU",
+      },
+      timeout: 1000, // milliseconds
+    });
+    return get(r, 'data.results[0]') ? r.data.results[0].geometry.location : null;
+  } catch(err) {
+    console.log(get(err, 'response.data.error_message', err));
+  }
 }
 
 /**
@@ -230,12 +202,15 @@ function createUser(row) {
   if (row.country === undefined || row.country === null || row.country === '') {
     row.country = 'no-country';
   }
-  if (row.continent === undefined|| row.country === null || row.country ==='') {
-    row.country = 'not-set';
+  if (isNil(row.continent) || row.continent === '') {
+    row.continent = 'not-set';
+    if (isNil(row.country) || row.country == '') {
+      row.country = 'not-set';
+    }
   }
 
   const user = {
-    userID: row.user_pseudo_id,
+    userID: row.user,
     dateCreated: makeTimestamp(row.event_date),
     dateIngested: fireStoreAdmin.firestore.Timestamp.now(),
     sourceCampaign: row.name,
@@ -245,13 +220,13 @@ function createUser(row) {
     learnerLevel: row.event_name,
     userStatus: 'unassigned'
   };
-  console.log('created user: ' + user.userID + ' ' + row.country + ' / ' + row.region);
+  // console.log('created user: ' + user.userID + ' ' + row.country + ' / ' + row.region);
   return user;
 }
 
 /**
 * Convert a date string to a firebase Timestamp
-* @param{str} date the date string
+* @param date the date string
 * @return{Object} the firebase timestamp
 */
 function makeTimestamp(date) {
@@ -260,8 +235,7 @@ function makeTimestamp(date) {
   const day = date.slice(6);
   const dateString = year.toString()+'-'+month.toString()+'-'+day.toString();
   const parsedDate = new Date(dateString);
-  const timestamp = fireStoreAdmin.firestore.Timestamp.fromDate(parsedDate);
-  return timestamp;
+  return fireStoreAdmin.firestore.Timestamp.fromDate(parsedDate);
 }
 
 /**
@@ -285,6 +259,6 @@ function addUserToPool(user, batch) {
     countedInMasterCount: false,
     countedInRegion: false,
     countedInCampaign: false,
-  }, {merge: true});
+  }, true);
 }
 (async ()=> {await main();})();
