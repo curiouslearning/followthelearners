@@ -527,8 +527,38 @@ app.get('*', function(req, res) {
   res.render('404');
 });
 
-app.listen(3000);
+/**
+ * Check if the NODE_ENV is set to production
+ * @return {Boolean} Is production env or not
+ */
+function isProductionEnv() {
+  return process.env.NODE_ENV === 'production';
+}
 
+/**
+ * Configures app local variables that persist until the app is shutdown &
+ * can be used in Pug templates.
+ */
+function configureAppLocals() {
+  if (isProductionEnv()) {
+    app.locals.URLs = {
+      hotJarScriptPath: config.prod.hotJarScriptPath,
+    };
+  } else {
+    app.locals.URLs = {
+      hotJarScriptPath: config.dev.hotJarScriptPath,
+    };
+  }
+}
+
+/** Call this before app.listen to configure app locals for templates */
+configureAppLocals();
+
+/** Set the prod or dev port based on the NODE_ENV */
+const appPort = isProductionEnv() ? config.prod.port : config.dev.port;
+
+/** Listen to requests on appPort */
+app.listen(appPort);
 
 function validateEmail(email) {
   if (email === null || email === undefined) return false;
