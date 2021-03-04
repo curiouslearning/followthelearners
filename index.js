@@ -1,3 +1,4 @@
+const config = require('./appConfig');
 const express = require('express');
 const session = require('express-session');
 const http = require('http');
@@ -11,15 +12,35 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 const webpack = require('webpack');
+const redis = require('redis');
 const CACHETIMEOUT = 720; // the cache timeout in minutes
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
-// TODO: get more info on the cookie secure param
-app.use(session({secret: 'ftl-secret', resave: true, saveUninitialized: true,
-  cookie: {secure: false, maxAge: 10 * 60000}}));
+/** Add redis in-memory store for sessions, express-session memory leak fix */
+const RedisStore = require('connect-redis')(session);
+const redisClient = redis.createClient({
+  port: 6379,
+  host: 'localhost',
+  password: '',
+});
+
+redisClient.on('error', function(error) {
+  console.error(error);
+});
+
+/** When secure is set to true the session can only work through HTTPS,
+ * Set here to false to enable it on localhost too.
+ */
+app.use(session({
+  secret: 'ftl-secret',
+  resave: true,
+  store: new RedisStore({client: redisClient}),
+  saveUninitialized: true,
+  cookie: {secure: false, maxAge: 10 * 60000},
+}));
 
 const firestore = admin.firestore();
 const memcached = new Memcached('127.0.0.1:11211');
@@ -527,8 +548,38 @@ app.get('*', function(req, res) {
   res.render('404');
 });
 
-app.listen(3000);
+/**
+ * Check if the NODE_ENV is set to production
+ * @return {Boolean} Is production env or not
+ */
+function isProductionEnv() {
+  return process.env.NODE_ENV === 'production';
+}
 
+/**
+ * Configures app local variables that persist until the app is shutdown &
+ * can be used in Pug templates.
+ */
+function configureAppLocals() {
+  if (isProductionEnv()) {
+    app.locals.URLs = {
+      hotJarScriptPath: config.prod.hotJarScriptPath,
+    };
+  } else {
+    app.locals.URLs = {
+      hotJarScriptPath: config.dev.hotJarScriptPath,
+    };
+  }
+}
+
+/** Call this before app.listen to configure app locals for templates */
+configureAppLocals();
+
+/** Set the prod or dev port based on the NODE_ENV */
+const appPort = isProductionEnv() ? config.prod.port : config.dev.port;
+
+/** Listen to requests on appPort */
+app.listen(appPort);
 
 function validateEmail(email) {
   if (email === null || email === undefined) return false;
