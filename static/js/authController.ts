@@ -133,15 +133,15 @@ export class AuthController {
           if (methods.length > 0) {
             window.alert(`Your auth methods${methods.length}: ${methods[0]}`);
             if (methods[0] === "facebook.com") {
-              if (window.confirm('You have already authorized using a Facebook account. Click yes if you\'d like to sign in with Facebook and click no if you wish to sign in with a Google account and link to the existing one.')) {
-                this.signInWithFacebook();
-              } else {
+              if (window.confirm('You have already authorized using a Facebook account. Click yes if you\'d like to sign in with Google and link credentials and click cancel if you wish to sign in with a Facebook account.')) {
                 firebase.auth().signInWithPopup(googleAuth).then((result) => {
                   result.user!.linkAndRetrieveDataWithCredential(pendingCredential).then(function(usercred) {
                     // Google account successfully linked to the existing Firebase user.
                     window.alert('Your Google account has been successfully linked!');
                   });
                 });
+              } else {
+                this.signInWithFacebook();
               }
             }
           }
@@ -161,15 +161,15 @@ export class AuthController {
           if (methods.length > 0) {
             window.alert(`Your auth methods${methods.length}: ${methods[0]}`);
             if (methods[0] === "google.com") {
-              if (window.confirm('You have already authorized using a Facebook account. Click yes if you\'d like to sign in with Facebook and click no if you wish to sign in with a Google account and link to the existing one.')) {
-                this.signInWithGoogle();
-              } else {
+              if (window.confirm('You have already authorized using a Google account. Click yes if you\'d like to sign in with Facebook and link credentials and click cancel if you wish to sign in with a Google account.')) {
                 firebase.auth().signInWithPopup(facebookAuth).then((result) => {
                   result.user!.linkAndRetrieveDataWithCredential(pendingCredential).then(function(usercred) {
                     // Google account successfully linked to the existing Firebase user.
-                    window.alert('Your Google account has been successfully linked!');
+                    window.alert('Your Facebook account has been successfully linked!');
                   });
                 });
+              } else {
+                this.signInWithGoogle();
               }
             }
           }
