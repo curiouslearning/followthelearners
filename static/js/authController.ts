@@ -157,7 +157,10 @@ export class AuthController {
         let pendingCredential = error.credential;
         let email = error.email;
 
+        console.log('Fetch sign in methods');
+
         firebase.auth().fetchSignInMethodsForEmail(email).then((methods: any) => {
+          console.log(methods);
           if (methods.length > 0) {
             if (methods[0] === "google.com") {
               if (window.confirm('You have already authorized using a Google account. Click yes if you\'d like to sign in with Facebook and link credentials and click cancel if you wish to sign in with a Google account.')) {
@@ -177,6 +180,8 @@ export class AuthController {
             }
           }
         });
+      } else {
+        console.log("Not fetching");
       }
     });
   }
