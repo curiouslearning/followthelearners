@@ -131,7 +131,6 @@ export class AuthController {
         window.alert("Following error has occurred while attempting to authenticate using Google: " + error.code);
         firebase.auth().fetchSignInMethodsForEmail(email).then((methods: any) => {
           if (methods.length > 0) {
-            window.alert(`Your auth methods${methods.length}: ${methods[0]}`);
             if (methods[0] === "facebook.com") {
               if (window.confirm('You have already authorized using a Facebook account. Click yes if you\'d like to sign in with Google and link credentials and click cancel if you wish to sign in with a Facebook account.')) {
                 firebase.auth().signInWithPopup(googleAuth).then((result) => {
@@ -159,13 +158,16 @@ export class AuthController {
 
         firebase.auth().fetchSignInMethodsForEmail(email).then((methods: any) => {
           if (methods.length > 0) {
-            window.alert(`Your auth methods${methods.length}: ${methods[0]}`);
             if (methods[0] === "google.com") {
               if (window.confirm('You have already authorized using a Google account. Click yes if you\'d like to sign in with Facebook and link credentials and click cancel if you wish to sign in with a Google account.')) {
                 firebase.auth().signInWithPopup(facebookAuth).then((result) => {
+                  console.log('Sing in with popup');
                   result.user!.linkWithCredential(pendingCredential).then(function(usercred) {
+                    console.log('Link with credential');
                     // Google account successfully linked to the existing Firebase user.
                     window.alert('Your Facebook account has been successfully linked!');
+                  }).catch((reason) => {
+                    console.log('Reason: ', reason);
                   });
                 });
               } else {
