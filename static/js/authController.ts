@@ -152,6 +152,7 @@ export class AuthController {
   public signInWithFacebook(): void {
     const facebookAuth = new firebase.auth.FacebookAuthProvider();
     firebase.auth().signInWithPopup(facebookAuth).catch((error) => {
+      console.log(error);
       if (error.code === 'auth/account-exists-with-different-credential') {
         let pendingCredential = error.credential;
         let email = error.email;
