@@ -151,6 +151,7 @@ export class AuthController {
 
   public signInWithFacebook(): void {
     const facebookAuth = new firebase.auth.FacebookAuthProvider();
+    const googleAuth = new firebase.auth.GoogleAuthProvider();
     firebase.auth().signInWithPopup(facebookAuth).catch((error) => {
       console.log(error);
       if (error.code === 'auth/account-exists-with-different-credential') {
@@ -164,7 +165,7 @@ export class AuthController {
           if (methods.length > 0) {
             if (methods[0] === "google.com") {
               if (window.confirm('You have already authorized using a Google account. Click yes if you\'d like to sign in with Facebook and link credentials and click cancel if you wish to sign in with a Google account.')) {
-                firebase.auth().signInWithPopup(facebookAuth).then((result) => {
+                firebase.auth().signInWithPopup(googleAuth).then((result) => {
                   console.log('Sing in with popup');
                   result.user!.linkWithCredential(pendingCredential).then(function(usercred) {
                     console.log('Link with credential');
