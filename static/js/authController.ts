@@ -124,6 +124,7 @@ export class AuthController {
 
   public signInWithGoogle(): void {
     const googleAuth = new firebase.auth.GoogleAuthProvider();
+    const facebookAuth = new firebase.auth.FacebookAuthProvider();
     firebase.auth().signInWithPopup(googleAuth).catch((error) => {
       if (error.code === 'auth/account-exists-with-different-credential') {
         let pendingCredential = error.credential;
@@ -133,10 +134,12 @@ export class AuthController {
           if (methods.length > 0) {
             if (methods[0] === "facebook.com") {
               if (window.confirm('You have already authorized using a Facebook account. Click yes if you\'d like to sign in with Google and link credentials and click cancel if you wish to sign in with a Facebook account.')) {
-                firebase.auth().signInWithPopup(googleAuth).then((result) => {
+                firebase.auth().signInWithPopup(facebookAuth).then((result) => {
                   result.user!.linkWithCredential(pendingCredential).then(function(usercred) {
                     // Google account successfully linked to the existing Firebase user.
                     window.alert('Your Google account has been successfully linked!');
+                  }).catch((reason) => {
+                    console.log("Reason: ", reason);
                   });
                 });
               } else {
@@ -153,12 +156,9 @@ export class AuthController {
     const facebookAuth = new firebase.auth.FacebookAuthProvider();
     const googleAuth = new firebase.auth.GoogleAuthProvider();
     firebase.auth().signInWithPopup(facebookAuth).catch((error) => {
-      console.log(error);
       if (error.code === 'auth/account-exists-with-different-credential') {
         let pendingCredential = error.credential;
         let email = error.email;
-
-        console.log('Fetch sign in methods');
 
         firebase.auth().fetchSignInMethodsForEmail(email).then((methods: any) => {
           console.log(methods);
@@ -166,9 +166,7 @@ export class AuthController {
             if (methods[0] === "google.com") {
               if (window.confirm('You have already authorized using a Google account. Click yes if you\'d like to sign in with Facebook and link credentials and click cancel if you wish to sign in with a Google account.')) {
                 firebase.auth().signInWithPopup(googleAuth).then((result) => {
-                  console.log('Sing in with popup');
                   result.user!.linkWithCredential(pendingCredential).then(function(usercred) {
-                    console.log('Link with credential');
                     // Google account successfully linked to the existing Firebase user.
                     window.alert('Your Facebook account has been successfully linked!');
                   }).catch((reason) => {
@@ -181,8 +179,6 @@ export class AuthController {
             }
           }
         });
-      } else {
-        console.log("Not fetching");
       }
     });
   }
