@@ -174,9 +174,10 @@ async function updateCounts(counts) {
   const updateBuffer = Timestamp.fromDate(new Date(Date.now() - DAYINMS/2));
   await firestore.runTransaction((transaction) => {
     return transaction.get(counts.master.path).then(async (doc) => {
-      if (doc.updateTime >= updateBuffer) {
+      if ((doc.createTime.toMillis() < (Date.now() - HOURINMS)) &&
+        (doc.updateTime >= updateBuffer)) {
         return new Promise((resolve) => {
-          resolve('did not update');
+          resolve('did not update master count');
         });
       }
       console.log(`adding ${counts.master.newLearners} learners to master count`);
@@ -184,10 +185,13 @@ async function updateCounts(counts) {
       let data = doc.data();
       data.allLearnersCount += counts.master.newLearners;
       data.allLearnersWithDoNotTrack += counts.master.dntLearners;
-      return await transaction.set(counts.master.path, data, {merge: true});
+      await transaction.set(counts.master.path, data, {merge: true});
+      return new Promise((resolve) => {
+        resolve('successfully updated master count');
+      });
     });
-  }).then(() => {
-    console.log('successfully updated master count');
+  }).then((res) => {
+    console.log(res);
   }).catch((err) => {
     console.error(`unable to update master counts. Encountered error: ${err}`);
   });
@@ -218,7 +222,7 @@ async function updateCounts(counts) {
     return transaction.getAll(...paths).then((docs) => {
       docs.forEach((doc) => {
         if (doc.exists &&
-          (doc.createTime.getMillis() >= (Date.now() - HOURINMS) ||
+          (doc.createTime.toMillis() >= (Date.now() - HOURINMS) ||
           doc.updateTime < updateBuffer)) {
           let data = doc.data();
           const index = campaigns.findIndex(
@@ -255,7 +259,7 @@ async function updateCountries(countries, updateBuffer) {
     return transaction.getAll(...paths).then((docs) => {
       docs.forEach((doc) => {
         if (doc.exists &&
-          (doc.createTime.getMillis() >= (Date.now() - HOURINMS) ||
+          (doc.createTime.toMillis() >= (Date.now() - HOURINMS) ||
           doc.updateTime < updateBuffer)) {
           let data = doc.data();
           const index = countries.findIndex((x) => x.country === data.country);
@@ -263,9 +267,14 @@ async function updateCountries(countries, updateBuffer) {
             const update = countries[index];
             console.log(`adding ${update.newLearners} learners to ${data.country}`);
             update.regions.forEach((region) => {
-              let rIndex = data.regions.findIndex(
-                  (x) => x.region === region.region
-              );
+              let rIndex = -1;
+              if (!isNil(data.regions)) {
+                rIndex = data.regions.findIndex(
+                    (x) => x.region === region.region
+                );
+              } else {
+                data['regions'] = [];
+              }
               if (rIndex < 0) {
                 data.regions.push({
                   region: region.region,
@@ -305,7 +314,8 @@ async function insertLocation(row) {
     return;
   }
 
-  if(doc.exists && doc.data().pin.lat !== 0 && doc.data().pin.lng !== 0) {
+  if (doc.exists && !isNil(doc.data().pin) &&
+    doc.data().pin.lat !== 0 && doc.data().pin.lng !== 0) {
     countriesAddedOrExist.push(row.country);
     return;
   }
