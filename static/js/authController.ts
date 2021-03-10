@@ -29,6 +29,15 @@ export class AuthController {
   private signInButtonIconSignedInClass: string = "";
   private signInButtonIconSignedOutClass: string = "";
 
+  private methodGoogleValue: string = '';
+  private methodFacebookValue: string = '';
+  private errorAccountExists: string = '';
+  private errorPopupBlocked: string = '';
+  private infoAuthConfirmText: string = '';
+  private infoPopupBlockedText: string = '';
+  private googleAccountLinkedText: string = '';
+  private facebookAccountLinkedText: string = '';
+
   public signInCallback: () => void;
   public signOutCallback: () => void;
 
@@ -56,6 +65,15 @@ export class AuthController {
       this.config.signInButtonIconSignedInClass;
     this.signInButtonIconSignedOutClass =
       this.config.signInButtonIconSignedOutClass;
+
+    this.methodGoogleValue = this.config.authMethodGoogleValue;
+    this.methodFacebookValue = this.config.authMethodFacebookValue;
+    this.errorAccountExists = this.config.authErrorAccountExists;
+    this.errorPopupBlocked = this.config.authErrorPopupBlocked;
+    this.infoAuthConfirmText = this.config.authInfoAuthConfirmText;
+    this.infoPopupBlockedText = this.config.authInfoPopupBlockedText;
+    this.googleAccountLinkedText = this.config.authGoogleAccountLinkedText;
+    this.facebookAccountLinkedText = this.config.authFacebookAccountLinkedText;
       
     const firebaseConfig = {
       apiKey: "AIzaSyDEl20cTMsc72W_TasuK5PlWYIgMrzyuAU",
@@ -124,17 +142,63 @@ export class AuthController {
 
   public signInWithGoogle(): void {
     const googleAuth = new firebase.auth.GoogleAuthProvider();
-    
+    const facebookAuth = new firebase.auth.FacebookAuthProvider();
     firebase.auth().signInWithPopup(googleAuth).catch((error) => {
-      window.alert("Following error has occurred while attempting to authenticate using Google: " + error.code);
-
+      if (error.code === this.errorAccountExists) {
+        let pendingCredential = error.credential;
+        let email = error.email;
+        firebase.auth().fetchSignInMethodsForEmail(email).then((methods: any) => {
+          if (methods.length > 0) {
+            if (methods[0] === this.methodFacebookValue) {
+              if (window.confirm(this.infoAuthConfirmText)) {
+                firebase.auth().signInWithPopup(facebookAuth).then((result) => {
+                  result.user!.linkWithCredential(pendingCredential).then((usercred) => {
+                    window.alert(this.googleAccountLinkedText);
+                  }).catch((reason) => {
+                    console.log("Reason: ", reason);
+                  });
+                });
+              } else {
+                this.signInWithFacebook();
+              }
+            }
+          }
+        });
+      } else if (error.code === this.errorPopupBlocked) {
+        window.alert(this.infoPopupBlockedText);
+      }
     });
   }
 
   public signInWithFacebook(): void {
     const facebookAuth = new firebase.auth.FacebookAuthProvider();
+    const googleAuth = new firebase.auth.GoogleAuthProvider();
     firebase.auth().signInWithPopup(facebookAuth).catch((error) => {
-      window.alert("Following error has occurred while attempting to authenticate using Facebook: " + error.code);
+      if (error.code === this.errorAccountExists) {
+        let pendingCredential = error.credential;
+        let email = error.email;
+
+        firebase.auth().fetchSignInMethodsForEmail(email).then((methods: any) => {
+          console.log(methods);
+          if (methods.length > 0) {
+            if (methods[0] === this.methodGoogleValue) {
+              if (window.confirm(this.infoAuthConfirmText)) {
+                firebase.auth().signInWithPopup(googleAuth).then((result) => {
+                  result.user!.linkWithCredential(pendingCredential).then((usercred) => {
+                    window.alert(this.facebookAccountLinkedText);
+                  }).catch((reason) => {
+                    console.log('Reason: ', reason);
+                  });
+                });
+              } else {
+                this.signInWithGoogle();
+              }
+            }
+          }
+        });
+      } else if (error.code === this.errorPopupBlocked) {
+        window.alert(this.infoPopupBlockedText);
+      }
     });
   }
 

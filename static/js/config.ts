@@ -82,7 +82,7 @@ export class Config {
   public readonly alLocalStorageFetchDateKey: string = 'ftl-all-learners-fetch-date';
   public readonly alFetchIntervalInDays: number = 1;
 
-  /* For Auth */
+  /* Auth */
   public readonly tokenTimeout: number = 3600001;
   public readonly signInTextButtonTextId: string = '#sign-in-text';
   public readonly signInButtonIconId: string = "#auth-button-icon";
@@ -90,6 +90,14 @@ export class Config {
   public readonly signInButtonSignedOutTextValue: string = "Sign In";
   public readonly signInButtonIconSignedInClass: string = "fa-sign-out-alt";
   public readonly signInButtonIconSignedOutClass: string = "fa-sign-in-alt";
+  public readonly authMethodGoogleValue: string = "google.com";
+  public readonly authMethodFacebookValue: string = "facebook.com";
+  public readonly authErrorAccountExists: string = "auth/account-exists-with-different-credential";
+  public readonly authErrorPopupBlocked: string = "auth/popup-blocked";
+  public readonly authInfoAuthConfirmText: string = "You have already authorized using a Facebook account. Click yes if you\'d like to sign in with Google and link credentials and click cancel if you wish to sign in with a Facebook account.";
+  public readonly authInfoPopupBlockedText: string = "Please disable popup blocking and retry to authenticate.";
+  public readonly authGoogleAccountLinkedText: string = "Your Google account has been successfully linked.";
+  public readonly authFacebookAccountLinkedText: string = "Your Facebook account has been successfully linked.";
 
   /* Sign In Modal */
   public readonly signInModalId: string = '#donor-email-modal';
