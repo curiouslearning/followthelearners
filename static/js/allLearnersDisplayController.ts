@@ -70,7 +70,7 @@ export class AllLearnersDisplayController extends MapDisplayController {
       } else {
         this.learnersData = data.data;
         window.localStorage.setItem(this.dataLocalStorageKey, JSON.stringify(this.learnersData));
-        window.localStorage.setItem(this.dataLocalStorageFetchDateKey, JSON.stringify(new Date().toString()));
+        window.localStorage.setItem(this.dataLocalStorageFetchDateKey, JSON.stringify(new Date(this.learnersData.updateTime.toMillis()).toString());
         callback(true);
       }
     });
