@@ -3,14 +3,14 @@ if (admin.apps.length === 0) {
   admin.initializeApp();
 }
 const DAYINMS = 86400000;
-const interval = 1;
+const interval = 0;
 const firestore = admin.firestore();
 const Timestamp = admin.firestore.Firestore.Timestamp;
 
 (async() => {await main();})();
 
 async function main() {
-  const rawDate = new Date(Date.now() - (DAYINMS * (1 + interval)));
+  const rawDate = new Date(Date.now() - (DAYINMS * interval));
   const min = new Date(rawDate);
   min.setHours(0, 0, 0, 0);
   const max = new Date(rawDate);
@@ -19,8 +19,8 @@ async function main() {
   console.log(`min: ${min.toISOString()}`);
   console.log(`max: ${max.toISOString()}`);
   const dbRef = firestore.collection('user_pool');
-  await dbRef.where('dateCreated', '>=', Timestamp.fromDate(min))
-      .where('dateCreated', '<=', Timestamp.fromDate(max))
+  await dbRef.where('dateIngested', '>=', Timestamp.fromDate(min))
+      .where('dateIngested', '<=', Timestamp.fromDate(max))
       .get().then((snap) => {
         console.log(`found ${snap.size} learners`);
       });
