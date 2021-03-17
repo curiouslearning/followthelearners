@@ -425,13 +425,20 @@ app.get('/getDonorCampaigns', function(req, res) {
       res.render('summary');
     }
     const donations = [];
+    let mostRecentUpdate = -1;
     snapshot.forEach((doc) => {
       donations.push(doc.data);
+      if (mostRecentUpdate === -1 || mostRecentUpdate < doc.updateTime) {
+        mostRecentUpdate = doc.updateTime;
+      }
     });
-    return donations;
+    return {donations: donations, updateTime: mostRecentUpdate};
   }).then((donations)=>{
     // res.render('summary', {campaigns: donations});
-    res.json({campaigns: donations});
+    res.json({
+      campaigns: donations.donations,
+      updateTime: donations.updateTime,
+    });
   }).catch((err)=>{
     console.error(err);
   });
@@ -468,7 +475,11 @@ app.get('/yourLearners', function(req, res) {
     if (donations !== undefined) {
       const promises = [];
       let locationData = [];
+      let mostRecentUpdate = -1;
       donations.forEach((donation) => {
+        if (mostRecentUpdate === -1 || mostRecentUpdate < donation.updateTime) {
+          mostRecentUpdate = doc.updateTime;
+        }
         donation.data.countries.forEach((country)=>{
           let objIndex = findObjectIndexWithProperty(
               locationData, 'country', country.country);
@@ -480,7 +491,11 @@ app.get('/yourLearners', function(req, res) {
       });
       Promise.all(promises).then((values) => {
         locationData = values.filter((value)=> value !== undefined);
-        res.json({campaignData: donations, locationData: locationData});
+        res.json({
+          campaignData: donations,
+          locationData: locationData,
+          updateTime: mostRecentUpdate,
+        });
       });
     } else {
       res.json({err: 'Oops! We couldn\'t find that email in our database. If you\'d like to make an account with us, make a donation!\n If you\'ve already made an account and cannot access your learners, please email followthelearners@curiouslearning.org. '});
@@ -521,10 +536,12 @@ app.get('/allLearners', async function(req, res) {
     });
     resData.campaignData.filter((country) => country != undefined);
     resData.locationData.filter((country) => country != undefined);
-    resData['masterCounts'] = await firestore.collection('aggregate_data')
+    const masterData = await firestore.collection('aggregate_data')
         .doc('data').get().then((doc)=>{
-          return doc.data();
+          return doc;
         });
+    resData['masterCounts'] = masterData.data();
+    resData['updateTime'] = masterData.updateTime;
     res.json({data: resData});
   }).catch((err)=>{
     console.error(err);
@@ -642,15 +659,15 @@ function compileLearnerDataForCountry(country) {
       console.log('country has no learners!');
       return undefined;
     }
-    const data = doc.data();
-    return extractLearnerDataForCountry(data);
+    return extractLearnerDataForCountry(doc);
   }).catch((err)=>{
     console.error(err);
   });
 }
 
-function extractLearnerDataForCountry(data) {
+function extractLearnerDataForCountry(doc) {
   const filteredRegions =[];
+  const data = doc.data();
   data.regions.forEach((region)=>{
     if (region.hasOwnProperty('learnerCount') && region.learnerCount > 0) {
       filteredRegions.push({
@@ -660,6 +677,7 @@ function extractLearnerDataForCountry(data) {
     }
   });
   return {
+    updateTime: doc.updateTime,
     country: data.country,
     learnerCount: data.learnerCount,
     regions: filteredRegions,
@@ -673,15 +691,15 @@ function compileLocationDataForCountry(country) {
       console.log('no country level document exists for ', country);
       return undefined;
     }
-    const data = doc.data();
-    return extractLocationDataFromCountryDoc(data);
+    return extractLocationDataFromCountryDoc(doc);
   }).catch((err)=>{
     console.error(err);
   });
 }
 
-function extractLocationDataFromCountryDoc(data) {
+function extractLocationDataFromCountryDoc(doc) {
   const filteredRegions = [];
+  const data = doc.data();
   data.regions.forEach((region)=>{
     if (region.hasOwnProperty('learnerCount') &&
       region.hasOwnProperty('streetViews')) {
@@ -694,6 +712,7 @@ function extractLocationDataFromCountryDoc(data) {
     }
   });
   return {
+    updateTime: doc.updateTime,
     country: data.country,
     pin: data.pin,
     facts: data.facts,
@@ -734,7 +753,7 @@ function getDonations(donorID) {
       const data = doc.data();
       data.startDate = dateFormat.asString('MM / dd / yyyy',
           data.startDate.toDate());
-      donations.push({name: doc.id, data: data});
+      donations.push({name: doc.id, data: data, updateTime: doc.updateTime});
     });
     return donations;
   }).catch((err)=>{
