@@ -9,6 +9,7 @@ import { SignInModal } from "./signInModal";
 import { DonateModal } from "./donateModal";
 import { Navbar } from "./navbar";
 import { MailchimpModal } from "./mailchimpModal";
+import { NewDonorModal } from "./newDonorModal";
 
 /**
  * App class that consists of different controllers for different functionlity
@@ -23,6 +24,7 @@ export class App {
   private signInModal: SignInModal;
   private donateModal: DonateModal;
   private mailchimpModal: MailchimpModal;
+  private newDonorModal: NewDonorModal;
   private hamburgerMenu: HamburgerMenu;
   private navbar: Navbar;
 
@@ -38,6 +40,7 @@ export class App {
     this.signInModal = new SignInModal(this.config, this.authController);
     this.donateModal = new DonateModal(this.config);
     this.mailchimpModal = new MailchimpModal(this.config);
+    this.newDonorModal = new NewDonorModal(this.config);
     this.navbar = new Navbar(this.config, this.hamburgerMenu);
     this.hamburgerMenu.close();
   }
@@ -71,6 +74,15 @@ export class App {
     });
     this.donateModal.init();
     this.mailchimpModal.init();
+    this.newDonorModal.init();
+    this.newDonorModal.SetOnDonateNowButtonClickListener(() => {
+      this.newDonorModal.close();
+      this.TabSelector.toggleWithName('tab-campaigns');
+    });
+    this.newDonorModal.SetOnSignOutButtonClickListener(() => {
+      this.newDonorModal.close();
+      this.authController.signOut();
+    });
 
     this.hamburgerMenu.init();
 
@@ -99,15 +111,23 @@ export class App {
       if (!this.authController.isAuthenticated() && btnId.includes('tab-yl')) {
         this.TabSelector.preventDefault();
         this.signInModal.open();
+      } else if (this.authController.isAuthenticated() && btnId.includes('tab-yl')) {
+        if (!this.yourLearnersDisplayController.isInitializedAndHasData()) {
+          this.newDonorModal.open();
+        }
       }
     });
 
     this.authController.addEventListener('signIn', () => {
       if (this.authController.isAuthenticated()) {
-        this.yourLearnersDisplayController.fetchData(
-          `/yourLearners?email=${this.authController.getEmail()!}&token=${this.authController.getToken()!}`,
+        const url = `/yourLearners?email=${this.authController.getEmail()!}&token=${this.authController.getToken()!}`;
+        this.yourLearnersDisplayController.fetchData(url,
           (hasData) => {
+            console.log("Has Data: ", hasData);
             if (hasData) {
+              this.TabSelector.toggleWithName('tab-your-learners');
+              this.yourLearnersDisplayController.displayData();
+            } else {
               this.TabSelector.toggleWithName('tab-your-learners');
               this.yourLearnersDisplayController.displayData();
             }
