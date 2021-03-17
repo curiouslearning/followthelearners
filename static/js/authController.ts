@@ -200,22 +200,20 @@ export class AuthController {
         let email = error.email;
 
         firebase.auth().fetchSignInMethodsForEmail(email).then((methods: any) => {
-          console.log(methods);
           if (methods.length > 0) {
-            // if (methods[0] === this.methodGoogleValue) {
-            //   if (window.confirm(this.infoAuthFacebookConfirmText)) {
-            //     firebase.auth().signInWithPopup(googleAuth).then((result) => {
-            //       result.user!.linkWithCredential(pendingCredential).then((usercred) => {
-            //         window.alert(this.facebookAccountLinkedText);
-            //       }).catch((reason) => {
-            //         console.log('Reason: ', reason);
-            //       });
-            //     });
-            //   } else {
-            //     this.signInWithGoogle();
-            //   }
-            // } else 
-            if (methods[0] === this.methodEmailLinkValue || methods[1] === this.methodEmailLinkValue) {
+            if (methods[0] === this.methodGoogleValue) {
+              if (window.confirm(this.infoAuthFacebookConfirmText)) {
+                firebase.auth().signInWithPopup(googleAuth).then((result) => {
+                  result.user!.linkWithCredential(pendingCredential).then((usercred) => {
+                    window.alert(this.facebookAccountLinkedText);
+                  }).catch((reason) => {
+                    console.log('Reason: ', reason);
+                  });
+                });
+              } else {
+                this.signInWithGoogle();
+              }
+            } else if (methods[0] === this.methodEmailLinkValue) {
               window.alert(this.infoEmailLinkFacebookText);
               window.localStorage.setItem('fbcr', JSON.stringify(pendingCredential));
             }
@@ -259,13 +257,13 @@ export class AuthController {
           this.currentDonorEmail = email!;
           window.localStorage.removeItem('emailForSignIn');
           window.history.replaceState({}, document.title, '/');
-          this.refreshToken();
           let googleCred = JSON.parse(window.localStorage.getItem('gcr')!);
           let fbCred = JSON.parse(window.localStorage.getItem('fbcr')!);
           if (googleCred) {
             let googleCredToken = firebase.auth.GoogleAuthProvider.credential(googleCred.oauthAccessToken);
             result.user!.linkWithCredential(googleCredToken).then((usercred) => {
                 window.alert(this.googleAccountLinkedText);
+                window.localStorage.removeItem('gcr');
               }).catch((reason) => {
                 console.log('Reason: ', reason);
               });
@@ -274,10 +272,12 @@ export class AuthController {
             let fbCredToken = firebase.auth.FacebookAuthProvider.credential(fbCred.oauthAccessToken);
             result.user!.linkWithCredential(fbCredToken).then((usercred) => {
                 window.alert(this.facebookAccountLinkedText);
+                window.localStorage.removeItem('fbcr');
               }).catch((reason) => {
                 console.log('Reason: ', reason);
               });
           }
+          this.refreshToken();
         }).catch((err) => {
           window.localStorage.removeItem('emailForSignIn');
           window.history.replaceState({}, document.title, '/');
