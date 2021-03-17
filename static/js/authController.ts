@@ -200,7 +200,7 @@ export class AuthController {
         firebase.auth().fetchSignInMethodsForEmail(email).then((methods: any) => {
           console.log(methods);
           if (methods.length > 0) {
-            if (methods[0] === this.methodGoogleValue) {
+            if (methods[1] === this.methodGoogleValue) {
               if (window.confirm(this.infoAuthConfirmText)) {
                 firebase.auth().signInWithPopup(googleAuth).then((result) => {
                   result.user!.linkWithCredential(pendingCredential).then((usercred) => {
@@ -212,7 +212,7 @@ export class AuthController {
               } else {
                 this.signInWithGoogle();
               }
-            } else if (methods[0] === this.methodEmailLinkValue) {
+            } else if (methods[1] === this.methodEmailLinkValue) {
               window.alert(this.infoEmailLinkFacebookText);
               window.localStorage.setItem('fbcr', pendingCredential);
             }
