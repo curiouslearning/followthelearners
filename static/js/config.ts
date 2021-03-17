@@ -95,7 +95,8 @@ export class Config {
   public readonly authMethodEmailLinkValue: string = "emaillink";
   public readonly authErrorAccountExists: string = "auth/account-exists-with-different-credential";
   public readonly authErrorPopupBlocked: string = "auth/popup-blocked";
-  public readonly authInfoAuthConfirmText: string = "You have already authorized using a Facebook account. Click yes if you\'d like to sign in with Google and link credentials and click cancel if you wish to sign in with a Facebook account.";
+  public readonly authInfoAuthGoogleConfirmText: string = "You have already authorized using a Facebook account. Click yes if you\'d like to sign in with Facebook and link credentials and click cancel if you wish to sign in with a Google account."
+  public readonly authInfoAuthFacebookConfirmText: string = "You have already authorized using a Google account. Click yes if you\'d like to sign in with Google and link credentials and click cancel if you wish to sign in with a Facebook account.";
   public readonly authInfoPopupBlockedText: string = "Please disable popup blocking and retry to authenticate.";
   public readonly authGoogleAccountLinkedText: string = "Your Google account has been successfully linked.";
   public readonly authFacebookAccountLinkedText: string = "Your Facebook account has been successfully linked.";

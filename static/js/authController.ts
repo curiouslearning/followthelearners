@@ -34,7 +34,8 @@ export class AuthController {
   private methodEmailLinkValue: string = '';
   private errorAccountExists: string = '';
   private errorPopupBlocked: string = '';
-  private infoAuthConfirmText: string = '';
+  private infoAuthGoogleConfirmText: string = '';
+  private infoAuthFacebookConfirmText: string = '';
   private infoPopupBlockedText: string = '';
   private googleAccountLinkedText: string = '';
   private facebookAccountLinkedText: string = '';
@@ -75,7 +76,8 @@ export class AuthController {
     this.methodEmailLinkValue = this.config.authMethodEmailLinkValue;
     this.errorAccountExists = this.config.authErrorAccountExists;
     this.errorPopupBlocked = this.config.authErrorPopupBlocked;
-    this.infoAuthConfirmText = this.config.authInfoAuthConfirmText;
+    this.infoAuthGoogleConfirmText = this.config.authInfoAuthGoogleConfirmText;
+    this.infoAuthFacebookConfirmText = this.config.authInfoAuthFacebookConfirmText;
     this.infoPopupBlockedText = this.config.authInfoPopupBlockedText;
     this.googleAccountLinkedText = this.config.authGoogleAccountLinkedText;
     this.facebookAccountLinkedText = this.config.authFacebookAccountLinkedText;
@@ -162,7 +164,7 @@ export class AuthController {
         firebase.auth().fetchSignInMethodsForEmail(email).then((methods: any) => {
           if (methods.length > 0) {
             if (methods[0] === this.methodFacebookValue) {
-              if (window.confirm(this.infoAuthConfirmText)) {
+              if (window.confirm(this.infoAuthGoogleConfirmText)) {
                 
                 firebase.auth().signInWithPopup(facebookAuth).then((result) => {
                   result.user!.linkWithCredential(pendingCredential).then((usercred) => {
@@ -201,7 +203,7 @@ export class AuthController {
           console.log(methods);
           if (methods.length > 0) {
             if (methods[0] === this.methodGoogleValue) {
-              if (window.confirm(this.infoAuthConfirmText)) {
+              if (window.confirm(this.infoAuthFacebookConfirmText)) {
                 firebase.auth().signInWithPopup(googleAuth).then((result) => {
                   result.user!.linkWithCredential(pendingCredential).then((usercred) => {
                     window.alert(this.facebookAccountLinkedText);
