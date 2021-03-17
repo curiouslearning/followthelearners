@@ -202,19 +202,20 @@ export class AuthController {
         firebase.auth().fetchSignInMethodsForEmail(email).then((methods: any) => {
           console.log(methods);
           if (methods.length > 0) {
-            if (methods[1] === this.methodGoogleValue) {
-              if (window.confirm(this.infoAuthFacebookConfirmText)) {
-                firebase.auth().signInWithPopup(googleAuth).then((result) => {
-                  result.user!.linkWithCredential(pendingCredential).then((usercred) => {
-                    window.alert(this.facebookAccountLinkedText);
-                  }).catch((reason) => {
-                    console.log('Reason: ', reason);
-                  });
-                });
-              } else {
-                this.signInWithGoogle();
-              }
-            } else if (methods[1] === this.methodEmailLinkValue) {
+            // if (methods[1] === this.methodGoogleValue) {
+            //   if (window.confirm(this.infoAuthFacebookConfirmText)) {
+            //     firebase.auth().signInWithPopup(googleAuth).then((result) => {
+            //       result.user!.linkWithCredential(pendingCredential).then((usercred) => {
+            //         window.alert(this.facebookAccountLinkedText);
+            //       }).catch((reason) => {
+            //         console.log('Reason: ', reason);
+            //       });
+            //     });
+            //   } else {
+            //     this.signInWithGoogle();
+            //   }
+            // } else 
+            if (methods[0] === this.methodEmailLinkValue || methods[1] === this.methodEmailLinkValue) {
               window.alert(this.infoEmailLinkFacebookText);
               window.localStorage.setItem('fbcr', pendingCredential);
             }
