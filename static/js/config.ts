@@ -92,7 +92,7 @@ export class Config {
   public readonly signInButtonIconSignedOutClass: string = "fa-sign-in-alt";
   public readonly authMethodGoogleValue: string = "google.com";
   public readonly authMethodFacebookValue: string = "facebook.com";
-  public readonly authMethodEmailLinkValue: string = "emaillink";
+  public readonly authMethodEmailLinkValue: string = "emailLink";
   public readonly authErrorAccountExists: string = "auth/account-exists-with-different-credential";
   public readonly authErrorPopupBlocked: string = "auth/popup-blocked";
   public readonly authInfoAuthGoogleConfirmText: string = "You have already authorized using a Facebook account. Click yes if you\'d like to sign in with Facebook and link credentials and click cancel if you wish to sign in with a Google account."
