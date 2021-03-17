@@ -263,14 +263,16 @@ export class AuthController {
           let googleCred = JSON.parse(window.localStorage.getItem('gcr')!);
           let fbCred = JSON.parse(window.localStorage.getItem('fbcr')!);
           if (googleCred) {
-            result.user!.linkWithCredential(googleCred).then((usercred) => {
+            let googleCredToken = firebase.auth.GoogleAuthProvider.credential(googleCred.oauthAccessToken);
+            result.user!.linkWithCredential(googleCredToken).then((usercred) => {
                 window.alert(this.googleAccountLinkedText);
               }).catch((reason) => {
                 console.log('Reason: ', reason);
               });
           }
           if (fbCred) {
-            result.user!.linkWithCredential(fbCred).then((usercred) => {
+            let fbCredToken = firebase.auth.FacebookAuthProvider.credential(fbCred.oauthAccessToken);
+            result.user!.linkWithCredential(fbCredToken).then((usercred) => {
                 window.alert(this.facebookAccountLinkedText);
               }).catch((reason) => {
                 console.log('Reason: ', reason);
