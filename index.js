@@ -452,7 +452,15 @@ app.get('/isUser', function(req, res) {
 
 app.get('/yourLearners', function(req, res) {
   let donorID = '';
-  admin.auth().verifyIdToken(req.query.token).then((decodedToken)=>{
+  let token = req.query.token;
+  if (token) {
+    token = token.trim();
+    if (token[token.length - 1] === '?') {
+      // Remove the trailing question mark if it exists
+      token = token.slice(0, -1);
+    }
+  }
+  admin.auth().verifyIdToken(token).then((decodedToken)=>{
     return decodedToken.uid;
   }).then((uid)=>{
     return getDonations(uid);
