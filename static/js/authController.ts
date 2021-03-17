@@ -217,7 +217,8 @@ export class AuthController {
             // } else 
             if (methods[0] === this.methodEmailLinkValue || methods[1] === this.methodEmailLinkValue) {
               window.alert(this.infoEmailLinkFacebookText);
-              window.localStorage.setItem('fbcr', pendingCredential);
+              console.log(pendingCredential);
+              window.localStorage.setItem('fbcr', JSON.stringify(pendingCredential));
             }
           }
         });
