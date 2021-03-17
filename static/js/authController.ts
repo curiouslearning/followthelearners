@@ -178,7 +178,7 @@ export class AuthController {
               }
             } else if (methods[0] === this.methodEmailLinkValue) {
               window.alert(this.infoEmailLinkGoogleText);
-              window.localStorage.setItem('gcr', pendingCredential);
+              window.localStorage.setItem('gcr', JSON.stringify(pendingCredential));
             }
           }
         });
@@ -202,7 +202,7 @@ export class AuthController {
         firebase.auth().fetchSignInMethodsForEmail(email).then((methods: any) => {
           console.log(methods);
           if (methods.length > 0) {
-            // if (methods[1] === this.methodGoogleValue) {
+            // if (methods[0] === this.methodGoogleValue) {
             //   if (window.confirm(this.infoAuthFacebookConfirmText)) {
             //     firebase.auth().signInWithPopup(googleAuth).then((result) => {
             //       result.user!.linkWithCredential(pendingCredential).then((usercred) => {
@@ -217,7 +217,6 @@ export class AuthController {
             // } else 
             if (methods[0] === this.methodEmailLinkValue || methods[1] === this.methodEmailLinkValue) {
               window.alert(this.infoEmailLinkFacebookText);
-              console.log(pendingCredential);
               window.localStorage.setItem('fbcr', JSON.stringify(pendingCredential));
             }
           }
@@ -261,6 +260,22 @@ export class AuthController {
           window.localStorage.removeItem('emailForSignIn');
           window.history.replaceState({}, document.title, '/');
           this.refreshToken();
+          let googleCred = JSON.parse(window.localStorage.getItem('gcr')!);
+          let fbCred = JSON.parse(window.localStorage.getItem('fbcr')!);
+          if (googleCred) {
+            result.user!.linkWithCredential(googleCred).then((usercred) => {
+                window.alert(this.googleAccountLinkedText);
+              }).catch((reason) => {
+                console.log('Reason: ', reason);
+              });
+          }
+          if (fbCred) {
+            result.user!.linkWithCredential(fbCred).then((usercred) => {
+                window.alert(this.facebookAccountLinkedText);
+              }).catch((reason) => {
+                console.log('Reason: ', reason);
+              });
+          }
         }).catch((err) => {
           window.localStorage.removeItem('emailForSignIn');
           window.history.replaceState({}, document.title, '/');
