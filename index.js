@@ -667,7 +667,7 @@ function compileLearnerDataForCountry(country) {
 
 function extractLearnerDataForCountry(doc) {
   const filteredRegions =[];
-  const data = doc.data();
+  const data = doc;
   data.regions.forEach((region)=>{
     if (region.hasOwnProperty('learnerCount') && region.learnerCount > 0) {
       filteredRegions.push({
@@ -699,14 +699,14 @@ function compileLocationDataForCountry(country) {
 
 function extractLocationDataFromCountryDoc(doc) {
   const filteredRegions = [];
-  const data = doc.data();
+  const data = doc;
   data.regions.forEach((region)=>{
     if (region.hasOwnProperty('learnerCount') &&
       region.hasOwnProperty('streetViews')) {
       filteredRegions.push({
         country: data.country,
         region: region.region,
-        pin: region.pin === undefined ? { lat: 0, lng: 0 } : region.pin,
+        pin: region.pin === undefined ? {lat: 0, lng: 0} : region.pin,
         streetViews: region.streetViews,
       });
     }
