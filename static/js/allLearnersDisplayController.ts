@@ -1,3 +1,4 @@
+import { TimestampFormat } from "./admin/cloudLogReader";
 import { Config } from "./config";
 import { Helpers } from "./helpers";
 import { MapDisplayController } from "./mapDisplayController";
@@ -70,7 +71,7 @@ export class AllLearnersDisplayController extends MapDisplayController {
       } else {
         this.learnersData = data.data;
         window.localStorage.setItem(this.dataLocalStorageKey, JSON.stringify(this.learnersData));
-        window.localStorage.setItem(this.dataLocalStorageFetchDateKey, JSON.stringify(new Date(this.learnersData.updateTime.toMillis()).toString()));
+        window.localStorage.setItem(this.dataLocalStorageFetchDateKey, JSON.stringify(new Date(this.learnersData.updateTime['_seconds'] * 1000)));
         callback(true);
       }
     });
