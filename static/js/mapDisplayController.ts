@@ -117,8 +117,9 @@ export class MapDisplayController {
    * Fetch learner data
    */
   public fetchData(url: string, callback: (hasData: boolean) => void): void {
-    Helpers.getXHR(url, {}, (data: any | null)=> {
-      if (!data) {
+    Helpers.getXHR(url, {}, (data: any | null) => {
+      if (data && data.hasOwnProperty('campaignData') && data.campaignData.length === 0) {
+        this.learnersData = data;
         callback(false);
       } else {
         this.learnersData = data;
@@ -153,7 +154,7 @@ export class MapDisplayController {
       this.countrySelectElement.innerHTML = '';
       this.countrySelectElement.options[0] = new Option('All Countries',
         this.allCountriesValue);
-      // console.log(this.learnersData);
+      if (!this.learnersData.hasOwnProperty('locationData')) return;
       for (let i: number = 0; i < this.learnersData.locationData.length; i++) {
         const country = this.learnersData.locationData[i].country;
         this.countrySelectElement.options.add(new Option(
@@ -413,7 +414,9 @@ export class MapDisplayController {
    * Check to see if the class is initialized
    */
   public isInitializedAndHasData(): boolean {
-    return this.isSuccessfullyInitialized && this.learnersData;
+    return this.isSuccessfullyInitialized && this.learnersData && 
+      this.learnersData.hasOwnProperty('campaignData') && 
+      this.learnersData.campaignData.length !== 0;
   }
 
   /**

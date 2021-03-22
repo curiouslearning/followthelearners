@@ -98,6 +98,8 @@ export class YourLearnersDisplayController extends MapDisplayController {
 
     const campaignData: any = this.learnersData.campaignData;
 
+    if (!campaignData) return;
+
     for (let i: number = 0; i < campaignData.length; i++) {
       let donation: any = campaignData[i].data;
       if (this.currentCountrySelection === this.allCountriesValue) {

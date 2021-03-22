@@ -31,12 +31,17 @@ export class AuthController {
 
   private methodGoogleValue: string = '';
   private methodFacebookValue: string = '';
+  private methodEmailLinkValue: string = '';
   private errorAccountExists: string = '';
   private errorPopupBlocked: string = '';
-  private infoAuthConfirmText: string = '';
+  private infoAuthGoogleConfirmText: string = '';
+  private infoAuthFacebookConfirmText: string = '';
   private infoPopupBlockedText: string = '';
   private googleAccountLinkedText: string = '';
   private facebookAccountLinkedText: string = '';
+
+  private infoEmailLinkGoogleText: string = '';
+  private infoEmailLinkFacebookText: string = '';
 
   public signInCallback: () => void;
   public signOutCallback: () => void;
@@ -68,12 +73,17 @@ export class AuthController {
 
     this.methodGoogleValue = this.config.authMethodGoogleValue;
     this.methodFacebookValue = this.config.authMethodFacebookValue;
+    this.methodEmailLinkValue = this.config.authMethodEmailLinkValue;
     this.errorAccountExists = this.config.authErrorAccountExists;
     this.errorPopupBlocked = this.config.authErrorPopupBlocked;
-    this.infoAuthConfirmText = this.config.authInfoAuthConfirmText;
+    this.infoAuthGoogleConfirmText = this.config.authInfoAuthGoogleConfirmText;
+    this.infoAuthFacebookConfirmText = this.config.authInfoAuthFacebookConfirmText;
     this.infoPopupBlockedText = this.config.authInfoPopupBlockedText;
     this.googleAccountLinkedText = this.config.authGoogleAccountLinkedText;
     this.facebookAccountLinkedText = this.config.authFacebookAccountLinkedText;
+
+    this.infoEmailLinkGoogleText = this.config.authInfoEmailLinkGoogleText;
+    this.infoEmailLinkFacebookText = this.config.authInfoEmailLinkFacebookText;
       
     const firebaseConfig = {
       apiKey: "AIzaSyDEl20cTMsc72W_TasuK5PlWYIgMrzyuAU",
@@ -97,6 +107,7 @@ export class AuthController {
       }).catch((err: string) => {
         console.error(err);
       });
+
     firebase.auth().onAuthStateChanged((user: firebase.User | null) => {
       // console.log('auth state changed', user);
       if (user != null) {
@@ -143,14 +154,18 @@ export class AuthController {
   public signInWithGoogle(): void {
     const googleAuth = new firebase.auth.GoogleAuthProvider();
     const facebookAuth = new firebase.auth.FacebookAuthProvider();
-    firebase.auth().signInWithPopup(googleAuth).catch((error) => {
+    firebase.auth().signInWithPopup(googleAuth).then((userCred) => {
+      this.email = userCred.user?.email!;
+      this.currentDonorEmail = userCred.user?.email!;
+    }).catch((error) => {
       if (error.code === this.errorAccountExists) {
         let pendingCredential = error.credential;
         let email = error.email;
         firebase.auth().fetchSignInMethodsForEmail(email).then((methods: any) => {
           if (methods.length > 0) {
             if (methods[0] === this.methodFacebookValue) {
-              if (window.confirm(this.infoAuthConfirmText)) {
+              if (window.confirm(this.infoAuthGoogleConfirmText)) {
+                
                 firebase.auth().signInWithPopup(facebookAuth).then((result) => {
                   result.user!.linkWithCredential(pendingCredential).then((usercred) => {
                     window.alert(this.googleAccountLinkedText);
@@ -161,6 +176,9 @@ export class AuthController {
               } else {
                 this.signInWithFacebook();
               }
+            } else if (methods[0] === this.methodEmailLinkValue) {
+              window.alert(this.infoEmailLinkGoogleText);
+              window.localStorage.setItem('gcr', JSON.stringify(pendingCredential));
             }
           }
         });
@@ -173,16 +191,18 @@ export class AuthController {
   public signInWithFacebook(): void {
     const facebookAuth = new firebase.auth.FacebookAuthProvider();
     const googleAuth = new firebase.auth.GoogleAuthProvider();
-    firebase.auth().signInWithPopup(facebookAuth).catch((error) => {
+    firebase.auth().signInWithPopup(facebookAuth).then((userCred) => {
+      this.email = userCred.user?.email!;
+      this.currentDonorEmail = userCred.user?.email!;
+    }).catch((error) => {
       if (error.code === this.errorAccountExists) {
         let pendingCredential = error.credential;
         let email = error.email;
 
         firebase.auth().fetchSignInMethodsForEmail(email).then((methods: any) => {
-          console.log(methods);
           if (methods.length > 0) {
             if (methods[0] === this.methodGoogleValue) {
-              if (window.confirm(this.infoAuthConfirmText)) {
+              if (window.confirm(this.infoAuthFacebookConfirmText)) {
                 firebase.auth().signInWithPopup(googleAuth).then((result) => {
                   result.user!.linkWithCredential(pendingCredential).then((usercred) => {
                     window.alert(this.facebookAccountLinkedText);
@@ -193,6 +213,9 @@ export class AuthController {
               } else {
                 this.signInWithGoogle();
               }
+            } else if (methods[0] === this.methodEmailLinkValue) {
+              window.alert(this.infoEmailLinkFacebookText);
+              window.localStorage.setItem('fbcr', JSON.stringify(pendingCredential));
             }
           }
         });
@@ -234,6 +257,26 @@ export class AuthController {
           this.currentDonorEmail = email!;
           window.localStorage.removeItem('emailForSignIn');
           window.history.replaceState({}, document.title, '/');
+          let googleCred = JSON.parse(window.localStorage.getItem('gcr')!);
+          let fbCred = JSON.parse(window.localStorage.getItem('fbcr')!);
+          if (googleCred) {
+            let googleCredToken = firebase.auth.GoogleAuthProvider.credential(googleCred.oauthAccessToken);
+            result.user!.linkWithCredential(googleCredToken).then((usercred) => {
+                window.alert(this.googleAccountLinkedText);
+                window.localStorage.removeItem('gcr');
+              }).catch((reason) => {
+                console.log('Reason: ', reason);
+              });
+          }
+          if (fbCred) {
+            let fbCredToken = firebase.auth.FacebookAuthProvider.credential(fbCred.oauthAccessToken);
+            result.user!.linkWithCredential(fbCredToken).then((usercred) => {
+                window.alert(this.facebookAccountLinkedText);
+                window.localStorage.removeItem('fbcr');
+              }).catch((reason) => {
+                console.log('Reason: ', reason);
+              });
+          }
           this.refreshToken();
         }).catch((err) => {
           window.localStorage.removeItem('emailForSignIn');

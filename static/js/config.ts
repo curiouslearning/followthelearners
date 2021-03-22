@@ -92,12 +92,16 @@ export class Config {
   public readonly signInButtonIconSignedOutClass: string = "fa-sign-in-alt";
   public readonly authMethodGoogleValue: string = "google.com";
   public readonly authMethodFacebookValue: string = "facebook.com";
+  public readonly authMethodEmailLinkValue: string = "emailLink";
   public readonly authErrorAccountExists: string = "auth/account-exists-with-different-credential";
   public readonly authErrorPopupBlocked: string = "auth/popup-blocked";
-  public readonly authInfoAuthConfirmText: string = "You have already authorized using a Facebook account. Click yes if you\'d like to sign in with Google and link credentials and click cancel if you wish to sign in with a Facebook account.";
+  public readonly authInfoAuthGoogleConfirmText: string = "You have already authorized using a Facebook account. Click yes if you\'d like to sign in with Facebook and link credentials and click cancel if you wish to sign in with a Google account."
+  public readonly authInfoAuthFacebookConfirmText: string = "You have already authorized using a Google account. Click yes if you\'d like to sign in with Google and link credentials and click cancel if you wish to sign in with a Facebook account.";
   public readonly authInfoPopupBlockedText: string = "Please disable popup blocking and retry to authenticate.";
   public readonly authGoogleAccountLinkedText: string = "Your Google account has been successfully linked.";
   public readonly authFacebookAccountLinkedText: string = "Your Facebook account has been successfully linked.";
+  public readonly authInfoEmailLinkGoogleText: string = 'It looks like you have previously signed up using an email link. Please type your email in the form, click "Send Me An E-mail Link" button to request a new sign in link and link your Google account once you authorize.';
+  public readonly authInfoEmailLinkFacebookText: string = 'It looks like you have previously signed up using an email link. Please type your email in the form, click "Send Me An E-mail Link" button to request a new sign in link and link your Facebook account once you authorize.';
 
   /* Sign In Modal */
   public readonly signInModalId: string = '#donor-email-modal';
@@ -121,8 +125,15 @@ export class Config {
   public readonly donateModalId: string = '#donate-modal';
   public readonly donateModalCloseButtonId: string = '#donate-modal-close-button';
   public readonly donateModalOverlayId: string = '#donate-modal-overlay';
+  
+  /* New Donor Modal */
+  public readonly newDonorModalId: string = '#new-donor-modal';
+  public readonly newDonorModalCloseButtonId: string = '#new-donor-modal-close-button';
+  public readonly newDonorModalOverlayId: string = '#new-donor-modal-overlay';
+  public readonly newDonorModalDonateNowButtonId: string = '#new-donor-donate-now-button';
+  public readonly newDonorModalSignOutButtonId: string = '#new-donor-sign-out-button';
 
-    constructor() {
+  constructor() {
 
   }
 

@@ -311,6 +311,19 @@
               <script type='text/javascript' src='//s3.amazonaws.com/downloads.mailchimp.com/js/mc-validate.js'></script><script type='text/javascript'>(function($) {window.fnames = new Array(); window.ftypes = new Array();fnames[0]='EMAIL';ftypes[0]='email';fnames[1]='MMERGE1';ftypes[1]='text';}(jQuery));var $mcj = jQuery.noConflict(true);</script>
 
 
+    .modal#new-donor-modal(style='z-index: 101;')
+      .modal-background#new-donor-modal-overlay
+      .modal-card
+        header.modal-card-head(style='border: none')
+          p.modal-card-title.hast-text-grey-dark.has-text-centered &nbsp;&nbsp;&nbsp;Welcome to Follow the Learners™
+          button.delete#new-donor-modal-close-button(aria-label='close')
+        .modal-card-body.has-text-centered
+          p It appears that you have not made any donations yet.
+          br
+          .container(style="width: 70%; display: flex; align-items: center; justify-content: center; align-content: space-between;")
+            button.button.is-primary#new-donor-donate-now-button(type='button' style='margin-right: 1rem;') Donate Now
+            button.button.is-primary#new-donor-sign-out-button(type='button') Sign Out
+
     .modal#donate-modal(style='z-index: 101;')
       .modal-background#donate-modal-overlay
       .modal-card
