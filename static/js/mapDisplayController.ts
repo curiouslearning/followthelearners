@@ -1,5 +1,4 @@
 import { Helpers } from "./helpers";
-import { } from "googlemaps";
 import { Config } from "./config";
 
 /**
@@ -64,7 +63,7 @@ export class MapDisplayController {
    * InfoWindow.
    */
   public init(): void {
-    this.mapParentElement = this.mapParentId === "" ? null : 
+    this.mapParentElement = this.mapParentId === "" ? null :
       Helpers.getElement(this.mapParentId) as HTMLElement;
     this.learnerCountElement = this.learnerCountId === "" ? null :
       Helpers.getElement(this.learnerCountId) as HTMLElement;
@@ -85,7 +84,7 @@ export class MapDisplayController {
       this.learnerCountElement !== null && this.dntCountElement !== null &&
       this.countrySelectElement !== null && this.resetMapButton !== null &&
       this.panoramaElement !== null;
-    
+
     if (this.isSuccessfullyInitialized) {
       this.map = new google.maps.Map(this.mapParentElement as HTMLElement, {
         streetViewControl: this.streetViewControlFeature,
@@ -94,7 +93,7 @@ export class MapDisplayController {
         maxZoom: this.maxZoomValue,
       });
       this.infoWindow = new google.maps.InfoWindow();
-      this.countrySelectElement?.addEventListener('change', 
+      this.countrySelectElement?.addEventListener('change',
         (event: any) => { this.onCountryValueChange(event); });
       this.resetMapButton?.addEventListener('click', (event: any) => {
         this.countrySelectElement!.value = this.allCountriesValue;
@@ -114,12 +113,13 @@ export class MapDisplayController {
     });
   }
 
-  /** 
-   * Fetch learner data 
+  /**
+   * Fetch learner data
    */
   public fetchData(url: string, callback: (hasData: boolean) => void): void {
-    Helpers.get(url, (data: any | null)=> {
-      if (!data) {
+    Helpers.getXHR(url, {}, (data: any | null) => {
+      if (data && data.hasOwnProperty('campaignData') && data.campaignData.length === 0) {
+        this.learnersData = data;
         callback(false);
       } else {
         this.learnersData = data;
@@ -152,14 +152,14 @@ export class MapDisplayController {
   protected initializeCountrySelect(): void {
     if (this.countrySelectElement && this.countrySelectElement.options.length === 0) {
       this.countrySelectElement.innerHTML = '';
-      this.countrySelectElement.options[0] = new Option('All Countries', 
+      this.countrySelectElement.options[0] = new Option('All Countries',
         this.allCountriesValue);
-      // console.log(this.learnersData);
+      if (!this.learnersData.hasOwnProperty('locationData')) return;
       for (let i: number = 0; i < this.learnersData.locationData.length; i++) {
         const country = this.learnersData.locationData[i].country;
         this.countrySelectElement.options.add(new Option(
           country + ' - ' + this.getTotalLearnerCount(
-            this.learnersData.campaignData, country), 
+            this.learnersData.campaignData, country),
             country)
         );
       }
@@ -182,8 +182,8 @@ export class MapDisplayController {
       this.countrySelectElement.selectedIndex].value;
   }
 
-  /** 
-   * Update the state of the map reset button based on the country value 
+  /**
+   * Update the state of the map reset button based on the country value
    */
   updateResetMapButtonState(): void {
     if (this.currentCountrySelection === this.allCountriesValue) {
@@ -194,7 +194,7 @@ export class MapDisplayController {
   }
 
   /**
-   * Get total learner count for a country in campaign data 
+   * Get total learner count for a country in campaign data
    * @param campaignData Campaign data that we get from the server
    * @param country Chosen country out of campaigns to calculate the total count for
    */
@@ -256,14 +256,14 @@ export class MapDisplayController {
     this.clearMap();
     this.infoWindow!.close();
     let locationData: any = this.learnersData.locationData;
-    
+
     if (this.currentCountrySelection === this.allCountriesValue) {
       for (let key: number = 0; key < locationData!.length; key++) {
         if (locationData[key].country === 'no-country') {
           continue;
         }
         let learnerCount: number = this.getTotalLearnerCount(
-          this.learnersData.campaignData, 
+          this.learnersData.campaignData,
           locationData[key].country);
         this.addNewMarkerOnMap(locationData[key], null, learnerCount);
         this.resetMapView();
@@ -274,7 +274,7 @@ export class MapDisplayController {
       let bounds: google.maps.LatLngBounds = new google.maps.LatLngBounds();
 
       let regions = countryData.regions!;
-      
+
       for (let r: number = 0; r < regions.length; r++) {
         let region = regions[r]!;
         if (region.region! === 'no-region' && regions.length === 1) {
@@ -283,7 +283,7 @@ export class MapDisplayController {
         }
         if (region.region! === 'no-region') continue;
         let learnerCount = this.getRegionLearnerCount(
-          this.learnersData.campaignData, 
+          this.learnersData.campaignData,
           this.currentCountrySelection!, region.region!);
         if (!this.canPlotRegion(region, learnerCount)) continue;
         let marker = this.addNewMarkerOnMap(countryData, region, learnerCount);
@@ -311,11 +311,11 @@ export class MapDisplayController {
    * @param learnerCount Learner count
    */
   canPlotRegion(region: any, learnerCount: number): boolean {
-    return (learnerCount > 0 && region.hasOwnProperty('streetViews') && 
-          region.streetViews.hasOwnProperty('headingValues') && 
+    return (learnerCount > 0 && region.hasOwnProperty('streetViews') &&
+          region.streetViews.hasOwnProperty('headingValues') &&
           region.streetViews.headingValues.length !== 0 &&
           region.streetViews.hasOwnProperty('locations') &&
-          region.streetViews?.locations?.length !== 0) || 
+          region.streetViews?.locations?.length !== 0) ||
           (learnerCount > 0 && region.hasOwnProperty('streetViews') &&
           region.streetViews.locations.length === 0 &&
           region.pin !== undefined && region.pin.lat !== undefined &&
@@ -334,11 +334,11 @@ export class MapDisplayController {
     if (region !== null) {
       pin = !hasStreetViews ?
         new google.maps.LatLng(region.pin.lat, region.pin.lng) :
-        new google.maps.LatLng(region?.streetViews?.locations[0]?._latitude, 
+        new google.maps.LatLng(region?.streetViews?.locations[0]?._latitude,
         region?.streetViews?.locations[0]?._longitude);
     }
     let iconOptions = this.getIconOptions(learnerCount);
-    let newMarker = new google.maps.Marker({position: pin, 
+    let newMarker = new google.maps.Marker({position: pin,
       map: this.map!,
       icon: {url: iconOptions.Url, size: iconOptions.size,
       origin: new google.maps.Point(0, 0),
@@ -353,7 +353,7 @@ export class MapDisplayController {
     newMarker.set('facts', countryData.facts);
     newMarker.set('heading', hasStreetViews ?
       region.streetViews.headingValues[0] : '');
-    
+
     let streetViews = [];
 
     if (hasStreetViews && region.streetViews.locations.length > 1 &&
@@ -385,7 +385,7 @@ export class MapDisplayController {
     return Helpers.getIconOptionsGeneral(learnerCount);
   }
 
-  /** 
+  /**
    * Clears the markers on the map
    */
   clearMap(): void {
@@ -402,11 +402,11 @@ export class MapDisplayController {
    * @param pin Pin
    */
   resetMapView(pin: any | undefined = undefined): void {
-    const center: google.maps.LatLng = pin === undefined ? 
+    const center: google.maps.LatLng = pin === undefined ?
       new google.maps.LatLng(26.3351, 17.228331) :
       new google.maps.LatLng(pin.lat, pin.lng);
     this.map?.setCenter(center);
-    this.map?.setZoom(pin === undefined ? 
+    this.map?.setZoom(pin === undefined ?
       this.zoomFullViewValue : this.zoomCountryViewValue);
   }
 
@@ -414,7 +414,9 @@ export class MapDisplayController {
    * Check to see if the class is initialized
    */
   public isInitializedAndHasData(): boolean {
-    return this.isSuccessfullyInitialized && this.learnersData;
+    return this.isSuccessfullyInitialized && this.learnersData && 
+      this.learnersData.hasOwnProperty('campaignData') && 
+      this.learnersData.campaignData.length !== 0;
   }
 
   /**
@@ -452,9 +454,9 @@ export class MapDisplayController {
 
     let body = this.compileInfoWindowBody(marker);
 
-    
+
     parentDiv.appendChild(body);
-    
+
     if (region === '' || (region !== '' && hasStreetViews)) {
       let buttonsDiv = document.createElement('div') as HTMLDivElement;
       buttonsDiv.style.textAlign = 'center';
@@ -507,7 +509,7 @@ export class MapDisplayController {
       countrySpan.style.fontWeight = 'bold';
       title.appendChild(countrySpan);
     }
-    
+
     return title;
   }
 
@@ -575,4 +577,3 @@ export class MapDisplayController {
     this.infoWindow?.close();
   }
 }
-  

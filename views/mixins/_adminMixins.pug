@@ -1,0 +1,414 @@
+mixin consoleLog(title, content)
+  .card.is-shadowless(style="height: 500px; margin: 5px;")
+    .card-header-is-shadowless(style= "padding: 1px;")
+      h6.card-header-title.is-size-6.is-centered #{title}
+    .card-content(style="height: 85%; padding: 1px; overflow-y: scroll") 
+      p.subtitle.is-size-6.has-text-grey-dark !{content}
+mixin consoleCard(title, data, unit)
+  .card.is-shadowless(style="margin: 5px;")
+    .card-header.is-shadowless(style= "padding: 1px; display: flex; justify-content: center")
+      h6.title.is-size-6.has-text-centered #{title}
+    br
+    .card-content(style="padding: 1px") 
+      h3.title.is-size-3.has-text-grey-dark(style="text-align: center") !{data} !{unit}
+      
+mixin cloud-console(data)
+  .tile.is-ancestor
+    .tile.is-vertical.is-8
+      .tile
+        .tile.is-parent
+          .tile.is-child.box
+            +consoleCard('Avg API Response Time', "1", "sec")
+          .tile.is-child.box
+            +consoleCard('Peak API Response Time', "5", "sec")
+          .tile.is-child.box
+            +consoleCard('Median API Response Time', "3", "sec")
+      .tile
+        .tile.is-parent
+          .tile.is-child.box
+            +consoleCard('Avg Request Load', "0.33", "req/s")
+          .tile.is-child.box
+            +consoleCard('Peak Request Load', "3", "req/s")
+          .tile.is-child.box
+            +consoleCard('Median Request Load', "1", "req/s")
+      .tile.is-parent.is-vertical
+        .box.tile.is-child.box
+          .title Summary
+          .subtitle Here is a general summary of what's going on. You might think this is useless, but consider the following: hello. There. That was interesting information.
+        .tile.is-child.box
+          .is-flex(style="justify-content: center")
+            a.button(href="https://console.cloud.google.com/functions/list?project=follow-the-learners" target="_blank")
+              span Go To Cloud Functions
+              span.is-icon.is-small(style="margin-left: .75rem")
+                i.fas.fa-external-link-alt
+    .tile.is-parent
+      .tile.is-child.box
+        +consoleLog('Logs', 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Quisque semper est quis neque. Sed semper massa quis arcu. Sed faucibus elementum est.\n	In sem sem, bibendum eu, pulvinar vel, volutpat vitae, sem. Aliquam erat volutpat. Donec wisi magna, iaculis sit amet, luctus vitae, porttitor sit amet, neque.\n	Suspendisse quis risus. Phasellus libero. Quisque tincidunt ante ut arcu. Nunc pharetra turpis ut purus. Nullam elit diam, semper ut, cursus at, iaculis vel, dui. Proin scelerisque. Fusce\nhendrerit, ligula eu tincidunt hendrerit, diam elit pharetra urna, vitae euismod dolor orci vel diam. Suspendisse sagittis. Maecenas ultricies tellus vel augue. Proin leo ante, pellentesque sed, volutpat a, iaculis ut, lacus. Phasellus bibendum augue non enim. Maecenas convallis.\n	Morbi pulvinar wisi semper eros. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos hymenaeos. Phasellus non pede. Maecenas varius, ligula semper pretium eleifend, ante nibh pulvinar purus, id ullamcorper est dolor nec nisl. Phasellus iaculis. Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Quisque in lorem. Pellentesque elementum ullamcorper leo.\n	Maecenas tempor massa sed felis. Nulla est. Sed feugiat tristique ipsum. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Integer eros. Donec mi libero, ullamcorper non, gravida ac, tempus nec, neque. Curabitur varius, orci vitae imperdiet faucibus, nisl lacus ullamcorper mi, nec iaculis elit odio vel nunc.\nCras ligula odio, auctor id, pretium vitae, auctor et, lacus. Donec imperdiet. Praesent eleifend enim in leo. Nunc id diam at diam vehicula pulvinar. Nam varius pulvinar purus.\n	Fusce ligula. Nunc dictum lorem id ligula. Nullam sodales.\n	Integer in sem vitae lectus venenatis pulvinar. Phasellus tempor scelerisque odio. Suspendisse hendrerit, turpis vel iaculis euismod, magna augue dignissim wisi, eget dapibus lectus dolor at arcu.\n	In hac habitasse platea dictumst. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Fusce rhoncus justo vel purus. Aenean ligula. Sed fermentum. Nullam nisl.\n	Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Integer consequat. Ut at turpis id nulla dapibus euismod. Cras eu enim. Nunc purus. Fusce adipiscing tellus eget wisi. Sed sem tellus, commodo semper, dapibus sit amet, egestas nec, diam.\n	Vestibulum dapibus mauris vel mi. Proin commodo.\n	Maecenas tempus orci non quam. Nulla placerat mauris ac nisl. Nunc semper sapien sit amet velit pharetra consequat.\n	Mauris lacinia. Quisque elit sapien, tincidunt non, congue quis, viverra et, sapien. In eu wisi.\n	Nulla vehicula. Etiam viverra faucibus dolor. Pellentesque pulvinar nibh in pede. Ut condimentum elit id neque. Aliquam ipsum purus, imperdiet vel, tempus vel, tincidunt nec, libero. Integer convallis porta orci. Praesent ullamcorper tempor odio.\n	Aenean a massa quis justo porta adipiscing. Nullam id ante. Proin vestibulum volutpat nisl. Suspendisse ac urna. Duis semper turpis ac magna tincidunt lobortis. Curabitur est. Nulla eu est at urna vestibulum posuere. Cras imperdiet adipiscing mi.\n	Cras fringilla. Duis vulputate ornare odio. Morbi adipiscing, ante eget tristique adipiscing, dolor tortor pulvinar eros, id molestie massa risus et nulla.\n	Sed tempus euismod nulla. Praesent non nulla sed massa viverra vehicula. Vestibulum imperdiet. Sed tempus sollicitudin leo.\n	Nunc auctor augue eu sapien. Suspendisse gravida, est a ultrices dapibus, risus velit ultricies orci, eget posuere felis sem ut nibh. Phasellus wisi ante, scelerisque in, sollicitudin in, pellentesque eget, risus. Donec vulputate, dolor vel ornare auctor, elit ante lacinia tortor, vel ultricies lorem quam eget lectus. Integer adipiscing. Proin laoreet, mi nec dapibus vulputate, lectus neque rhoncus mi, sed luctus orci lacus semper enim. Integer porttitor. Fusce semper massa vel elit interdum rhoncus. Phasellus eget purus. Pellentesque rutrum. Duis orci. Praesent sed ligula id ante tempor iaculis. Aenean euismod. Morbi facilisis, neque eget pulvinar fermentum, tortor elit facilisis ipsum, a vestibulum magna lorem a arcu.\n')
+mixin server-console(data)
+  .tile.is-ancestor
+    .tile.is-vertical.is-8
+      .tile
+        .tile.is-parent
+          .tile.is-child.box.notification.is-danger
+            .subtitle Test Ping: 501 (50000ms)
+      .tile
+        .tile.is-parent.is-vertical
+          .tile-is-child.box
+            +consoleCard('Avg API Response Time', "1", "sec")
+          .tile.is-child.box
+            +consoleCard('Peak API Response Time', "5", "sec")
+          .tile.is-child.box
+            +consoleCard('Median API Response Time', "3", "sec")
+        .tile.is-parent.is-vertical
+          .tile.is-child.box
+            +consoleCard('Avg Request Load', "0.33", "req/s")
+          .tile.is-child.box
+            +consoleCard('Peak Request Load', "3", "req/s")
+          .tile.is-child.box
+            +consoleCard('Median Request Load', "1", "req/s")
+    .tile.is-parent
+      .tile.is-child.box
+        +consoleLog('Logs', 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Quisque semper est quis neque. Sed semper massa quis arcu. Sed faucibus elementum est.\n	In sem sem, bibendum eu, pulvinar vel, volutpat vitae, sem. Aliquam erat volutpat. Donec wisi magna, iaculis sit amet, luctus vitae, porttitor sit amet, neque.\n	Suspendisse quis risus. Phasellus libero. Quisque tincidunt ante ut arcu. Nunc pharetra turpis ut purus. Nullam elit diam, semper ut, cursus at, iaculis vel, dui. Proin scelerisque. Fusce\nhendrerit, ligula eu tincidunt hendrerit, diam elit pharetra urna, vitae euismod dolor orci vel diam. Suspendisse sagittis. Maecenas ultricies tellus vel augue. Proin leo ante, pellentesque sed, volutpat a, iaculis ut, lacus. Phasellus bibendum augue non enim. Maecenas convallis.\n	Morbi pulvinar wisi semper eros. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos hymenaeos. Phasellus non pede. Maecenas varius, ligula semper pretium eleifend, ante nibh pulvinar purus, id ullamcorper est dolor nec nisl. Phasellus iaculis. Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Quisque in lorem. Pellentesque elementum ullamcorper leo.\n	Maecenas tempor massa sed felis. Nulla est. Sed feugiat tristique ipsum. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Integer eros. Donec mi libero, ullamcorper non, gravida ac, tempus nec, neque. Curabitur varius, orci vitae imperdiet faucibus, nisl lacus ullamcorper mi, nec iaculis elit odio vel nunc.\nCras ligula odio, auctor id, pretium vitae, auctor et, lacus. Donec imperdiet. Praesent eleifend enim in leo. Nunc id diam at diam vehicula pulvinar. Nam varius pulvinar purus.\n	Fusce ligula. Nunc dictum lorem id ligula. Nullam sodales.\n	Integer in sem vitae lectus venenatis pulvinar. Phasellus tempor scelerisque odio. Suspendisse hendrerit, turpis vel iaculis euismod, magna augue dignissim wisi, eget dapibus lectus dolor at arcu.\n	In hac habitasse platea dictumst. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Fusce rhoncus justo vel purus. Aenean ligula. Sed fermentum. Nullam nisl.\n	Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Integer consequat. Ut at turpis id nulla dapibus euismod. Cras eu enim. Nunc purus. Fusce adipiscing tellus eget wisi. Sed sem tellus, commodo semper, dapibus sit amet, egestas nec, diam.\n	Vestibulum dapibus mauris vel mi. Proin commodo.\n	Maecenas tempus orci non quam. Nulla placerat mauris ac nisl. Nunc semper sapien sit amet velit pharetra consequat.\n	Mauris lacinia. Quisque elit sapien, tincidunt non, congue quis, viverra et, sapien. In eu wisi.\n	Nulla vehicula. Etiam viverra faucibus dolor. Pellentesque pulvinar nibh in pede. Ut condimentum elit id neque. Aliquam ipsum purus, imperdiet vel, tempus vel, tincidunt nec, libero. Integer convallis porta orci. Praesent ullamcorper tempor odio.\n	Aenean a massa quis justo porta adipiscing. Nullam id ante. Proin vestibulum volutpat nisl. Suspendisse ac urna. Duis semper turpis ac magna tincidunt lobortis. Curabitur est. Nulla eu est at urna vestibulum posuere. Cras imperdiet adipiscing mi.\n	Cras fringilla. Duis vulputate ornare odio. Morbi adipiscing, ante eget tristique adipiscing, dolor tortor pulvinar eros, id molestie massa risus et nulla.\n	Sed tempus euismod nulla. Praesent non nulla sed massa viverra vehicula. Vestibulum imperdiet. Sed tempus sollicitudin leo.\n	Nunc auctor augue eu sapien. Suspendisse gravida, est a ultrices dapibus, risus velit ultricies orci, eget posuere felis sem ut nibh. Phasellus wisi ante, scelerisque in, sollicitudin in, pellentesque eget, risus. Donec vulputate, dolor vel ornare auctor, elit ante lacinia tortor, vel ultricies lorem quam eget lectus. Integer adipiscing. Proin laoreet, mi nec dapibus vulputate, lectus neque rhoncus mi, sed luctus orci lacus semper enim. Integer porttitor. Fusce semper massa vel elit interdum rhoncus. Phasellus eget purus. Pellentesque rutrum. Duis orci. Praesent sed ligula id ante tempor iaculis. Aenean euismod. Morbi facilisis, neque eget pulvinar fermentum, tortor elit facilisis ipsum, a vestibulum magna lorem a arcu.\n')
+mixin firestore-console(data)
+  .tile.is-ancestor
+    .tile.is-2
+    .tile.is-8.is-vertical
+      .tile
+        .tile.is-parent.is-vertical
+          .tile-is-child.box
+            .is-flex(style="justify-content: center;" )
+              a.button(href="https://console.firebase.google.com/u/0/project/follow-the-learners/firestore/usage/last-24h/reads" target = "_blank")
+                span Open Firestore Usage Panel 
+                span.is-icon.is-small
+                  i.fas.fa-external-link-alt(style="margin-left: .75rem")
+      .tile
+        .tile
+          .tile.is-parent.is-vertical
+            .tile.is-child.box
+              +consoleCard("Cumulative Reads","133", "k")
+            .tile.is-child.box
+              +consoleCard("Cumulative Writes","0", "")
+            .tile.is-child.box
+              +consoleCard("Cumulative Deletes","0", "")
+        .tile
+          .tile.is-parent.is-vertical
+            .tile.is-child.box
+              +consoleCard("Peak Reads (1 minute)","75", "k")
+            .tile.is-child.box
+              +consoleCard("Peak Writes (1 minute)","0", "")
+            .tile.is-child.box
+              +consoleCard("Peak Deletes (1 minute)","0", "")
+mixin stripe-console(data)
+  .tile.is-ancestor
+    .tile.is-parent
+      .tile.is-child.box.notification.is-danger
+        span Last Request: 500 (36000ms)
+        a.button.is-pulled-right(href="https://dashboard.stripe.com/dashboard" target="_blank")
+          span Go To Stripe
+          span.is-icon.is-small
+            i.fas.fa-external-link-alt(style="margin-left: .75rem")
+  .tile.is-ancestor
+    .tile
+      .tile
+        .tile.is-parent.is-vertical
+          .tile.is-child.box
+            +consoleCard("# of Jobs (Last 24 Hours)", 36)
+          .tile.is-child.box
+            +consoleCard("Error Rate", ".028")
+      .tile
+        .tile.is-parent.is-vertical
+          .tile.is-child.box.notification.is-danger
+            +consoleCard("Avg Response Time", "1019.44", "ms")
+          .tile.is-child.box.notification.is-danger
+            +consoleCard("Peak Response Time", "36000", "ms")
+mixin postman-console(data)
+  .tile.is-ancestor
+    .tile.is-vertical.is-4
+      .tile.is-parent
+        .tile.is-child.box
+          .is-flex(style="justify-content: center")
+            a.button(href="https://followthelearners.postman.co/workspaces" target="_blank")
+              span Go To Postman
+              span.is-icon.is-small
+                i.fas.fa-external-link-alt(style="margin-left: .75rem")
+      .tile
+        .tile.is-parent.is-vertical
+          .tile.is-child.box
+            +consoleCard("Requests (Last 24 Hours)", "25")
+          .tile.is-child.box
+            +consoleCard("Error Rate", "0.03")
+    .tile.is-parent
+      .tile-is.child.box
+        .title.has-text-centered Test Results
+        .table-container(style="height: 300; overflow-y: scroll" )
+          table.table.is-bordered.is-striped.is-narrow.is-hoverable
+            thead
+              tr
+                th Endpoint
+                th Result
+                th Response Time
+            tbody
+              tr
+                td
+                  span testname1
+                td
+                  span 200
+                td
+                  span 20ms
+              tr.is-selected
+                td
+                  span testname2
+                td
+                  span 400: bad data supplied!
+                td
+                  span 100ms
+              tr
+                td
+                  span testname3
+                td
+                  span 200
+                td
+                  span 30ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr.is-selected
+                td
+                  span testname2
+                td
+                  span 400: bad data supplied!
+                td
+                  span 100ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+              tr
+                td
+                  span testname4
+                td
+                  span 200
+                td
+                  span 20ms
+mixin cronjob-console(data)
+  .tile.is-ancestor
+    .tile.is-vertical.is-4
+      .tile
+        .tile.is-parent.is-vertical
+          .tile.is-child.box
+            +consoleCard("Learners Ingested (last 24 Hours)", "400")
+          .tile.is-child.box
+            +consoleCard("Learners Assigned (last 24 Hours)", "250")
+          .tile.is-child.box
+            +consoleCard("Donations with 0 Learners", "12")
+    .tile.is-parent
+      .tile.is-child.box
+        span.title Logs
+        .dropdown.is-pulled-right#dropdown-parent
+          .dropdown-trigger
+            button.button(role="button" aria-haspopup="true" aria-controls="dropdown-menu")
+              span Select a Log File
+              span.icon.is-small
+                i.fas.fa-angle-down(aria-hidden="true")
+          .dropdown-menu#dropdown-menu(role="menu")
+            .dropdown-content(onclick="document.getElementById('dropdown-parent').classList.remove('is-active');")
+              a.dropdown-item(href="#") Learner Ingestion
+              a.dropdown-item(href="#") Learner Assignment
+              a.dropdown-item(href="#") Metric Aggregation
+        .subtitle

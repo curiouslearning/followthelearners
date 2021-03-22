@@ -16,6 +16,11 @@ export class Config {
   public readonly mailchimpHamburgerButtonId: string = '#mailchimp-hamburger-button';
   public readonly underTitleSocialIconsId: string = '#under-title-social-icons';
   public readonly hamburgerMenuSocialIconsId: string = '#hamburger-social-icons';
+  public readonly navbarScrollTopValue: number = 20;
+  public readonly navbarMaxHeightLowValue: string = '14vh';
+  public readonly navbarBoxShadowLowValue: string = '2px 2px 8px #808080';
+  public readonly navbarMaxHeightHighValue : string = '17vh';
+  public readonly navbarBoxShadowHighValue: string = '0px 0px 0px #808080';
 
   /* Hamburger Menu */
   public readonly hamburgerMenuClass: string = '.navbar-burger';
@@ -77,7 +82,7 @@ export class Config {
   public readonly alLocalStorageFetchDateKey: string = 'ftl-all-learners-fetch-date';
   public readonly alFetchIntervalInDays: number = 1;
 
-  /* For Auth */
+  /* Auth */
   public readonly tokenTimeout: number = 3600001;
   public readonly signInTextButtonTextId: string = '#sign-in-text';
   public readonly signInButtonIconId: string = "#auth-button-icon";
@@ -85,7 +90,19 @@ export class Config {
   public readonly signInButtonSignedOutTextValue: string = "Sign In";
   public readonly signInButtonIconSignedInClass: string = "fa-sign-out-alt";
   public readonly signInButtonIconSignedOutClass: string = "fa-sign-in-alt";
-  
+  public readonly authMethodGoogleValue: string = "google.com";
+  public readonly authMethodFacebookValue: string = "facebook.com";
+  public readonly authMethodEmailLinkValue: string = "emailLink";
+  public readonly authErrorAccountExists: string = "auth/account-exists-with-different-credential";
+  public readonly authErrorPopupBlocked: string = "auth/popup-blocked";
+  public readonly authInfoAuthGoogleConfirmText: string = "You have already authorized using a Facebook account. Click yes if you\'d like to sign in with Facebook and link credentials and click cancel if you wish to sign in with a Google account."
+  public readonly authInfoAuthFacebookConfirmText: string = "You have already authorized using a Google account. Click yes if you\'d like to sign in with Google and link credentials and click cancel if you wish to sign in with a Facebook account.";
+  public readonly authInfoPopupBlockedText: string = "Please disable popup blocking and retry to authenticate.";
+  public readonly authGoogleAccountLinkedText: string = "Your Google account has been successfully linked.";
+  public readonly authFacebookAccountLinkedText: string = "Your Facebook account has been successfully linked.";
+  public readonly authInfoEmailLinkGoogleText: string = 'It looks like you have previously signed up using an email link. Please type your email in the form, click "Send Me An E-mail Link" button to request a new sign in link and link your Google account once you authorize.';
+  public readonly authInfoEmailLinkFacebookText: string = 'It looks like you have previously signed up using an email link. Please type your email in the form, click "Send Me An E-mail Link" button to request a new sign in link and link your Facebook account once you authorize.';
+
   /* Sign In Modal */
   public readonly signInModalId: string = '#donor-email-modal';
   public readonly signInModalCloseButtonId: string = '#sign-in-modal-close-btn';
@@ -108,9 +125,16 @@ export class Config {
   public readonly donateModalId: string = '#donate-modal';
   public readonly donateModalCloseButtonId: string = '#donate-modal-close-button';
   public readonly donateModalOverlayId: string = '#donate-modal-overlay';
+  
+  /* New Donor Modal */
+  public readonly newDonorModalId: string = '#new-donor-modal';
+  public readonly newDonorModalCloseButtonId: string = '#new-donor-modal-close-button';
+  public readonly newDonorModalOverlayId: string = '#new-donor-modal-overlay';
+  public readonly newDonorModalDonateNowButtonId: string = '#new-donor-donate-now-button';
+  public readonly newDonorModalSignOutButtonId: string = '#new-donor-sign-out-button';
 
   constructor() {
-    
+
   }
 
 }

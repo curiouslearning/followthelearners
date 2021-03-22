@@ -1,11 +1,14 @@
 import { updateLanguageServiceSourceFile } from "typescript";
 import { CountUp } from "countup.js";
-
+interface Header {
+    key: string,
+    val: string
+  }
 /**
  * Module for helper functions
  */
 export abstract class Helpers {
-  
+
   /**
    * Get an element(s) from DOM with either their id or class
    * @param tag A string that contains either an id of an element or a class starting
@@ -46,7 +49,7 @@ export abstract class Helpers {
       console.error(counter.error);
     }
   }
-  
+
   /**
    * Check if a passed keycode is a special character
    * @param keyCode Keycode
@@ -138,23 +141,97 @@ export abstract class Helpers {
     return iconOptions;
   }
 
-  /**
+  public static async get(
+    url: string,
+    options: any
+  ): Promise<any> {
+    url = Helpers.formatQuery(url, options);
+    const response = await fetch(url, {method: 'GET'}).catch((error) => {
+      console.error(error);
+      return {json: {}, error: error, ok: false};
+    });
+    return response;
+  }
+
+  public static async post(
+    url: string,
+    options: any,
+    headers: Array<Header> = []
+  ): Promise<any> {
+    let formattedHeaders: {[index:string]: string}
+      = {'Content-Type': 'application/json'};
+    headers.forEach((header) => {
+      formattedHeaders[header.key] = header.val;
+    });
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: formattedHeaders,
+      body: JSON.stringify(options),
+    }).catch((error) => {
+      console.error(error);
+      return {json: {}, status: error, ok: false};
+    });
+    return response;
+  }
+
+  private static formatQuery(url: string, options: any): string {
+    if (options === {}) {
+      return url;
+    }
+    return url + '?' + Object
+      .keys(options)
+      .map(function (key): string {
+        return key+'='+encodeURIComponent(options[key]);
+      })
+  }
+
+  /** DEPRECATED, use Helpers.get
    * Quivalent of JQuery $.get() with XMLHttpRequest
    * @param url URL
    * @param callback Callback that return data
    */
-  public static async get(url: string, callback: (data: any | null) => void) {
+  public static async getXHR(url: string,
+    options: any,
+    callback: (data: any | null)=> void): Promise<any> {
+      url = Helpers.formatQuery(url, options);
+      const xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = () => {
+        if (xhttp.readyState === 4 && xhttp.status === 200) {
+          callback(JSON.parse(xhttp.responseText));
+        } else if (xhttp.status >= 400) {
+          callback(null);
+        }
+      };
+      xhttp.open('GET', url, true);
+      xhttp.send(null);
+    }
+
+  // DEPRECATED, use Helpers.post
+  public static async postXHR (
+    url: string,
+    options: any,
+    callback: (data: any | null) => void,
+    headers: Array<Header> = []
+  ): Promise<any> {
     const xhttp = new XMLHttpRequest();
+    const body = JSON.stringify (options)
     xhttp.onreadystatechange = () => {
       if (xhttp.readyState === 4 && xhttp.status === 200) {
         callback(JSON.parse(xhttp.responseText));
-      } else if (xhttp.status === 400) {
+      } else if (xhttp.status >= 400) {
         callback(null);
       }
     };
-    xhttp.open('GET', url, true);
-    xhttp.send();
+    xhttp.open('POST', url, true);
+    xhttp.setRequestHeader('Content-Type', 'application/json')
+    if (headers) {
+      headers.forEach((header)=> {
+        xhttp.setRequestHeader(header.key, header.val);
+      });
+    }
+    xhttp.send(body);
+    return new Promise((resolve: any) => {
+      resolve('resolved');
+    });
   }
 }
-
-

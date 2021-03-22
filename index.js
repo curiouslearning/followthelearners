@@ -1,3 +1,4 @@
+const config = require('./appConfig');
 const express = require('express');
 const session = require('express-session');
 const http = require('http');
@@ -11,15 +12,35 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 const webpack = require('webpack');
+const redis = require('redis');
 const CACHETIMEOUT = 720; // the cache timeout in minutes
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
-// TODO: get more info on the cookie secure param
-app.use(session({secret: 'ftl-secret', resave: true, saveUninitialized: true,
-  cookie: {secure: false, maxAge: 10 * 60000}}));
+/** Add redis in-memory store for sessions, express-session memory leak fix */
+const RedisStore = require('connect-redis')(session);
+const redisClient = redis.createClient({
+  port: 6379,
+  host: 'localhost',
+  password: '',
+});
+
+redisClient.on('error', function(error) {
+  console.error(error);
+});
+
+/** When secure is set to true the session can only work through HTTPS,
+ * Set here to false to enable it on localhost too.
+ */
+app.use(session({
+  secret: 'ftl-secret',
+  resave: true,
+  store: new RedisStore({client: redisClient}),
+  saveUninitialized: true,
+  cookie: {secure: false, maxAge: 10 * 60000},
+}));
 
 const firestore = admin.firestore();
 const memcached = new Memcached('127.0.0.1:11211');
@@ -250,18 +271,19 @@ app.post('/getAllCountriesList', function(req, res) {
     querySnapshot.forEach(function(doc) {
       countryNames.push(doc.data().country);
     });
-    res.json({countryNames: countryNames});
+    res.status(200).json({countryNames: countryNames});
   }).catch((err)=>{
     console.error(err);
+    res.status(500).send({error: err});
   });
 });
 
-app.post('/getAllCountryRegions', function(req, res) {
+app.get('/getAllCountryRegions', function(req, res) {
   if (!req.session.loggedin) {
     res.redirect('/admin');
     return;
   }
-  const country = req.body.country;
+  const country = req.query.country;
   const dbRef = firestore.collection('loc_ref').doc(country);
   let regionData = [];
   dbRef.get().then((doc)=>{
@@ -291,13 +313,13 @@ app.post('/getAllCountryRegions', function(req, res) {
   });
 });
 
-app.post('/generateRandomGeoPoints', function(req, res) {
+app.get('/generateRandomGeoPoints', function(req, res) {
   if (!req.session.loggedin) {
     res.redirect('/admin');
   }
-  const country = req.body.country;
-  const radius = req.body.radius * 1.60934; // Convert to metric
-  const svCount = parseFloat(req.body.svCount);
+  const country = req.query.country;
+  const radius = req.query.radius * 1.60934; // Convert to metric
+  const svCount = parseFloat(req.query.svCount);
   const dbRef = firestore.collection('loc_ref').doc(country);
   const svGenData = {};
 
@@ -328,9 +350,10 @@ app.post('/generateRandomGeoPoints', function(req, res) {
           lng: randomPoint.longitude});
       }
     }
-    res.json({streetViewGenData: svGenData});
+    res.status(200).send({streetViewGenData: svGenData});
   }).catch((err)=>{
     console.error(err);
+    res.status(500).send({err: err});
   });
 
   // console.log('https://maps.google.com/maps/search/' + randomPoint.latitude + ',' + randomPoint.longitude);
@@ -402,13 +425,20 @@ app.get('/getDonorCampaigns', function(req, res) {
       res.render('summary');
     }
     const donations = [];
+    let mostRecentUpdate = -1;
     snapshot.forEach((doc) => {
       donations.push(doc.data);
+      if (mostRecentUpdate === -1 || mostRecentUpdate < doc.updateTime) {
+        mostRecentUpdate = doc.updateTime;
+      }
     });
-    return donations;
+    return {donations: donations, updateTime: mostRecentUpdate};
   }).then((donations)=>{
     // res.render('summary', {campaigns: donations});
-    res.json({campaigns: donations});
+    res.json({
+      campaigns: donations.donations,
+      updateTime: donations.updateTime,
+    });
   }).catch((err)=>{
     console.error(err);
   });
@@ -429,7 +459,15 @@ app.get('/isUser', function(req, res) {
 
 app.get('/yourLearners', function(req, res) {
   let donorID = '';
-  admin.auth().verifyIdToken(req.query.token).then((decodedToken)=>{
+  let token = req.query.token;
+  if (token) {
+    token = token.trim();
+    if (token[token.length - 1] === '?') {
+      // Remove the trailing question mark if it exists
+      token = token.slice(0, -1);
+    }
+  }
+  admin.auth().verifyIdToken(token).then((decodedToken)=>{
     return decodedToken.uid;
   }).then((uid)=>{
     return getDonations(uid);
@@ -437,7 +475,11 @@ app.get('/yourLearners', function(req, res) {
     if (donations !== undefined) {
       const promises = [];
       let locationData = [];
+      let mostRecentUpdate = -1;
       donations.forEach((donation) => {
+        if (mostRecentUpdate === -1 || mostRecentUpdate < donation.updateTime) {
+          mostRecentUpdate = doc.updateTime;
+        }
         donation.data.countries.forEach((country)=>{
           let objIndex = findObjectIndexWithProperty(
               locationData, 'country', country.country);
@@ -449,7 +491,11 @@ app.get('/yourLearners', function(req, res) {
       });
       Promise.all(promises).then((values) => {
         locationData = values.filter((value)=> value !== undefined);
-        res.json({campaignData: donations, locationData: locationData});
+        res.json({
+          campaignData: donations,
+          locationData: locationData,
+          updateTime: mostRecentUpdate,
+        });
       });
     } else {
       res.json({err: 'Oops! We couldn\'t find that email in our database. If you\'d like to make an account with us, make a donation!\n If you\'ve already made an account and cannot access your learners, please email followthelearners@curiouslearning.org. '});
@@ -490,10 +536,12 @@ app.get('/allLearners', async function(req, res) {
     });
     resData.campaignData.filter((country) => country != undefined);
     resData.locationData.filter((country) => country != undefined);
-    resData['masterCounts'] = await firestore.collection('aggregate_data')
+    const masterData = await firestore.collection('aggregate_data')
         .doc('data').get().then((doc)=>{
-          return doc.data();
+          return doc;
         });
+    resData['masterCounts'] = masterData.data();
+    resData['updateTime'] = masterData.updateTime;
     res.json({data: resData});
   }).catch((err)=>{
     console.error(err);
@@ -525,8 +573,38 @@ app.get('*', function(req, res) {
   res.render('404');
 });
 
-app.listen(3000);
+/**
+ * Check if the NODE_ENV is set to production
+ * @return {Boolean} Is production env or not
+ */
+function isProductionEnv() {
+  return process.env.NODE_ENV === 'production';
+}
 
+/**
+ * Configures app local variables that persist until the app is shutdown &
+ * can be used in Pug templates.
+ */
+function configureAppLocals() {
+  if (isProductionEnv()) {
+    app.locals.URLs = {
+      hotJarScriptPath: config.prod.hotJarScriptPath,
+    };
+  } else {
+    app.locals.URLs = {
+      hotJarScriptPath: config.dev.hotJarScriptPath,
+    };
+  }
+}
+
+/** Call this before app.listen to configure app locals for templates */
+configureAppLocals();
+
+/** Set the prod or dev port based on the NODE_ENV */
+const appPort = isProductionEnv() ? config.prod.port : config.dev.port;
+
+/** Listen to requests on appPort */
+app.listen(appPort);
 
 function validateEmail(email) {
   if (email === null || email === undefined) return false;
@@ -581,15 +659,15 @@ function compileLearnerDataForCountry(country) {
       console.log('country has no learners!');
       return undefined;
     }
-    const data = doc.data();
-    return extractLearnerDataForCountry(data);
+    return extractLearnerDataForCountry(doc);
   }).catch((err)=>{
     console.error(err);
   });
 }
 
-function extractLearnerDataForCountry(data) {
+function extractLearnerDataForCountry(doc) {
   const filteredRegions =[];
+  const data = doc;
   data.regions.forEach((region)=>{
     if (region.hasOwnProperty('learnerCount') && region.learnerCount > 0) {
       filteredRegions.push({
@@ -599,6 +677,7 @@ function extractLearnerDataForCountry(data) {
     }
   });
   return {
+    updateTime: doc.updateTime,
     country: data.country,
     learnerCount: data.learnerCount,
     regions: filteredRegions,
@@ -612,27 +691,28 @@ function compileLocationDataForCountry(country) {
       console.log('no country level document exists for ', country);
       return undefined;
     }
-    const data = doc.data();
-    return extractLocationDataFromCountryDoc(data);
+    return extractLocationDataFromCountryDoc(doc);
   }).catch((err)=>{
     console.error(err);
   });
 }
 
-function extractLocationDataFromCountryDoc(data) {
+function extractLocationDataFromCountryDoc(doc) {
   const filteredRegions = [];
+  const data = doc;
   data.regions.forEach((region)=>{
     if (region.hasOwnProperty('learnerCount') &&
       region.hasOwnProperty('streetViews')) {
       filteredRegions.push({
         country: data.country,
         region: region.region,
-        pin: region.pin === undefined ? { lat: 0, lng: 0 } : region.pin,
+        pin: region.pin === undefined ? {lat: 0, lng: 0} : region.pin,
         streetViews: region.streetViews,
       });
     }
   });
   return {
+    updateTime: doc.updateTime,
     country: data.country,
     pin: data.pin,
     facts: data.facts,
@@ -673,7 +753,7 @@ function getDonations(donorID) {
       const data = doc.data();
       data.startDate = dateFormat.asString('MM / dd / yyyy',
           data.startDate.toDate());
-      donations.push({name: doc.id, data: data});
+      donations.push({name: doc.id, data: data, updateTime: doc.updateTime});
     });
     return donations;
   }).catch((err)=>{
