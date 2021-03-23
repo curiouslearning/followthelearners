@@ -478,8 +478,9 @@ app.get('/yourLearners', function(req, res) {
       let mostRecentUpdate = -1;
       donations.forEach((donation) => {
         if (mostRecentUpdate === -1 || mostRecentUpdate < donation.updateTime) {
-          mostRecentUpdate = doc.updateTime;
+          mostRecentUpdate = donation.updateTime;
         }
+        console.log('DATA: ', donation.data);
         donation.data.countries.forEach((country)=>{
           let objIndex = findObjectIndexWithProperty(
               locationData, 'country', country.country);
@@ -691,7 +692,7 @@ function compileLocationDataForCountry(country) {
       console.log('no country level document exists for ', country);
       return undefined;
     }
-    return extractLocationDataFromCountryDoc(doc);
+    return extractLocationDataFromCountryDoc(doc.data());
   }).catch((err)=>{
     console.error(err);
   });
