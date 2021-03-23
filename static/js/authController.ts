@@ -293,6 +293,7 @@ export class AuthController {
    */
   public signOut(): void {
     firebase.auth().signOut();
+    window.localStorage.removeItem('emailForSignIn');
   }
 
   /**
