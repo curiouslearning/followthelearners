@@ -1,0 +1,31 @@
+html
+  include mixins/_campaign
+  include mixins/_adminMixins
+  head
+    meta(charset='UTF-8')
+    meta(name="viewport" content='width=device-width, initial-scale=1.0')
+    link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css')
+    link(rel='stylesheet', href='/static/css/bulma-tooltip.min.css')
+    link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.0.0/animate.min.css")
+    link(rel="shortcut icon" type="image/jpg" href="/static/imgs/appicon.ico")
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.8.6/showdown.min.js")
+    script(src="https://kit.fontawesome.com/89be96593a.js" crossorigin="anonymous")
+    script(
+        src="https://code.jquery.com/jquery-3.5.0.min.js"
+        integrity="sha256-xNzN2a4ltkB44Mc/Jz3pT4iU1cmeR0FkXs4pru/JxaQ="
+        crossorigin="anonymous")
+  body
+    br
+    h1.title.has-text-centered.has-text-grey-dark Follow The Learners™ Dashboard
+    sections#tabs-parent
+      .section#dashboard-metrics
+        .columns
+          .column.is-one-fifth
+          .column
+            iframe#dash-ingestion-iframe(width="1000" height="800" src="https://datastudio.google.com/embed/reporting/7db6d407-ef59-45e7-a73a-6e64503131c1/page/zKzyB" frameborder="0" style="border:0" allowfullscreen)
+            iframe#dash-donation-iframe(width="1000" height="800" src="https://datastudio.google.com/embed/reporting/3d33bcaf-bedc-468d-9c80-f301c2bb656a/page/iA0yB" frameborder="0" style="border:0" allowfullscreen)
+            iframe#dash-assignment-iframe(width="1000" height="800" src="https://datastudio.google.com/embed/reporting/9defc2a0-2817-446d-b0a7-6edde81f66d6/page/nzEzB" frameborder="0" style="border:0" allowfullscreen)
+      
+    script(src='https://unpkg.com/bulma-toast')
+    script(src='/static/js/public/dashboard.bundle.js')
+    
