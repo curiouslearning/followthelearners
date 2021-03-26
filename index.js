@@ -237,6 +237,10 @@ app.get('/admin', function(req, res) {
   }
 });
 
+app.get('/dashboard', function(req, res) {
+  res.render('dashboard');
+});
+
 app.post('/auth', function(req, res) {
   const username = req.body.username;
   const password = req.body.password;

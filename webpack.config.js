@@ -4,6 +4,7 @@ module.exports = {
   entry: {
     index: './static/js/index.ts',
     admin: './static/js/admin/admin.ts',
+    dashboard: './static/js/admin/dashboard.ts',
   },
   module: {
     rules: [
