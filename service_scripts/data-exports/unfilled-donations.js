@@ -62,7 +62,6 @@ async function loadIntoBigQuery(filename) {
     writeDisposition: 'WRITE_APPEND',
     sourceFormat: 'NEWLINE_DELIMITED_JSON',
     schemaUpdateOption: 'ALLOW_FIELD_ADDITION',
-    destinationTable: table,
   };
   await table.load('./' + filename, metadata, (err, res) => {
     if (err) throw err;
