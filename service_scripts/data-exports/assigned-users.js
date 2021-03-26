@@ -74,14 +74,14 @@ exports.formatRawAssignmentData = (rawData) => {
     docFields.assignedOn = this.getDateString(docFields.assignedOn);
     docFields.dateCreated = this.getDateString(docFields.dateCreated);
     docFields.dateIngested = this.getDateString(docFields.dateIngested);
-    if (docFields.countedInCampaign) {
-      delete docFields.countedInCampaign;
+    if (!lodash.isNil(docFields['countedInCampaign'])) {
+      delete docFields['countedInCampaign'];
     }
-    if (docFields.countedInMasterCount) {
-      delete docFields.countedInMasterCount;
+    if (!lodash.isNil(docFields['countedInMasterCount'])) {
+      delete docFields['countedInMasterCount'];
     }
-    if (docFields.countedInRegion) {
-      delete docFields.countedInRegion;
+    if (!lodash.isNil(docFields['countedInRegion'])) {
+      delete docFields['countedInRegion'];
     }
     dataString += JSON.stringify(docFields) + '\n';
   });

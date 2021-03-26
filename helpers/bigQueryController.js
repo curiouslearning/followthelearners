@@ -4,13 +4,17 @@ exports.loadIntoBigQuery = async (filename, tableName) => {
   const bigQueryClient = new BigQuery();
   const dataset = bigQueryClient.dataset('ftl_dataset');
   const table = dataset.table(tableName);
+  if (!await dataset.exists) {
+    console.error(`missing dataset: ${dataset}`);
+  } else if (!await table.exists) {
+    console.error(`missing table: ${table}`);
+  }
   const metadata = {
     encoding: 'UTF-8',
     createDisposition: 'CREATE_IF_NEEDED',
     writeDisposition: 'WRITE_APPEND',
     sourceFormat: 'NEWLINE_DELIMITED_JSON',
     schemaUpdateOption: 'ALLOW_FIELD_ADDITION',
-    destinationTable: table,
   };
   return await table.load('./' + filename, metadata).then((res) => {
     console.log('Successfully uploaded to BigQuery');
