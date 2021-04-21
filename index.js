@@ -2,6 +2,8 @@ const config = require('./appConfig');
 const express = require('express');
 const session = require('express-session');
 const http = require('http');
+const url = require('url');
+const querystring = require('querystring');
 const Memcached = require('memcached');
 const admin = require('firebase-admin');
 const serviceAccount = require('./keys/firestore-key.json');
@@ -573,6 +575,24 @@ function getAggregateValue(aggregateKey) {
     return snapshot.data()[aggregateKey];
   });
 }
+
+app.get('/redirect*', function(req, res) {
+  try {
+    let queryParams = req.query;
+    if (queryParams['fbclid']) { // utm_* params are auto-logged by Firebase
+      queryParams['utm_aclid'] = queryParams['fbclid'];
+      delete (queryParams['fbclid']);
+    }
+    res.redirect(url.format({
+      pathname: 'https://play.google.com/store/apps/details',
+      query: queryParams,
+    }));
+  } catch (e) {
+    console.error('redirect failed with error:');
+    console.log(e);
+    res.render('404');
+  }
+});
 
 app.get('*', function(req, res) {
   res.render('404');

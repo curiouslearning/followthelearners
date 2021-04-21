@@ -5,7 +5,7 @@ const donation = require('./donation-metrics');
 
 async function main() {
   try {
-    const interval = 0;
+    const interval = 1;
     await assigned.exportAssignedUsersToBigQuery(interval);
     await donation.exportDonationMetrics(interval);
     await donation.exportUnfilledDonations(interval);
