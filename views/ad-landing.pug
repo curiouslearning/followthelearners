@@ -1,0 +1,24 @@
+html
+  head
+    link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.css')
+    script(src='/static/js/third/third/hj.js')
+  body
+      sections
+        .section
+          .columns
+            .column.is-one-fifth
+            .column.box.has-text-centered
+                  .title.is-2
+                    span Thank you for your interest in Feed The Monster! 
+                  img(src="https://images.squarespace-cdn.com/content/57ac8d30d1758ee63faab8a7/1619195459351-S0D8ZZ2S6Z03V5VCU9Z9/ftm_push_notification_icon.jpg", alt="Feed The Monster")
+                  .title.is-3
+                    span Click 
+                    a(href=redirectUrl) here 
+                    span to be redirected to your app download page.
+                  break
+                  p
+                    span (Or, copy and paste this url into your browser: 
+                    a(href=redirectUrl) #{redirectUrl}
+                    span )
+            .column.is-one-fifth
+      

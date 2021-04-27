@@ -22,16 +22,16 @@ admin.initializeApp({
 });
 
 /** Add redis in-memory store for sessions, express-session memory leak fix */
-const RedisStore = require('connect-redis')(session);
-const redisClient = redis.createClient({
-  port: 6379,
-  host: 'localhost',
-  password: '',
-});
+// const RedisStore = require('connect-redis')(session);
+// const redisClient = redis.createClient({
+//   port: 6379,
+//   host: 'localhost',
+//   password: '',
+// });
 
-redisClient.on('error', function(error) {
-  console.error(error);
-});
+// redisClient.on('error', function(error) {
+//   console.error(error);
+// });
 
 /** When secure is set to true the session can only work through HTTPS,
  * Set here to false to enable it on localhost too.
@@ -39,7 +39,7 @@ redisClient.on('error', function(error) {
 app.use(session({
   secret: 'ftl-secret',
   resave: true,
-  store: new RedisStore({client: redisClient}),
+  // store: new RedisStore({client: redisClient}),
   saveUninitialized: true,
   cookie: {secure: false, maxAge: 10 * 60000},
 }));
@@ -583,10 +583,15 @@ app.get('/redirect*', function(req, res) {
       queryParams['utm_aclid'] = queryParams['fbclid'];
       delete (queryParams['fbclid']);
     }
-    res.redirect(url.format({
+    res.render('ad-landing', {redirectUrl: url.format({
       pathname: 'https://play.google.com/store/apps/details',
       query: queryParams,
-    }));
+    }),
+    });
+    // res.redirect(url.format({
+    //   pathname: 'https://play.google.com/store/apps/details',
+    //   query: queryParams,
+    // }));
   } catch (e) {
     console.error('redirect failed with error:');
     console.log(e);
